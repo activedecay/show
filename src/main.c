@@ -152,10 +152,10 @@ main(int argc, char *argv[]) {
       0x0000ff33,
   };
   int color = 0;
+  u32 frame_delay = 16;
   while (!quit) {
     while (SDL_PollEvent(&event)) {
       switch((SDL_EventType) event.type) {
-        default:break;
         case SDL_FIRSTEVENT:break;
         case SDL_QUIT: {
           quit = true;
@@ -169,25 +169,48 @@ main(int argc, char *argv[]) {
         case SDL_APP_DIDENTERFOREGROUND:break;
         case SDL_SYSWMEVENT:break;
         case SDL_WINDOWEVENT: {
-          if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-            w = event.window.data1;
-            h = event.window.data2;
-            pitch = w * 4;
-            size = (size_t) w * h;
-            len = size * 4;
-            munmap(pixels, len);
-            SDL_DestroyTexture(stream);
-            stream = SDL_CreateTexture(renderer,
-                                       SDL_PIXELFORMAT_RGBA8888,
-                                       SDL_TEXTUREACCESS_STREAMING,
-                                       w,
-                                       h);
-            SDL_SetTextureBlendMode(stream, SDL_BLENDMODE_BLEND);
-            pixels = mmap(0, len, PROT_READ | PROT_WRITE,
-                          MAP_PRIVATE | MAP_ANONYMOUS,
-                          -1, 0);
-          } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-          } else if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
+          switch((SDL_WindowEventID) event.window.event) {
+            case SDL_WINDOWEVENT_NONE:break;
+            case SDL_WINDOWEVENT_SHOWN:break;
+            case SDL_WINDOWEVENT_HIDDEN:break;
+            case SDL_WINDOWEVENT_EXPOSED:break;
+            case SDL_WINDOWEVENT_MOVED:break;
+            case SDL_WINDOWEVENT_RESIZED:break;
+            case SDL_WINDOWEVENT_SIZE_CHANGED: {
+              w = event.window.data1;
+              h = event.window.data2;
+              pitch = w * 4;
+              size = (size_t) w * h;
+              len = size * 4;
+              munmap(pixels, len);
+              SDL_DestroyTexture(stream);
+              stream = SDL_CreateTexture(renderer,
+                                         SDL_PIXELFORMAT_RGBA8888,
+                                         SDL_TEXTUREACCESS_STREAMING,
+                                         w,
+                                         h);
+              SDL_SetTextureBlendMode(stream, SDL_BLENDMODE_BLEND);
+              pixels = mmap(0, len, PROT_READ | PROT_WRITE,
+                            MAP_PRIVATE | MAP_ANONYMOUS,
+                            -1, 0);
+              break;
+            }
+            case SDL_WINDOWEVENT_MINIMIZED:break;
+            case SDL_WINDOWEVENT_MAXIMIZED:break;
+            case SDL_WINDOWEVENT_RESTORED:break;
+            case SDL_WINDOWEVENT_ENTER:break;
+            case SDL_WINDOWEVENT_LEAVE:break;
+            case SDL_WINDOWEVENT_FOCUS_GAINED:{
+              frame_delay = 16;
+              break;
+            }
+            case SDL_WINDOWEVENT_FOCUS_LOST: {
+              frame_delay = 1000;
+              break;
+            }
+            case SDL_WINDOWEVENT_CLOSE:break;
+            case SDL_WINDOWEVENT_TAKE_FOCUS:break;
+            case SDL_WINDOWEVENT_HIT_TEST:break;
           }
           reinitializeTexture = true;
           color = (color + 1) % 6;
@@ -280,8 +303,8 @@ main(int argc, char *argv[]) {
     word_dest.x += (mouse_x - word_dest.x) / 5;
     word_dest.y += (mouse_y - word_dest.y) / 5;
     SDL_RenderCopy(renderer, words, 0, &word_dest);
-
     SDL_RenderPresent(renderer);
+    SDL_Delay(frame_delay);
   }
   munmap(pixels, len);
   TTF_CloseFont(font);

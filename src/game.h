@@ -72,19 +72,20 @@
 #define GRAY    "\e[37m"
 #define RESET   "\e[39m"
 
-typedef struct linkedlist {
+typedef struct {
     struct linkedlist *next;
     void *val;
 } linkedlist;
 
-typedef struct name {
-    size_t length;
-    char chars[];
-} name;
+typedef struct {
+    char *text;
+    int x, y;
+} text_item;
 
-typedef struct slide {
+typedef struct {
     int id;
-    name *name;
+    u32 bg_color;
+    text_item **items;
 } slide;
 
 typedef struct game_state {
