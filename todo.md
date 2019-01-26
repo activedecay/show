@@ -19,3 +19,23 @@ drawing on the slides
 big cursor? audience viewing conditions use case
 videos
 hyperlinks
+drag and drop show.md files
+
+# notes
+
+# dead code
+
+    switch(SDL_EventType)
+        case SDL_DROPFILE:break;
+        case SDL_DROPTEXT:break;
+        case SDL_DROPBEGIN:break;
+        case SDL_DROPCOMPLETE:break;
+
+    switch(hmm..)
+        case SDL_TEXTEDITING:break;
+        case SDL_TEXTINPUT:break;
+
+    SDL_GetRelativeMouseMode();
+    good way to wrote a fps shooter
+    SDL_ShowCursor(false);
+    SDL_SetRelativeMouseMode(true);

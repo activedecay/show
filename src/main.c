@@ -16,7 +16,7 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#include "game.h"
+#include "show.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
@@ -61,14 +61,6 @@ select_bmp_files(const struct dirent *d) {
   return strstr(d->d_name, ".bmp") != 0;
 }
 
-char *
-rand_img(void) {
-  struct dirent **namelist = 0;
-  int count = scandir(res_dir, &namelist, select_bmp_files, 0);
-  srand((unsigned int) time(0));
-  return namelist[rand() % count]->d_name;
-}
-
 void quit(void) {
   SDL_Quit();
   TTF_Quit();
@@ -86,7 +78,7 @@ main(int argc, char *argv[]) {
   SDL_Texture *words = 0;
   SDL_Surface *cursor_surface = 0;
   SDL_Cursor *cursor = 0;
-  SDL_Event event = {};
+  SDL_Event event;
 
   bool quit = false;
   bool reinitializeTexture = true;
@@ -156,26 +148,15 @@ main(int argc, char *argv[]) {
   while (!quit) {
     while (SDL_PollEvent(&event)) {
       switch((SDL_EventType) event.type) {
-        case SDL_FIRSTEVENT:break;
+        default:break;
         case SDL_QUIT: {
+          frame_delay = 0;
           quit = true;
           break;
         }
-        case SDL_APP_TERMINATING:break;
-        case SDL_APP_LOWMEMORY:break;
-        case SDL_APP_WILLENTERBACKGROUND:break;
-        case SDL_APP_DIDENTERBACKGROUND:break;
-        case SDL_APP_WILLENTERFOREGROUND:break;
-        case SDL_APP_DIDENTERFOREGROUND:break;
-        case SDL_SYSWMEVENT:break;
         case SDL_WINDOWEVENT: {
           switch((SDL_WindowEventID) event.window.event) {
-            case SDL_WINDOWEVENT_NONE:break;
-            case SDL_WINDOWEVENT_SHOWN:break;
-            case SDL_WINDOWEVENT_HIDDEN:break;
-            case SDL_WINDOWEVENT_EXPOSED:break;
-            case SDL_WINDOWEVENT_MOVED:break;
-            case SDL_WINDOWEVENT_RESIZED:break;
+            default:break;
             case SDL_WINDOWEVENT_SIZE_CHANGED: {
               w = event.window.data1;
               h = event.window.data2;
@@ -195,22 +176,16 @@ main(int argc, char *argv[]) {
                             -1, 0);
               break;
             }
-            case SDL_WINDOWEVENT_MINIMIZED:break;
-            case SDL_WINDOWEVENT_MAXIMIZED:break;
-            case SDL_WINDOWEVENT_RESTORED:break;
-            case SDL_WINDOWEVENT_ENTER:break;
-            case SDL_WINDOWEVENT_LEAVE:break;
-            case SDL_WINDOWEVENT_FOCUS_GAINED:{
+            case SDL_WINDOWEVENT_ENTER:
+            case SDL_WINDOWEVENT_FOCUS_GAINED: {
               frame_delay = 16;
               break;
             }
+            case SDL_WINDOWEVENT_LEAVE:
             case SDL_WINDOWEVENT_FOCUS_LOST: {
-              frame_delay = 1000;
+              frame_delay = 200;
               break;
             }
-            case SDL_WINDOWEVENT_CLOSE:break;
-            case SDL_WINDOWEVENT_TAKE_FOCUS:break;
-            case SDL_WINDOWEVENT_HIT_TEST:break;
           }
           reinitializeTexture = true;
           color = (color + 1) % 6;
@@ -232,53 +207,12 @@ main(int argc, char *argv[]) {
           color = (color + 1) % 6;
           break;
         }
-        case SDL_KEYUP:break;
-        case SDL_TEXTEDITING:break;
-        case SDL_TEXTINPUT:break;
-        case SDL_KEYMAPCHANGED:break;
-        case SDL_MOUSEMOTION:break;
-        case SDL_MOUSEBUTTONDOWN:break;
-        case SDL_MOUSEBUTTONUP:break;
         case SDL_MOUSEWHEEL: {
-          // SDL_GetRelativeMouseMode();
-          // good way to wrote a fps shooter
-          // SDL_ShowCursor(false);
-          // SDL_SetRelativeMouseMode(true);
           SDL_WarpMouseInWindow(window, 10, 10);
           reinitializeTexture = true;
           color = (color + 1) % 6;
           break;
         }
-        case SDL_JOYAXISMOTION:break;
-        case SDL_JOYBALLMOTION:break;
-        case SDL_JOYHATMOTION:break;
-        case SDL_JOYBUTTONDOWN:break;
-        case SDL_JOYBUTTONUP:break;
-        case SDL_JOYDEVICEADDED:break;
-        case SDL_JOYDEVICEREMOVED:break;
-        case SDL_CONTROLLERAXISMOTION:break;
-        case SDL_CONTROLLERBUTTONDOWN:break;
-        case SDL_CONTROLLERBUTTONUP:break;
-        case SDL_CONTROLLERDEVICEADDED:break;
-        case SDL_CONTROLLERDEVICEREMOVED:break;
-        case SDL_CONTROLLERDEVICEREMAPPED:break;
-        case SDL_FINGERDOWN:break;
-        case SDL_FINGERUP:break;
-        case SDL_FINGERMOTION:break;
-        case SDL_DOLLARGESTURE:break;
-        case SDL_DOLLARRECORD:break;
-        case SDL_MULTIGESTURE:break;
-        case SDL_CLIPBOARDUPDATE:break;
-        case SDL_DROPFILE:break;
-        case SDL_DROPTEXT:break;
-        case SDL_DROPBEGIN:break;
-        case SDL_DROPCOMPLETE:break;
-        case SDL_AUDIODEVICEADDED:break;
-        case SDL_AUDIODEVICEREMOVED:break;
-        case SDL_RENDER_TARGETS_RESET:break;
-        case SDL_RENDER_DEVICE_RESET:break;
-        case SDL_USEREVENT:break;
-        case SDL_LASTEVENT:break;
       }
     }
 
@@ -321,4 +255,5 @@ main(int argc, char *argv[]) {
   return EXIT_SUCCESS;
 }
 
+#pragma clang diagnostic pop
 #pragma clang diagnostic pop

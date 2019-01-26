@@ -3,9 +3,9 @@ project(show C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_library(game SHARED src/game.c src/game.h)
+add_library(slider SHARED src/show.c src/show.h)
 set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
-install(TARGETS game DESTINATION lib)
+install(TARGETS slider DESTINATION lib)
 
 link_directories(./lib)
 add_executable(show src/main.c)

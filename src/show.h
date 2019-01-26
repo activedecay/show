@@ -7,8 +7,8 @@
 #pragma ide diagnostic ignored "OCUnusedMacroInspection"
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 
-#ifndef SPEED_GAME_H
-#define SPEED_GAME_H
+#ifndef slideshow_h
+#define slideshow_h
 
 #include <stdio.h>
 #include <string.h>
@@ -77,26 +77,30 @@ typedef struct {
     void *val;
 } linkedlist;
 
+/* slide show */
+
+typedef enum {text_slide} item_type;
+
 typedef struct {
-    char *text;
-    int x, y;
+    item_type type;
+    int y;
+    int line_cnt;
+    char *text_lines[];
 } text_item;
 
 typedef struct {
     int id;
     u32 bg_color;
-    text_item **items;
+    void **items;
 } slide;
 
-typedef struct game_state {
-    int turn;
-    int phase;
-    int being_cnt;
+typedef struct {
+    int count;
     slide *slides[];
-} game_state;
+} slide_show;
 
 static char *const res_dir = "./res/";
 
-#endif //SPEED_GAME_H
+#endif //slideshow_h
 
 #pragma clang diagnostic pop
