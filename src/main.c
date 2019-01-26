@@ -127,7 +127,7 @@ main(int argc, char *argv[]) {
   if ((cursor = SDL_CreateColorCursor(cursor_surface, 5, 7)) == 0) die("cursor nope'd");
   SDL_FreeSurface(cursor_surface);
   SDL_SetCursor(cursor);
-  SDL_Cursor* cursors[SDL_NUM_SYSTEM_CURSORS];
+  SDL_Cursor *cursors[SDL_NUM_SYSTEM_CURSORS];
   for (int i = 0; i < SDL_NUM_SYSTEM_CURSORS; ++i) {
     cursors[i] = SDL_CreateSystemCursor(i);
   }
@@ -142,54 +142,116 @@ main(int argc, char *argv[]) {
   SDL_Rect word_dest;
   word_dest.x = 10;
   word_dest.y = 10;
-  u32 format;
-  SDL_QueryTexture(words, &format, NULL, &word_dest.w, &word_dest.h);
-
-  uint32_t color = 0x0000ff33;
-
+  SDL_QueryTexture(words, 0, 0, &word_dest.w, &word_dest.h);
+  u32 colors[] = {
+      0xffff0033,
+      0x00ffff33,
+      0xff00ff33,
+      0xff000033,
+      0x00ff0033,
+      0x0000ff33,
+  };
+  int color = 0;
   while (!quit) {
     while (SDL_PollEvent(&event)) {
-      if (event.type == SDL_QUIT) quit = true;
-      if (event.type == SDL_WINDOWEVENT) {
-        if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-          w = event.window.data1;
-          h = event.window.data2;
-          pitch = w * 4;
-          size = (size_t) w * h;
-          len = size * 4;
-          munmap(pixels, len);
-          SDL_DestroyTexture(stream);
-          stream = SDL_CreateTexture(renderer,
-                                     SDL_PIXELFORMAT_RGBA8888,
-                                     SDL_TEXTUREACCESS_STREAMING,
-                                     w,
-                                     h);
-          SDL_SetTextureBlendMode(stream, SDL_BLENDMODE_BLEND);
-          pixels = mmap(0, len, PROT_READ | PROT_WRITE,
-                        MAP_PRIVATE | MAP_ANONYMOUS,
-                        -1, 0);
-          reinitializeTexture = true;
-        } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-        } else if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
-        }
-      }
-      if (event.type == SDL_KEYDOWN) {
-        reinitializeTexture = true;
-        if (event.key.keysym.sym == SDLK_q) {
+      switch((SDL_EventType) event.type) {
+        default:break;
+        case SDL_FIRSTEVENT:break;
+        case SDL_QUIT: {
           quit = true;
-        } else if (event.key.keysym.sym == SDLK_SLASH) {
-          SDL_CaptureMouse(true);
-          color = 0xffff0033;
-        } else if (event.key.keysym.sym == SDLK_1) {
-          SDL_CaptureMouse(false);
-          color = 0xff000033;
-        } else if (event.key.keysym.sym == SDLK_2) {
-          SDL_SetCursor(cursors[SDL_SYSTEM_CURSOR_IBEAM]);
-          color = 0x00ff0033;
-        } else if (event.key.keysym.sym == SDLK_3) {
-          SDL_SetCursor(cursor);
-          color = 0x0000ff33;
+          break;
         }
+        case SDL_APP_TERMINATING:break;
+        case SDL_APP_LOWMEMORY:break;
+        case SDL_APP_WILLENTERBACKGROUND:break;
+        case SDL_APP_DIDENTERBACKGROUND:break;
+        case SDL_APP_WILLENTERFOREGROUND:break;
+        case SDL_APP_DIDENTERFOREGROUND:break;
+        case SDL_WINDOWEVENT: {
+          if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+            w = event.window.data1;
+            h = event.window.data2;
+            pitch = w * 4;
+            size = (size_t) w * h;
+            len = size * 4;
+            munmap(pixels, len);
+            SDL_DestroyTexture(stream);
+            stream = SDL_CreateTexture(renderer,
+                                       SDL_PIXELFORMAT_RGBA8888,
+                                       SDL_TEXTUREACCESS_STREAMING,
+                                       w,
+                                       h);
+            SDL_SetTextureBlendMode(stream, SDL_BLENDMODE_BLEND);
+            pixels = mmap(0, len, PROT_READ | PROT_WRITE,
+                          MAP_PRIVATE | MAP_ANONYMOUS,
+                          -1, 0);
+            reinitializeTexture = true;
+          } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+          } else if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
+          }
+          color = (color + 1) % 6;
+          break;
+        }
+        case SDL_SYSWMEVENT:break;
+        case SDL_KEYDOWN: {
+          reinitializeTexture = true;
+          if (event.key.keysym.sym == SDLK_q) {
+            quit = true;
+          } else if (event.key.keysym.sym == SDLK_SLASH) {
+            SDL_CaptureMouse(true);
+          } else if (event.key.keysym.sym == SDLK_1) {
+            SDL_CaptureMouse(false);
+          } else if (event.key.keysym.sym == SDLK_2) {
+            SDL_SetCursor(cursors[SDL_SYSTEM_CURSOR_IBEAM]);
+          } else if (event.key.keysym.sym == SDLK_3) {
+            SDL_SetCursor(cursor);
+          }
+          color = (color + 1) % 6;
+          break;
+        }
+        case SDL_KEYUP:break;
+        case SDL_TEXTEDITING:break;
+        case SDL_TEXTINPUT:break;
+        case SDL_KEYMAPCHANGED:break;
+        case SDL_MOUSEMOTION:break;
+        case SDL_MOUSEBUTTONDOWN:break;
+        case SDL_MOUSEBUTTONUP:break;
+        case SDL_MOUSEWHEEL: {
+
+          reinitializeTexture = true;
+          color = (color + 1) % 6;
+          break;
+        }
+        case SDL_JOYAXISMOTION:break;
+        case SDL_JOYBALLMOTION:break;
+        case SDL_JOYHATMOTION:break;
+        case SDL_JOYBUTTONDOWN:break;
+        case SDL_JOYBUTTONUP:break;
+        case SDL_JOYDEVICEADDED:break;
+        case SDL_JOYDEVICEREMOVED:break;
+        case SDL_CONTROLLERAXISMOTION:break;
+        case SDL_CONTROLLERBUTTONDOWN:break;
+        case SDL_CONTROLLERBUTTONUP:break;
+        case SDL_CONTROLLERDEVICEADDED:break;
+        case SDL_CONTROLLERDEVICEREMOVED:break;
+        case SDL_CONTROLLERDEVICEREMAPPED:break;
+        case SDL_FINGERDOWN:break;
+        case SDL_FINGERUP:break;
+        case SDL_FINGERMOTION:break;
+        case SDL_DOLLARGESTURE:break;
+        case SDL_DOLLARRECORD:break;
+        case SDL_MULTIGESTURE:break;
+        case SDL_CLIPBOARDUPDATE:break;
+        case SDL_DROPFILE:break;
+        case SDL_DROPTEXT:break;
+        case SDL_DROPBEGIN:break;
+        case SDL_DROPCOMPLETE:break;
+        case SDL_AUDIODEVICEADDED:break;
+        case SDL_AUDIODEVICEREMOVED:break;
+        case SDL_RENDER_TARGETS_RESET:break;
+        case SDL_RENDER_DEVICE_RESET:break;
+        case SDL_USEREVENT:break;
+        case SDL_LASTEVENT:break;
       }
     }
 
@@ -197,7 +259,7 @@ main(int argc, char *argv[]) {
       SDL_LockTexture(stream, rect, &pixels, &pitch);
       Uint32 *pix = (Uint32 *) pixels;
       for (Uint32 i = 0; i < size; ++i) {
-        pix[i] = color;
+        pix[i] = colors[color];
       }
       SDL_UpdateTexture(stream, rect, pixels, pitch);
       SDL_UnlockTexture(stream);
@@ -208,6 +270,11 @@ main(int argc, char *argv[]) {
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, babe, 0, 0);
     SDL_RenderCopy(renderer, stream, 0, 0);
+    int mouse_x, mouse_y;
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+    //SDL_GetGlobalMouseState(&mouse_x, &mouse_y); // desktop relative
+    word_dest.x = mouse_x;
+    word_dest.y = mouse_y;
     SDL_RenderCopy(renderer, words, 0, &word_dest);
 
     SDL_RenderPresent(renderer);
