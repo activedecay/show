@@ -167,6 +167,7 @@ main(int argc, char *argv[]) {
         case SDL_APP_DIDENTERBACKGROUND:break;
         case SDL_APP_WILLENTERFOREGROUND:break;
         case SDL_APP_DIDENTERFOREGROUND:break;
+        case SDL_SYSWMEVENT:break;
         case SDL_WINDOWEVENT: {
           if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
             w = event.window.data1;
@@ -185,16 +186,14 @@ main(int argc, char *argv[]) {
             pixels = mmap(0, len, PROT_READ | PROT_WRITE,
                           MAP_PRIVATE | MAP_ANONYMOUS,
                           -1, 0);
-            reinitializeTexture = true;
           } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
           } else if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
           }
+          reinitializeTexture = true;
           color = (color + 1) % 6;
           break;
         }
-        case SDL_SYSWMEVENT:break;
         case SDL_KEYDOWN: {
-          reinitializeTexture = true;
           if (event.key.keysym.sym == SDLK_q) {
             quit = true;
           } else if (event.key.keysym.sym == SDLK_SLASH) {
@@ -206,6 +205,7 @@ main(int argc, char *argv[]) {
           } else if (event.key.keysym.sym == SDLK_3) {
             SDL_SetCursor(cursor);
           }
+          reinitializeTexture = true;
           color = (color + 1) % 6;
           break;
         }
@@ -217,7 +217,11 @@ main(int argc, char *argv[]) {
         case SDL_MOUSEBUTTONDOWN:break;
         case SDL_MOUSEBUTTONUP:break;
         case SDL_MOUSEWHEEL: {
-
+          // SDL_GetRelativeMouseMode();
+          // good way to wrote a fps shooter
+          // SDL_ShowCursor(false);
+          // SDL_SetRelativeMouseMode(true);
+          SDL_WarpMouseInWindow(window, 10, 10);
           reinitializeTexture = true;
           color = (color + 1) % 6;
           break;
@@ -273,8 +277,8 @@ main(int argc, char *argv[]) {
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
     //SDL_GetGlobalMouseState(&mouse_x, &mouse_y); // desktop relative
-    word_dest.x = mouse_x;
-    word_dest.y = mouse_y;
+    word_dest.x += (mouse_x - word_dest.x) / 5;
+    word_dest.y += (mouse_y - word_dest.y) / 5;
     SDL_RenderCopy(renderer, words, 0, &word_dest);
 
     SDL_RenderPresent(renderer);
