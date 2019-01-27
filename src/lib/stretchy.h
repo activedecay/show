@@ -11,7 +11,7 @@
         (stretch_maybegrow(a,1), (a)[stretch_n(a)++] = (v))
 #define count(a)                                                           \
         ((a) ? stretch_n(a) : 0)
-#define add_all(a, n)                                                      \
+#define grow_by(a, n)                                                      \
         (stretch_maybegrow(a,n), stretch_n(a)+=(n), &(a)[stretch_n(a)-(n)])
 #define last(a)                                                            \
         ((a)[stretch_n(a)-1])

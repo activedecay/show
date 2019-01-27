@@ -15,6 +15,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <signal.h>
+#include <wait.h>
+#include <fcntl.h>
 
 #include "show.h"
 
@@ -25,6 +28,7 @@ void lol(void) {
 #define STRETCHY_BUFFER_OUT_OF_MEMORY lol;
 
 #include "lib/stretchy.h"
+#include "lib/ino.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
@@ -57,12 +61,12 @@ load_game_library() {
   }
   dlerror(); // clear existing errors
 
-//  advance_time_ptr =     dlsym(game_lib, "advance_time");
+  dlsym(game_lib, "advance_time");
 
   char *error;
   if ((error = dlerror()) != 0) {
-    fprintf(stderr, "lasagna %s\n", error);
-    exit(EXIT_FAILURE);
+    fprintf(stderr, "todo lasagna %s\n", error);
+    // exit(EXIT_FAILURE);
   }
 }
 
@@ -145,66 +149,101 @@ SDL_Texture *texturize_text(SDL_Renderer *renderer, TTF_Font *font, char *string
   return words;
 }
 
+pid_t file_watcher = 0;
+char *slide_show_file = 0;
+size_t read_len = 24;
+slide_show *show;
 
-slide_show *init_slides() {
-  char ***slides = 0;
+slide_show *init_slides(char *content) {
+  slide_show *the_show = 0;
 
-  int slide_cnt = 3;
-  int line_cnt = 2;
+  if (content) {
+    info("%s", content);
+    the_show = show;
+  } else {
+    the_show = calloc(1, sizeof(slide_show));
 
-  for (int i = 0; i < slide_cnt; ++i) {
-    char **arr = 0;
-    for (int j = 0; j < line_cnt; ++j) {
-      char *line;
-      char *str;
-      size_t len;
-      line = "oh";
-      len = strlen(line);
-      str = malloc(len * sizeof(char) + 1);
-      memcpy(str, line, len + 1);
-      char x[11];
-      char *y = SDL_itoa(i + j, x, 10);
-      push(arr, str);
+    char ***slides = 0;
+
+    int slide_cnt = 3;
+    int line_cnt = 2;
+
+    for (int i = 0; i < slide_cnt; ++i) {
+      char **arr = 0;
+      for (int j = 0; j < line_cnt; ++j) {
+        char *line;
+        char *str;
+        size_t len;
+        line = "oh";
+        len = strlen(line);
+        str = malloc(len * sizeof(char) + 1);
+        memcpy(str, line, len + 1);
+        char x[11];
+        char *y = SDL_itoa(i + j, x, 10);
+        push(arr, str);
+      }
+      push(slides, arr);
     }
-    push(slides, arr);
-  }
+    slide_item *slide;
+    style_item *style;
 
-  slide_show *the_show = calloc(1, sizeof(slide_show));
-  slide_item *slide;
-  style_item *style;
+    for (int i = 0; i < count(slides); ++i) {
 
-  for (int i = 0; i < count(slides); ++i) {
+      slide = calloc(1, sizeof(slide_item));
+      push(the_show->slides, slide);
 
-    slide = calloc(1, sizeof(slide_item));
-    push(the_show->slides, slide);
+      slide->bg_color = cf4(0, 0, 0, .8);
 
-    slide->bg_color = cf4(0, 0, 0, .8);
+      for (int j = 0; j < count(slides[i]); ++j) {
+        char *str = slides[i][j];
 
-    for (int j = 0; j < count(slides[i]); ++j) {
-      char *str = slides[i][j];
+        style = calloc(1, sizeof(style_item));
+        push(slide->styles, style);
 
-      style = calloc(1, sizeof(style_item));
-      push(slide->styles, style);
+        style->style =  (i + j) % num_styles;
+        style->family = (i + j) % num_families;
+        style->align = (i + j) % num_alignments;
+        style->size =   .1f;
 
-      style->style =  (i + j) % num_styles;
-      style->family = (i + j) % num_families;
-      style->align = (i + j) % num_alignments;
-      style->size =   .1f;
+        text_item *item = calloc(1, sizeof(text_item));
+        push(slide->items, item);
 
-      text_item *item = calloc(1, sizeof(text_item));
-      push(slide->items, item);
-
-      item->fg_color =  cf4(1, 1, 1, 1);
-      item->type =      text_slide;
-      item->text =      str;
-      item->y =         .5;
+        item->fg_color =  cf4(1, 1, 1, 1);
+        item->type =      text_slide;
+        item->text =      str;
+        item->y =         .5;
+      }
     }
   }
 
   return the_show;
 }
 
+void handler(int s) {
+  info("received %s. reading %s", strsignal(s), slide_show_file);
+  if (slide_show_file) {
+    FILE *f = fopen(slide_show_file, "r");
+    char *content = 0;
+    size_t total = 0;
+    char *next;
+    bool done = false;
+    while(!done) {
+      next = grow_by(content, read_len);
+      size_t rc = fread(next, sizeof(char), read_len, f);
+      total += rc;
+      if (rc == 0) done = true;
+    }
+    content[total] = 0;
+    fclose(f);
+    if ((show = init_slides(content)) == 0) {
+      die("this file sucks");
+      exit(EXIT_FAILURE);
+    }
+  }
+}
+
 void quit(void) {
+  waitpid(file_watcher, 0, WNOHANG);
   SDL_Quit();
   TTF_Quit();
 }
@@ -213,6 +252,17 @@ int
 main(int argc, char *argv[]) {
   load_game_library();
   atexit(quit);
+
+  slide_show_file = argc < 2 ?: argv[1];
+
+  if ((file_watcher = fork()) == 0) {
+    inotify(argc, argv); // child
+    return 0;
+  }
+
+  signal(SIGINT, handler);
+  signal(SIGUSR1, handler);
+
   SDL_Window *window = 0;
   SDL_Renderer *renderer = 0;
   SDL_Surface *babe_surface = 0;
@@ -255,8 +305,7 @@ main(int argc, char *argv[]) {
   u32 frame_delay = 16;
   int mouse_x, mouse_y;
 
-  slide_show *show;
-  if ((show = init_slides()) == 0) return die("what? no show");
+  if ((show = init_slides(0)) == 0) return die("what? no show");
 
   while (!quit) {
     while (SDL_PollEvent(&event)) {
@@ -342,5 +391,4 @@ main(int argc, char *argv[]) {
   return EXIT_SUCCESS;
 }
 
-#pragma clang diagnostic pop
 #pragma clang diagnostic pop
