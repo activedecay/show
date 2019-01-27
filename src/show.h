@@ -17,6 +17,8 @@
 #include <assert.h>
 #include <stdint.h>
 
+#include "SDL2/SDL.h"
+
 #define u64 uint64_t
 #define u32 uint32_t
 #define u16 uint16_t
@@ -84,12 +86,17 @@ typedef enum {text_slide} item_type;
 typedef struct {
     item_type type;
     float y;
+    SDL_Color fg_color;
     int line_cnt;
     char text[];
 } text_item;
 
 typedef struct {
-    u32 bg_color;
+    float r,g,b,a;
+} v4f;
+
+typedef struct {
+    SDL_Color bg_color;
     text_item *items[];
 } slide;
 
@@ -99,7 +106,20 @@ typedef struct {
     slide *slides[];
 } slide_show;
 
-static char *const res_dir = "./res/";
+SDL_Color cf4(
+    float fr,
+    float fg,
+    float fb,
+    float fa
+) {
+  SDL_Color c = {
+      (u8) (255.0f * fr),
+      (u8) (255.0f * fg),
+      (u8) (255.0f * fb),
+      (u8) (255.0f * fa),
+  };
+  return c;
+}
 
 #endif //slideshow_h
 

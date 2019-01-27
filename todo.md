@@ -41,3 +41,5 @@ drag and drop show.md files
     SDL_SetRelativeMouseMode(true);
     
     SDL_GetGlobalMouseState(&mouse_x, &mouse_y); // desktop relative
+
+    SDL_CaptureMouse(true);
