@@ -83,19 +83,19 @@ typedef enum {text_slide} item_type;
 
 typedef struct {
     item_type type;
-    int y;
+    float y;
     int line_cnt;
-    char *text_lines[];
+    char text[];
 } text_item;
 
 typedef struct {
-    int id;
     u32 bg_color;
-    void **items;
+    text_item *items[];
 } slide;
 
 typedef struct {
-    int count;
+    int index;
+    int slide_cnt;
     slide *slides[];
 } slide_show;
 

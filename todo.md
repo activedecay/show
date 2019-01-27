@@ -39,3 +39,5 @@ drag and drop show.md files
     good way to wrote a fps shooter
     SDL_ShowCursor(false);
     SDL_SetRelativeMouseMode(true);
+    
+    SDL_GetGlobalMouseState(&mouse_x, &mouse_y); // desktop relative
