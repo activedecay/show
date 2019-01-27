@@ -23,15 +23,15 @@
 #pragma clang diagnostic ignored "-Wimplicit-int"
 #pragma ide diagnostic ignored "OCDFAInspection"
 
-char *Sans          = "/usr/share/fonts/truetype/freefont/FreeSans.ttf";
-char *SansBold      = "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf";
-char *SansOblique   = "/usr/share/fonts/truetype/freefont/FreeSansOblique.ttf";
-char *Serif         = "/usr/share/fonts/truetype/freefont/FreeSerif.ttf";
-char *SerifBold     = "/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf";
-char *SerifItalic   = "/usr/share/fonts/truetype/freefont/FreeSerifItalic.ttf";
-char *Mono          = "/usr/share/fonts/truetype/freefont/FreeMono.ttf";
-char *MonoBold      = "/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf";
-char *MonoOblique   = "/usr/share/fonts/truetype/freefont/FreeMonoOblique.ttf";
+char *Sans = "/usr/share/fonts/truetype/freefont/FreeSans.ttf";
+char *SansBold = "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf";
+char *SansOblique = "/usr/share/fonts/truetype/freefont/FreeSansOblique.ttf";
+char *Serif = "/usr/share/fonts/truetype/freefont/FreeSerif.ttf";
+char *SerifBold = "/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf";
+char *SerifItalic = "/usr/share/fonts/truetype/freefont/FreeSerifItalic.ttf";
+char *Mono = "/usr/share/fonts/truetype/freefont/FreeMono.ttf";
+char *MonoBold = "/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf";
+char *MonoOblique = "/usr/share/fonts/truetype/freefont/FreeMonoOblique.ttf";
 
 void
 do_window(SDL_Renderer *renderer, SDL_Event *event, int w, int h,
@@ -44,6 +44,12 @@ slide_show *init(void);
 
 SDL_Texture *texturize_text(SDL_Renderer *renderer, TTF_Font *font, char *string,
                             SDL_Color fg, SDL_Rect *r);
+
+SDL_Color v4(
+    float fr,
+    float fg,
+    float fb,
+    float fa);
 
 int
 die(char *s) {
@@ -109,7 +115,7 @@ main(int argc, char *argv[]) {
   if (SDL_Init(SDL_INIT_EVERYTHING) < 0) return die("can't init SDL");
   if (TTF_Init() < 0) return die("can't init fonts");
   if (!(font = TTF_OpenFont(SerifItalic, 72))) die("can't load the font");
-  window = SDL_CreateWindow("cute!", 0, 0, w / 2, h / 2, SDL_WINDOW_RESIZABLE);
+  window = SDL_CreateWindow("schlides!", 0, 0, w / 2, h / 2, SDL_WINDOW_RESIZABLE);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
   SDL_SetWindowPosition(window,
                         SDL_WINDOWPOS_CENTERED,
@@ -145,7 +151,7 @@ main(int argc, char *argv[]) {
   }
   SDL_SetCursor(cursor);
 
-  SDL_Rect lol_text_rect = {10,10};
+  SDL_Rect lol_text_rect = {10, 10};
   words = texturize_text(renderer, font, "!", (SDL_Color) {0, 0, 0}, &lol_text_rect);
 
   u32 colors[] = {
@@ -201,9 +207,6 @@ main(int argc, char *argv[]) {
       SDL_UpdateTexture(stream, rect, pixels, pitch);
       SDL_UnlockTexture(stream);
       reinitializeTexture = false;
-      int mouse_x, mouse_y;
-      SDL_GetMouseState(&mouse_x, &mouse_y);
-      info("%d mouse_x %d mouse_y", mouse_x, mouse_y);
     }
 
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
@@ -222,9 +225,11 @@ main(int argc, char *argv[]) {
     SDL_RenderCopy(renderer, slide_text_texture, 0, &slide_text_rect);
     SDL_DestroyTexture(slide_text_texture);
 
-
-    SDL_Rect rectangle = {100,100,100,100};
-    SDL_RenderDrawRect(renderer, &rectangle);
+    SDL_Rect rectangle = {100, 100, 100, 100};
+    SDL_Color c = v4(1.f, .8, .4, .4);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
+    SDL_RenderFillRect(renderer, &rectangle);
 
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
@@ -247,6 +252,21 @@ main(int argc, char *argv[]) {
   SDL_DestroyWindow(window);
 
   return EXIT_SUCCESS;
+}
+
+SDL_Color v4(
+    float fr,
+    float fg,
+    float fb,
+    float fa
+) {
+  SDL_Color c = {
+      (u8) (255.0f * fr),
+      (u8) (255.0f * fg),
+      (u8) (255.0f * fb),
+      (u8) (255.0f * fa),
+  };
+  return c;
 }
 
 SDL_Texture *texturize_text(SDL_Renderer *renderer, TTF_Font *font, char *string, SDL_Color fg, SDL_Rect *r) {
