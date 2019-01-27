@@ -1,6 +1,4 @@
 # do it
-multiple text slides pos y
-slide ++ -- home end
 justify left center right
 soft-wraps
 define and use font style
@@ -20,6 +18,8 @@ big cursor? audience viewing conditions use case
 videos
 hyperlinks
 drag and drop show.md files
+rotated text
+tables
 
 # notes
 
@@ -43,3 +43,8 @@ drag and drop show.md files
     SDL_GetGlobalMouseState(&mouse_x, &mouse_y); // desktop relative
 
     SDL_CaptureMouse(true);
+    
+    window = SDL_CreateWindow("schlides!", 0, 0, w / 2, h / 2, SDL_WINDOW_RESIZABLE);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
+    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+

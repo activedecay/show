@@ -3,9 +3,12 @@
 //
 
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunknown-pragmas"
-#pragma ide diagnostic ignored "OCUnusedMacroInspection"
-#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
+#pragma clang diagnostic ignored \
+        "-Wunknown-pragmas"
+#pragma ide diagnostic ignored  \
+        "OCUnusedMacroInspection"
+#pragma ide diagnostic ignored \
+        "OCUnusedGlobalDeclarationInspection"
 
 #ifndef slideshow_h
 #define slideshow_h
@@ -17,7 +20,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include "SDL2/SDL.h"
+#include <SDL2/SDL.h>
 
 #define u64 uint64_t
 #define u32 uint32_t
@@ -81,37 +84,57 @@ typedef struct {
 
 /* slide show */
 
-typedef enum {text_slide} item_type;
+typedef enum {
+    text_slide
+} item_type;
 
 typedef struct {
-    item_type type;
     float y;
+    item_type type;
     SDL_Color fg_color;
-    int line_cnt;
-    char text[];
+    char *text;
 } text_item;
 
+typedef enum {
+    none,
+    italic,
+    bold,
+    num_styles
+} font_style;
+
+typedef enum {
+    sans,
+    serif,
+    mono,
+    num_families
+} font_family;
+
+typedef enum {
+    left,
+    center,
+    right,
+    num_alignments
+} align_text;
+
 typedef struct {
-    float r,g,b,a;
-} v4f;
+    float size;
+    font_style style;
+    font_family family;
+    align_text align;
+} style_item;
 
 typedef struct {
     SDL_Color bg_color;
-    text_item *items[];
-} slide;
+    text_item **items;
+    style_item **styles;
+} slide_item;
 
 typedef struct {
     int index;
-    int slide_cnt;
-    slide *slides[];
+    slide_item **slides;
 } slide_show;
 
-SDL_Color cf4(
-    float fr,
-    float fg,
-    float fb,
-    float fa
-) {
+SDL_Color cf4(float fr, float fg, float fb, float fa) {
   SDL_Color c = {
       (u8) (255.0f * fr),
       (u8) (255.0f * fg),

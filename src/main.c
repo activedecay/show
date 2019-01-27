@@ -18,6 +18,14 @@
 
 #include "show.h"
 
+void lol(void) {
+  error("lol you ran out of memory");
+}
+
+#define STRETCHY_BUFFER_OUT_OF_MEMORY lol;
+
+#include "lib/stretchy.h"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
 #pragma clang diagnostic ignored "-Wimplicit-int"
@@ -59,7 +67,7 @@ load_game_library() {
 }
 
 void
-do_window(SDL_Event *event, uint32_t *frame_delay) {
+do_window(SDL_Event *event, uint32_t *frame_delay, int *w, int *h) {
   switch ((SDL_WindowEventID) (*event).window.event) {
     default:
       break;
@@ -68,6 +76,8 @@ do_window(SDL_Event *event, uint32_t *frame_delay) {
       break;
     }
     case SDL_WINDOWEVENT_SIZE_CHANGED: {
+      *w = event->window.data1;
+      *h = event->window.data2;
       break;
     }
     case SDL_WINDOWEVENT_ENTER:
@@ -102,7 +112,7 @@ bool do_keydown(SDL_Event *event, slide_show *show, uint32_t *frame_delay) {
       show->index--;
       break;
     case SDL_SCANCODE_END:
-      show->index = show->slide_cnt - 1;
+      show->index = count(show->slides) - 1;
       break;
     case SDL_SCANCODE_PAGEDOWN:
       show->index++;
@@ -122,46 +132,73 @@ bool do_keydown(SDL_Event *event, slide_show *show, uint32_t *frame_delay) {
     default:
       break;
   }
-  show->index = show->index < 0 ? 0 : min(show->index, show->slide_cnt - 1);
   return quit;
 }
 
 SDL_Texture *texturize_text(SDL_Renderer *renderer, TTF_Font *font, char *string, SDL_Color fg, SDL_Rect *r) {
   SDL_Surface *t;
   if (!(t = TTF_RenderText_Blended(font, string, fg))) return 0;
+  SDL_SetSurfaceBlendMode(t, SDL_BLENDMODE_BLEND);
   SDL_Texture *words = SDL_CreateTextureFromSurface(renderer, t);
   SDL_FreeSurface(t);
   SDL_QueryTexture(words, 0, 0, &r->w, &r->h);
   return words;
 }
 
-char *slide_texts[] = {
-    "lol",
-    "trolla",
-    "haha",
-    "end",
-};
 
 slide_show *init_slides() {
-  int slide_cnt = LEN(slide_texts);
-  slide_show *the_show;
-  the_show = malloc(sizeof(slide_show) + slide_cnt * sizeof(slide *));
-  the_show->slide_cnt = slide_cnt;
-  the_show->index = 0;
+  char ***slides = 0;
+
+  int slide_cnt = 3;
+  int line_cnt = 2;
 
   for (int i = 0; i < slide_cnt; ++i) {
-    int item_cnt = 1;
-    slide *s = the_show->slides[i] = malloc(sizeof(slide) + item_cnt * sizeof(text_item *));
-    s->bg_color = cf4(.8f, .1f, .8f, .2f);
+    char **arr = 0;
+    for (int j = 0; j < line_cnt; ++j) {
+      char *line;
+      char *str;
+      size_t len;
+      line = "oh";
+      len = strlen(line);
+      str = malloc(len * sizeof(char) + 1);
+      memcpy(str, line, len + 1);
+      char x[11];
+      char *y = SDL_itoa(i + j, x, 10);
+      push(arr, str);
+    }
+    push(slides, arr);
+  }
 
-    char *text = slide_texts[i];
-    size_t text_len = strlen(text);
-    text_item *t = s->items[0] = malloc(sizeof(text_item) + text_len * sizeof(char) + 1);
-    t->y = .5;
-    t->type = text_slide + 2;
-    t->line_cnt = 1;
-    t->fg_color = cf4(.3, .9, .1, .6);
-    memcpy(t->text, text, text_len + 1);
+  slide_show *the_show = calloc(1, sizeof(slide_show));
+  slide_item *slide;
+  style_item *style;
+
+  for (int i = 0; i < count(slides); ++i) {
+
+    slide = calloc(1, sizeof(slide_item));
+    push(the_show->slides, slide);
+
+    slide->bg_color = cf4(0, 0, 0, .8);
+
+    for (int j = 0; j < count(slides[i]); ++j) {
+      char *str = slides[i][j];
+
+      style = calloc(1, sizeof(style_item));
+      push(slide->styles, style);
+
+      style->style =  (i + j) % num_styles;
+      style->family = (i + j) % num_families;
+      style->align = (i + j) % num_alignments;
+      style->size =   .1f;
+
+      text_item *item = calloc(1, sizeof(text_item));
+      push(slide->items, item);
+
+      item->fg_color =  cf4(1, 1, 1, 1);
+      item->type =      text_slide;
+      item->text =      str;
+      item->y =         .5;
+    }
   }
 
   return the_show;
@@ -185,29 +222,25 @@ main(int argc, char *argv[]) {
   SDL_Surface *cursor_surface = 0;
   SDL_Cursor *cursor = 0;
   SDL_Event event;
+  int w;
+  int h;
 
   bool quit = false;
   babe_surface = SDL_LoadBMP("res/car.bmp");
   if (!babe_surface) return die("surfaces are missing");
-  int w = babe_surface->w / 2;
-  int h = babe_surface->h / 2;
+  w = babe_surface->w / 2;
+  h = babe_surface->h / 2;
   if (SDL_Init(SDL_INIT_EVERYTHING) < 0) return die("can't init SDL");
   if (TTF_Init() < 0) return die("can't init fonts");
-  if (!(font = TTF_OpenFont(SerifItalic, 72))) die("can't load the font");
-  SDL_CreateWindowAndRenderer( w, h, SDL_WINDOW_RESIZABLE, &window, & renderer);
-//  window = SDL_CreateWindow("schlides!", 0, 0, w / 2, h / 2, SDL_WINDOW_RESIZABLE);
-//  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
-//  SDL_SetWindowPosition(window,
-//                        SDL_WINDOWPOS_CENTERED,
-//                        SDL_WINDOWPOS_CENTERED);
-
+  if (!(font = TTF_OpenFont(SerifItalic, 72))) return die("can't load the font");
+  SDL_CreateWindowAndRenderer(w, h, SDL_WINDOW_RESIZABLE, &window, &renderer);
 
   babe = SDL_CreateTextureFromSurface(renderer, babe_surface);
   if (!babe) return die("functionality is limited");
   SDL_FreeSurface(babe_surface);
 
   cursor_surface = SDL_LoadBMP("res/cursor.bmp");
-  if ((cursor = SDL_CreateColorCursor(cursor_surface, 5, 7)) == 0) die("cursor nope'd");
+  if ((cursor = SDL_CreateColorCursor(cursor_surface, 5, 7)) == 0) return die("cursor nope'd");
   SDL_FreeSurface(cursor_surface);
   SDL_SetCursor(cursor);
   SDL_Cursor *cursors[SDL_NUM_SYSTEM_CURSORS];
@@ -220,9 +253,10 @@ main(int argc, char *argv[]) {
   mouse_follow_word = texturize_text(renderer, font, "*", (SDL_Color) {0, 0, 0}, &mouse_follow_rect);
 
   u32 frame_delay = 16;
+  int mouse_x, mouse_y;
 
   slide_show *show;
-  if ((show = init_slides()) == 0) die("what? no show");
+  if ((show = init_slides()) == 0) return die("what? no show");
 
   while (!quit) {
     while (SDL_PollEvent(&event)) {
@@ -233,7 +267,7 @@ main(int argc, char *argv[]) {
       }
       switch ((SDL_EventType) event.type) {
         case SDL_WINDOWEVENT: {
-          do_window(&event, &frame_delay);
+          do_window(&event, &frame_delay, &w, &h);
           break;
         }
         case SDL_KEYDOWN: {
@@ -241,31 +275,52 @@ main(int argc, char *argv[]) {
           break;
         }
         case SDL_MOUSEWHEEL: {
-          SDL_WarpMouseInWindow(window, 10, 10);
+          show->index += -event.wheel.y;
           break;
         }
         default:
           break;
       }
+      show->index = show->index < 0 ? 0 : min(show->index, count(show->slides) - 1);
     }
+    
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, babe, 0, 0);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    SDL_Color slide_bg = show->slides[show->index]->bg_color;
+    slide_item *current_slide = show->slides[show->index];
+    SDL_Color slide_bg = current_slide->bg_color;
     SDL_SetRenderDrawColor(renderer, slide_bg.r, slide_bg.g, slide_bg.b, slide_bg.a);
     SDL_RenderFillRect(renderer, 0);
 
-    SDL_Rect slide_text_rect = {0, (int) (h * show->slides[show->index]->items[0]->y)};
-    SDL_Texture *slide_text =
-        texturize_text(renderer, font, show->slides[show->index]->items[0]->text,
-                       show->slides[show->index]->items[0]->fg_color,
-                       &slide_text_rect);
+    for (int i = 0; i < count(current_slide->items); ++i) {
+      text_item *item = current_slide->items[i];
+      style_item *style = current_slide->styles[i];
+      SDL_Rect slide_text_rect = {0, (int) (h * item->y)};
+      TTF_Font *f = TTF_OpenFont(Serif, (int) (style->size * h));
+      SDL_Texture *slide_text =
+          texturize_text(renderer, f,
+                         item->text,
+                         item->fg_color,
+                         &slide_text_rect);
+      slide_text_rect.y -= slide_text_rect.h * 2/3 - i*slide_text_rect.h;
+      switch(style->align) {
+        default:
+        case left:
+          slide_text_rect.x += (int)(w * .10f);
+          break;
+        case center:
+          slide_text_rect.x += w/2 - slide_text_rect.w/2;
+          break;
+        case right:
+          slide_text_rect.x = w - slide_text_rect.w - (int)(w * .10f);
+          break;
+      }
+      TTF_CloseFont(f);
+      SDL_RenderCopy(renderer, slide_text, 0, &slide_text_rect);
+      SDL_DestroyTexture(slide_text);
+    }
 
-    SDL_RenderCopy(renderer, slide_text, 0, &slide_text_rect);
-    SDL_DestroyTexture(slide_text);
-
-    int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
     mouse_follow_rect.x = mouse_x;
     mouse_follow_rect.y = mouse_y;
