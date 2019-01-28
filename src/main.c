@@ -153,13 +153,70 @@ pid_t file_watcher = 0;
 char *slide_show_file = 0;
 size_t read_len = 24;
 slide_show *show;
+int command_starter = '.';
+int slide_starter = '#';
+
 
 slide_show *init_slides(char *content) {
   slide_show *the_show = 0;
 
   if (content) {
-    info("%s", content);
-    the_show = show;
+    the_show = calloc(1, sizeof(slide_show));
+    slide_item *slide = 0;
+    style_item *style = 0;
+    text_item *item = 0;
+
+    style_item *initial;
+    initial = calloc(1, sizeof(style_item));
+    initial->style =  none;
+    initial->family = sans;
+    initial->align =  center;
+    initial->size =   .1f;
+
+    char *line_tokenizer, *space_tokenizer;
+    char *line = strtok_r(content, "\n", &line_tokenizer);
+    while(line) {
+      info("(line ): %s", line);
+      if (line[0] == command_starter) {
+        char *token = strtok_r(line, " ", &space_tokenizer);
+        while (token) {
+          if (strcmp("font", token) == 0) {
+            if (!style) style = calloc(1, sizeof(style_item));
+            token = strtok_r(0, " ", &space_tokenizer);
+            for (int i = 0; i < num_families; ++i)
+              if (strcmp(family[i].name, token) == 0) {
+                style->family = family[i].f;
+                break;
+              }
+          }
+          token = strtok_r(0, " ", &space_tokenizer);
+        }
+        style = 0;
+      } else if (line[0] == slide_starter) {
+        strtok_r(line, " ", &space_tokenizer); // eat space tokens
+        char *title = strtok_r(0, "\n", &space_tokenizer);
+        slide = calloc(1, sizeof(slide_item));
+        slide->title = title;
+        slide->bg_color = cf4(0,0,0,.8);
+        push(the_show->slides, slide);
+      } else {
+        if (!slide) {
+          error("no slide before -- %s", line);
+          continue;
+        }
+
+        item = calloc(1, sizeof(text_item));
+        push(slide->items, item);
+        item->fg_color =   cf4(1, 1, 1, 1);
+        item->type =       text_slide;
+        item->y =          .5;
+        size_t len =       strlen(line);
+        item->text =       malloc(len * sizeof(char) + 1);
+        memcpy(item->text, line, len + 1);
+        push(slide->styles, style ?: initial);
+      }
+      line = strtok_r(0, "\n", &line_tokenizer);
+    }
   } else {
     the_show = calloc(1, sizeof(slide_show));
 
@@ -174,12 +231,10 @@ slide_show *init_slides(char *content) {
         char *line;
         char *str;
         size_t len;
-        line = "oh";
+        line = "Oh, baby! Lookit dem!";
         len = strlen(line);
         str = malloc(len * sizeof(char) + 1);
         memcpy(str, line, len + 1);
-        char x[11];
-        char *y = SDL_itoa(i + j, x, 10);
         push(arr, str);
       }
       push(slides, arr);
@@ -253,7 +308,7 @@ main(int argc, char *argv[]) {
   load_game_library();
   atexit(quit);
 
-  slide_show_file = argc < 2 ?: argv[1];
+  slide_show_file = argc < 2 ? 0 : argv[1];
 
   if ((file_watcher = fork()) == 0) {
     inotify(argc, argv); // child
@@ -353,16 +408,17 @@ main(int argc, char *argv[]) {
                          item->fg_color,
                          &slide_text_rect);
       slide_text_rect.y -= slide_text_rect.h * 2/3 - i*slide_text_rect.h;
+      int margins = (int)(w * .05f);
       switch(style->align) {
         default:
         case left:
-          slide_text_rect.x += (int)(w * .10f);
+          slide_text_rect.x += margins;
           break;
         case center:
           slide_text_rect.x += w/2 - slide_text_rect.w/2;
           break;
         case right:
-          slide_text_rect.x = w - slide_text_rect.w - (int)(w * .10f);
+          slide_text_rect.x = w - slide_text_rect.w - margins;
           break;
       }
       TTF_CloseFont(f);

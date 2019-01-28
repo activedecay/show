@@ -109,6 +109,15 @@ typedef enum {
     num_families
 } font_family;
 
+struct {
+    font_family f;
+    char *name;
+} family[] = {
+    {sans, "sans"},
+    {serif, "serif"},
+    {mono, "mono"},
+};
+
 typedef enum {
     left,
     center,
@@ -125,6 +134,7 @@ typedef struct {
 
 typedef struct {
     SDL_Color bg_color;
+    char *title;
     text_item **items;
     style_item **styles;
 } slide_item;
