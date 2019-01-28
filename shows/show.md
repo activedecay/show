@@ -1,13 +1,13 @@
 # baby
-. font .2 mono
-OH, 
-oh baby baby BABY!
-
+. font .5 mono right
+OH,
+. font .05 mono center
+. y .9
+baby...
+ 
 # tits and hips 
-. font .3 serif
+. font .1 serif
 baby!
-  
-
 !!!
 OwO
  

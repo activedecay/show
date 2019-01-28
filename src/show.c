@@ -26,6 +26,7 @@ slide_show *init_slides(char *content) {
     slide_item *slide = 0;
     style_item *style = 0;
     text_item *item = 0;
+    float yyy     = 0;
 
     style_item *initial;
     initial = calloc(1, sizeof(style_item));
@@ -33,6 +34,7 @@ slide_show *init_slides(char *content) {
     initial->family = sans;
     initial->align =  center;
     initial->size =   .1f;
+    float initialY =  .5f;
 
     char *line_tokenizer, *space_tokenizer;
     char *line = strtok_r(content, "\n", &line_tokenizer);
@@ -42,7 +44,7 @@ slide_show *init_slides(char *content) {
         char *token = strtok_r(line, " ", &space_tokenizer);
         while (token) {
           if (strcmp("font", token) == 0) {
-            if (!style) style = calloc(1, sizeof(style_item));
+            style = calloc(1, sizeof(style_item));
             token = strtok_r(0, " ", &space_tokenizer);
             style->size = strtof(token, 0); // require `. font [size]`
             while (token) {
@@ -51,21 +53,40 @@ slide_show *init_slides(char *content) {
                   style->family = family[i].f;
                   break;
                 }
+              for (int i = 0; i < num_styles; ++i)
+                if (strcmp(styles[i].name, token) == 0) {
+                  style->style = styles[i].s;
+                  break;
+                }
+              for (int i = 0; i < num_alignments; ++i)
+                if (strcmp(alignments[i].name, token) == 0) {
+                  style->align = alignments[i].a;
+                  break;
+                }
               token = strtok_r(0, " ", &space_tokenizer);
             }
             continue; // we at all tokens on the font line
+          } else if (strcmp("y", token) == 0) {
+            token = strtok_r(0, " ", &space_tokenizer);
+            yyy =  strtof(token, 0); // require `. y [size]`
+
           }
           token = strtok_r(0, " ", &space_tokenizer);
         }
+
+      } else if (line[0] == slide_starter) { /* start of a slide */
+
         style = 0;
-      } else if (line[0] == slide_starter) {
+        yyy = 0;
         strtok_r(line, " ", &space_tokenizer); // eat space tokens
         char *title = strtok_r(0, "\n", &space_tokenizer);
         slide = calloc(1, sizeof(slide_item));
         slide->title = title;
         slide->bg_color = cf4(0,0,0,.8);
         push(the_show->slides, slide);
-      } else {
+
+      } else { /* we have text*/
+
         if (!slide) {
           error("no slide before -- %s", line);
           continue;
@@ -75,7 +96,7 @@ slide_show *init_slides(char *content) {
         push(slide->items, item);
         item->fg_color =   cf4(1, 1, 1, 1);
         item->type =       text_slide;
-        item->y =          .5;
+        item->y =          yyy ?: initialY;
         size_t len =       strlen(line);
         item->text =       malloc(len * sizeof(char) + 1);
         memcpy(item->text, line, len + 1);

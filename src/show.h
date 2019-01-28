@@ -104,7 +104,7 @@ typedef enum {
 } font_style;
 
 static struct {
-    font_style f;
+    font_style s;
     char *name;
 } styles[] = {
     {normal, "normal"},
