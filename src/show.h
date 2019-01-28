@@ -21,6 +21,7 @@
 #include <stdint.h>
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #define u64 uint64_t
 #define u32 uint32_t
@@ -96,11 +97,20 @@ typedef struct {
 } text_item;
 
 typedef enum {
-    none,
+    normal,
     italic,
     bold,
     num_styles
 } font_style;
+
+static struct {
+    font_style f;
+    char *name;
+} styles[] = {
+    {normal, "normal"},
+    {italic, "italic"},
+    {bold,   "bold"},
+};
 
 typedef enum {
     sans,
@@ -109,13 +119,13 @@ typedef enum {
     num_families
 } font_family;
 
-struct {
+static struct {
     font_family f;
     char *name;
 } family[] = {
-    {sans, "sans"},
+    {sans,  "sans"},
     {serif, "serif"},
-    {mono, "mono"},
+    {mono,  "mono"},
 };
 
 typedef enum {
@@ -124,6 +134,15 @@ typedef enum {
     right,
     num_alignments
 } align_text;
+
+static struct {
+    align_text a;
+    char *name;
+} alignments[] = {
+    {left,   "left"},
+    {center, "center"},
+    {right,  "right"},
+};
 
 typedef struct {
     float size;
@@ -144,7 +163,7 @@ typedef struct {
     slide_item **slides;
 } slide_show;
 
-SDL_Color cf4(float fr, float fg, float fb, float fa) {
+static SDL_Color cf4(float fr, float fg, float fb, float fa) {
   SDL_Color c = {
       (u8) (255.0f * fr),
       (u8) (255.0f * fg),
@@ -153,6 +172,24 @@ SDL_Color cf4(float fr, float fg, float fb, float fa) {
   };
   return c;
 }
+
+slide_show *init_slides(char *content);
+
+void render_slide(SDL_Renderer *renderer, int w, int h,
+                  slide_show *show_baby);
+
+SDL_Texture *texturize_text(SDL_Renderer *renderer,
+                            TTF_Font *font, char *string,
+                            SDL_Color fg, SDL_Rect *r);
+
+typedef void (*render_slide_ptr)(SDL_Renderer *renderer, int w, int h,
+                  slide_show *show_baby);
+
+typedef SDL_Texture *(*texturize_text_ptr)(SDL_Renderer *renderer,
+                            TTF_Font *font, char *string,
+                            SDL_Color fg, SDL_Rect *r);
+
+typedef slide_show *(*init_slides_ptr)(char *content);
 
 #endif //slideshow_h
 

@@ -21,6 +21,8 @@
 
 #include "show.h"
 
+void quit(void);
+
 void lol(void) {
   error("lol you ran out of memory");
 }
@@ -35,39 +37,41 @@ void lol(void) {
 #pragma clang diagnostic ignored "-Wimplicit-int"
 #pragma ide diagnostic ignored "OCDFAInspection"
 
-char *Sans = "/usr/share/fonts/truetype/freefont/FreeSans.ttf";
-char *SansBold = "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf";
-char *SansOblique = "/usr/share/fonts/truetype/freefont/FreeSansOblique.ttf";
-char *Serif = "/usr/share/fonts/truetype/freefont/FreeSerif.ttf";
-char *SerifBold = "/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf";
-char *SerifItalic = "/usr/share/fonts/truetype/freefont/FreeSerifItalic.ttf";
-char *Mono = "/usr/share/fonts/truetype/freefont/FreeMono.ttf";
-char *MonoBold = "/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf";
-char *MonoOblique = "/usr/share/fonts/truetype/freefont/FreeMonoOblique.ttf";
 
 
-int
-die(char *s) {
-  error("sorry, charlie: %s", s);
-  return EXIT_FAILURE;
-}
 
-int
-load_game_library() {
-  void *game_lib;
+void read_slideshow_file(int signal);
+
+init_slides_ptr make_slides;
+render_slide_ptr draw_slide;
+texturize_text_ptr make_text;
+char *slide_show_file = 0;
+size_t read_len = 24;
+slide_show *show;
+void *game_lib;
+
+void
+load_game_library(int _) {
+  if (game_lib) dlclose(game_lib);
+
   if (!(game_lib = dlopen("libslider.so", RTLD_LAZY))) {
     fprintf(stderr, "bitch %s\n", dlerror());
     exit(EXIT_FAILURE);
   }
   dlerror(); // clear existing errors
 
-  dlsym(game_lib, "advance_time");
+  make_slides       = dlsym(game_lib, "init_slides");
+  draw_slide        = dlsym(game_lib, "render_slide");;
+  make_text         = dlsym(game_lib, "texturize_text");;
+  info("shh s'alibrary %p", game_lib);
 
   char *error;
   if ((error = dlerror()) != 0) {
     fprintf(stderr, "todo lasagna %s\n", error);
     // exit(EXIT_FAILURE);
   }
+
+  read_slideshow_file(SIGCONT);
 }
 
 void
@@ -139,184 +143,35 @@ bool do_keydown(SDL_Event *event, slide_show *show, uint32_t *frame_delay) {
   return quit;
 }
 
-SDL_Texture *texturize_text(SDL_Renderer *renderer, TTF_Font *font, char *string, SDL_Color fg, SDL_Rect *r) {
-  SDL_Surface *t;
-  if (!(t = TTF_RenderText_Blended(font, string, fg))) return 0;
-  SDL_SetSurfaceBlendMode(t, SDL_BLENDMODE_BLEND);
-  SDL_Texture *words = SDL_CreateTextureFromSurface(renderer, t);
-  SDL_FreeSurface(t);
-  SDL_QueryTexture(words, 0, 0, &r->w, &r->h);
-  return words;
-}
 
-pid_t file_watcher = 0;
-char *slide_show_file = 0;
-size_t read_len = 24;
-slide_show *show;
-int command_starter = '.';
-int slide_starter = '#';
-
-
-slide_show *init_slides(char *content) {
-  slide_show *the_show = 0;
-
-  if (content) {
-    the_show = calloc(1, sizeof(slide_show));
-    slide_item *slide = 0;
-    style_item *style = 0;
-    text_item *item = 0;
-
-    style_item *initial;
-    initial = calloc(1, sizeof(style_item));
-    initial->style =  none;
-    initial->family = sans;
-    initial->align =  center;
-    initial->size =   .1f;
-
-    char *line_tokenizer, *space_tokenizer;
-    char *line = strtok_r(content, "\n", &line_tokenizer);
-    while(line) {
-      info("(line ): %s", line);
-      if (line[0] == command_starter) {
-        char *token = strtok_r(line, " ", &space_tokenizer);
-        while (token) {
-          if (strcmp("font", token) == 0) {
-            if (!style) style = calloc(1, sizeof(style_item));
-            token = strtok_r(0, " ", &space_tokenizer);
-            for (int i = 0; i < num_families; ++i)
-              if (strcmp(family[i].name, token) == 0) {
-                style->family = family[i].f;
-                break;
-              }
-          }
-          token = strtok_r(0, " ", &space_tokenizer);
-        }
-        style = 0;
-      } else if (line[0] == slide_starter) {
-        strtok_r(line, " ", &space_tokenizer); // eat space tokens
-        char *title = strtok_r(0, "\n", &space_tokenizer);
-        slide = calloc(1, sizeof(slide_item));
-        slide->title = title;
-        slide->bg_color = cf4(0,0,0,.8);
-        push(the_show->slides, slide);
-      } else {
-        if (!slide) {
-          error("no slide before -- %s", line);
-          continue;
-        }
-
-        item = calloc(1, sizeof(text_item));
-        push(slide->items, item);
-        item->fg_color =   cf4(1, 1, 1, 1);
-        item->type =       text_slide;
-        item->y =          .5;
-        size_t len =       strlen(line);
-        item->text =       malloc(len * sizeof(char) + 1);
-        memcpy(item->text, line, len + 1);
-        push(slide->styles, style ?: initial);
-      }
-      line = strtok_r(0, "\n", &line_tokenizer);
-    }
-  } else {
-    the_show = calloc(1, sizeof(slide_show));
-
-    char ***slides = 0;
-
-    int slide_cnt = 3;
-    int line_cnt = 2;
-
-    for (int i = 0; i < slide_cnt; ++i) {
-      char **arr = 0;
-      for (int j = 0; j < line_cnt; ++j) {
-        char *line;
-        char *str;
-        size_t len;
-        line = "Oh, baby! Lookit dem!";
-        len = strlen(line);
-        str = malloc(len * sizeof(char) + 1);
-        memcpy(str, line, len + 1);
-        push(arr, str);
-      }
-      push(slides, arr);
-    }
-    slide_item *slide;
-    style_item *style;
-
-    for (int i = 0; i < count(slides); ++i) {
-
-      slide = calloc(1, sizeof(slide_item));
-      push(the_show->slides, slide);
-
-      slide->bg_color = cf4(0, 0, 0, .8);
-
-      for (int j = 0; j < count(slides[i]); ++j) {
-        char *str = slides[i][j];
-
-        style = calloc(1, sizeof(style_item));
-        push(slide->styles, style);
-
-        style->style =  (i + j) % num_styles;
-        style->family = (i + j) % num_families;
-        style->align = (i + j) % num_alignments;
-        style->size =   .1f;
-
-        text_item *item = calloc(1, sizeof(text_item));
-        push(slide->items, item);
-
-        item->fg_color =  cf4(1, 1, 1, 1);
-        item->type =      text_slide;
-        item->text =      str;
-        item->y =         .5;
-      }
-    }
-  }
-
-  return the_show;
-}
-
-void handler(int s) {
-  info("received %s. reading %s", strsignal(s), slide_show_file);
-  if (slide_show_file) {
-    FILE *f = fopen(slide_show_file, "r");
-    char *content = 0;
-    size_t total = 0;
-    char *next;
-    bool done = false;
-    while(!done) {
-      next = grow_by(content, read_len);
-      size_t rc = fread(next, sizeof(char), read_len, f);
-      total += rc;
-      if (rc == 0) done = true;
-    }
-    content[total] = 0;
-    fclose(f);
-    if ((show = init_slides(content)) == 0) {
-      die("this file sucks");
-      exit(EXIT_FAILURE);
-    }
-  }
-}
-
-void quit(void) {
-  waitpid(file_watcher, 0, WNOHANG);
-  SDL_Quit();
-  TTF_Quit();
+int
+die(char *s) {
+  error("sorry, charlie: %s", s);
+  return EXIT_FAILURE;
 }
 
 int
 main(int argc, char *argv[]) {
-  load_game_library();
+  load_game_library(0);
   atexit(quit);
+
+  if (argc < 2) {
+    error("usage: path/to/show.md");
+  }
 
   slide_show_file = argc < 2 ? 0 : argv[1];
 
-  if ((file_watcher = fork()) == 0) {
-    inotify(argc, argv); // child
+  if (fork() == 0) {
+    inotify(slide_show_file, SIGUSR1); // child
+    return 0;
+  }
+  if (fork() == 0) {
+    inotify("lib/libslider.so", SIGUSR2); // child
     return 0;
   }
 
-  signal(SIGINT, handler);
-  signal(SIGUSR1, handler);
+  signal(SIGUSR1, read_slideshow_file);
+  signal(SIGUSR2, load_game_library);
 
   SDL_Window *window = 0;
   SDL_Renderer *renderer = 0;
@@ -337,7 +192,7 @@ main(int argc, char *argv[]) {
   h = babe_surface->h / 2;
   if (SDL_Init(SDL_INIT_EVERYTHING) < 0) return die("can't init SDL");
   if (TTF_Init() < 0) return die("can't init fonts");
-  if (!(font = TTF_OpenFont(SerifItalic, 72))) return die("can't load the font");
+  if (!(font = TTF_OpenFont("/usr/share/fonts/truetype/freefont/FreeSans.ttf", 72))) return die("can't load the font");
   SDL_CreateWindowAndRenderer(w, h, SDL_WINDOW_RESIZABLE, &window, &renderer);
 
   babe = SDL_CreateTextureFromSurface(renderer, babe_surface);
@@ -355,13 +210,12 @@ main(int argc, char *argv[]) {
   SDL_SetCursor(cursor);
 
   SDL_Rect mouse_follow_rect = {10, 10};
-  mouse_follow_word = texturize_text(renderer, font, "*", (SDL_Color) {0, 0, 0}, &mouse_follow_rect);
+  mouse_follow_word = make_text(renderer, font, "*", (SDL_Color) {255, 255, 255, 255}, &mouse_follow_rect);
 
   u32 frame_delay = 16;
   int mouse_x, mouse_y;
 
-  if ((show = init_slides(0)) == 0) return die("what? no show");
-
+  read_slideshow_file(SIGCONT);
   while (!quit) {
     while (SDL_PollEvent(&event)) {
       if (event.type == SDL_QUIT) {
@@ -391,44 +245,16 @@ main(int argc, char *argv[]) {
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, babe, 0, 0);
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    slide_item *current_slide = show->slides[show->index];
-    SDL_Color slide_bg = current_slide->bg_color;
-    SDL_SetRenderDrawColor(renderer, slide_bg.r, slide_bg.g, slide_bg.b, slide_bg.a);
-    SDL_RenderFillRect(renderer, 0);
 
-    for (int i = 0; i < count(current_slide->items); ++i) {
-      text_item *item = current_slide->items[i];
-      style_item *style = current_slide->styles[i];
-      SDL_Rect slide_text_rect = {0, (int) (h * item->y)};
-      TTF_Font *f = TTF_OpenFont(Serif, (int) (style->size * h));
-      SDL_Texture *slide_text =
-          texturize_text(renderer, f,
-                         item->text,
-                         item->fg_color,
-                         &slide_text_rect);
-      slide_text_rect.y -= slide_text_rect.h * 2/3 - i*slide_text_rect.h;
-      int margins = (int)(w * .05f);
-      switch(style->align) {
-        default:
-        case left:
-          slide_text_rect.x += margins;
-          break;
-        case center:
-          slide_text_rect.x += w/2 - slide_text_rect.w/2;
-          break;
-        case right:
-          slide_text_rect.x = w - slide_text_rect.w - margins;
-          break;
-      }
-      TTF_CloseFont(f);
-      SDL_RenderCopy(renderer, slide_text, 0, &slide_text_rect);
-      SDL_DestroyTexture(slide_text);
-    }
+    slide_show *show_baby = show;
+
+    draw_slide(renderer, w, h, show_baby);
 
     SDL_GetMouseState(&mouse_x, &mouse_y);
-    mouse_follow_rect.x = mouse_x;
-    mouse_follow_rect.y = mouse_y;
+    mouse_follow_rect.x = mouse_x + 20;
+    mouse_follow_rect.y = mouse_y + 20;
+
+    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
     SDL_RenderCopy(renderer, mouse_follow_word, 0, &mouse_follow_rect);
     SDL_RenderPresent(renderer);
     SDL_Delay(frame_delay);
@@ -447,4 +273,34 @@ main(int argc, char *argv[]) {
   return EXIT_SUCCESS;
 }
 
+void quit(void) {
+  waitpid(-1, 0, WNOHANG);
+  SDL_Quit();
+  TTF_Quit();
+}
+
+void read_slideshow_file(int signal) {
+  info("received %s. reading %s", strsignal(signal), slide_show_file);
+  if (slide_show_file) {
+    FILE *f = fopen(slide_show_file, "r");
+    char *content = 0;
+    size_t total = 0;
+    char *next;
+    bool done = false;
+    while(!done) {
+      next = grow_by(content, read_len);
+      size_t rc = fread(next, sizeof(char), read_len, f);
+      total += rc;
+      if (rc == 0) done = true;
+    }
+    content[total] = 0;
+    fclose(f);
+    if ((show = make_slides(content)) == 0) {
+      die("this file sucks");
+      exit(EXIT_FAILURE);
+    }
+  }
+}
+
 #pragma clang diagnostic pop
+

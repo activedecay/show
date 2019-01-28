@@ -1,8 +1,13 @@
-# tits and hips baby
-. font mono
+# baby
+. font .2 mono
+OH, 
 oh baby baby BABY!
-# tits and hips baby
-. font mono
-wowow we eaia
-lolol
 
+# tits and hips 
+. font .3 serif
+baby!
+  
+
+!!!
+OwO
+ 

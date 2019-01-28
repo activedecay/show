@@ -15,10 +15,12 @@ static void
 handle_events(int fd, int wd, char *string);
 
 int
-inotify(int argc, char *filepath[]);
+inotify(char *filepath, int signal);
 
 #ifndef ino_def
 #define ino_def
+
+int sig;
 
 void handle_events(int fd, int wd, char *filename) {
   char buf[4096]
@@ -39,21 +41,18 @@ void handle_events(int fd, int wd, char *filename) {
       if (wd == event->wd &&
           event->len &&
           strcmp(filename, event->name) == 0) {
-        kill(getppid(), SIGUSR1);
+        kill(getppid(), sig);
+
       }
     }
   }
 }
 
-int inotify(int argc, char **filepath) {
+int inotify(char *filepath, int s) {
+  sig = s;
   int fd, poll_num, wd;
   nfds_t nfds;
   struct pollfd fds[1];
-
-  if (argc < 2) {
-    printf("usage: %s PATH [PATH ...]\n", filepath[0]);
-    exit(EXIT_FAILURE);
-  }
 
   /* Create the file descriptor for accessing the inotify API */
   if ((fd = inotify_init1(IN_NONBLOCK)) == -1) {
@@ -62,11 +61,11 @@ int inotify(int argc, char **filepath) {
   }
 
   char b[PATH_MAX];
-  strcpy(b, filepath[1]);
+  strcpy(b, filepath);
   /*b =*/ dirname(b); // note reassignment!!!
   // note use IN_ALL_EVENTS if you wanna wait on all
   if ((wd = inotify_add_watch(fd, b, IN_ATTRIB)) == -1) {
-    fprintf(stderr, "Cannot watch '%s'\n", filepath[1]);
+    fprintf(stderr, "Cannot watch '%s'\n", filepath);
     perror("inotify_add_watch");
     exit(EXIT_FAILURE);
   }
@@ -75,7 +74,7 @@ int inotify(int argc, char **filepath) {
   fds[0].fd = fd;
   fds[0].events = POLLIN;
 
-  printf("Listening for events.\n");
+  info("Listening for changes to %s", filepath);
   while (1) {
     if ((poll_num = poll(fds, nfds, -1)) == -1) {
       if (errno == EINTR) continue;
@@ -83,7 +82,7 @@ int inotify(int argc, char **filepath) {
       exit(EXIT_FAILURE);
     }
     if (poll_num > 0 && fds[0].revents & POLLIN) {
-      handle_events(fd, wd, basename(filepath[1]));
+      handle_events(fd, wd, basename(filepath));
     }
   }
 }

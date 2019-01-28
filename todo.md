@@ -1,7 +1,6 @@
 # do it
-justify left center right
-soft-wraps
 define and use font style
+soft-wraps
 parse textfile to slides
 hot load slideshow file
 font color
