@@ -38,13 +38,12 @@ void lol(void) {
 #pragma ide diagnostic ignored "OCDFAInspection"
 
 
-
-
 void read_slideshow_file(int signal);
 
 init_slides_ptr make_slides;
 render_slide_ptr draw_slide;
 texturize_text_ptr make_text;
+add_font_ptr make_font;
 char *slide_show_file = 0;
 size_t read_len = 24;
 slide_show *show;
@@ -60,9 +59,10 @@ load_game_library(int _) {
   }
   dlerror(); // clear existing errors
 
-  make_slides       = dlsym(game_lib, "init_slides");
-  draw_slide        = dlsym(game_lib, "render_slide");;
-  make_text         = dlsym(game_lib, "texturize_text");;
+  make_slides = dlsym(game_lib, "init_slides");
+  draw_slide = dlsym(game_lib, "render_slide");;
+  make_text = dlsym(game_lib, "texturize_text");;
+  make_font = dlsym(game_lib, "add_font");;
   info("shh s'alibrary %p", game_lib);
 
   char *error;
@@ -215,6 +215,16 @@ main(int argc, char *argv[]) {
   u32 frame_delay = 16;
   int mouse_x, mouse_y;
 
+  make_font("sansnormal", "/usr/share/fonts/truetype/freefont/FreeSans.ttf");
+  make_font("sansbold", "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf");
+  make_font("sansitalic", "/usr/share/fonts/truetype/freefont/FreeSansOblique.ttf");
+  make_font("serifnormal", "/usr/share/fonts/truetype/freefont/FreeSerif.ttf");
+  make_font("serifbold", "/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf");
+  make_font("serifitalic", "/usr/share/fonts/truetype/freefont/FreeSerifItalic.ttf");
+  make_font("mononormal", "/usr/share/fonts/truetype/freefont/FreeMono.ttf");
+  make_font("monobold", "/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf");
+  make_font("monoitalic", "/usr/share/fonts/truetype/freefont/FreeMonoOblique.ttf");
+
   read_slideshow_file(SIGCONT);
   while (!quit) {
     while (SDL_PollEvent(&event)) {
@@ -241,7 +251,7 @@ main(int argc, char *argv[]) {
       }
       show->index = show->index < 0 ? 0 : min(show->index, count(show->slides) - 1);
     }
-    
+
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, babe, 0, 0);
@@ -287,7 +297,7 @@ void read_slideshow_file(int signal) {
     size_t total = 0;
     char *next;
     bool done = false;
-    while(!done) {
+    while (!done) {
       next = grow_by(content, read_len);
       size_t rc = fread(next, sizeof(char), read_len, f);
       total += rc;

@@ -1,24 +1,25 @@
 # do it
-define and use font style
-soft-wraps
-parse textfile to slides
-hot load slideshow file
+segfaults on load library
+when mouse leaves, hide mouse follower text
 font color
-change font
-change font size
-change font attributes mid-line
-templates (including a slide in another slide) "shared content"
-presenter mode
-overview mode
-transitions
-slide editor in game
-drawing on the slides
-big cursor? audience viewing conditions use case
-videos
+style variables
+stateful soft-wraps (bug in resize where y-computed weirdly)
+images
+x pos
 hyperlinks
 drag and drop show.md files
+change font attributes mid-line
+presenter mode
+overview mode
+audience viewing conditions use case
+transitions
+drawing on the slides
+templates (including a slide in another slide) "shared content"
+slide editor in game
+videos
 rotated text
 tables
+tablets github.com/ApoorvaJ/EasyTab
 
 # notes
 

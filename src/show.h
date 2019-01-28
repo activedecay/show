@@ -173,6 +173,21 @@ static SDL_Color cf4(float fr, float fg, float fb, float fa) {
   return c;
 }
 
+#include "lib/uthash.h"
+#include "lib/stretchy.h"
+
+typedef struct {
+    char *id;
+    char *filename;
+    UT_hash_handle hh; /* makes this structure hashable */
+} font;
+
+font *fonts = 0;
+
+font *find_font(char *name);
+
+font *add_font(char *name, char *filepath);
+
 slide_show *init_slides(char *content);
 
 void render_slide(SDL_Renderer *renderer, int w, int h,
@@ -183,13 +198,15 @@ SDL_Texture *texturize_text(SDL_Renderer *renderer,
                             SDL_Color fg, SDL_Rect *r);
 
 typedef void (*render_slide_ptr)(SDL_Renderer *renderer, int w, int h,
-                  slide_show *show_baby);
+                                 slide_show *show_baby);
 
 typedef SDL_Texture *(*texturize_text_ptr)(SDL_Renderer *renderer,
-                            TTF_Font *font, char *string,
-                            SDL_Color fg, SDL_Rect *r);
+                                           TTF_Font *font, char *string,
+                                           SDL_Color fg, SDL_Rect *r);
 
 typedef slide_show *(*init_slides_ptr)(char *content);
+
+typedef font *(*add_font_ptr)(char *name, char *filepath);
 
 #endif //slideshow_h
 
