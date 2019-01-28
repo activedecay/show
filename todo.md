@@ -2,9 +2,23 @@
 segfaults on load library
 when mouse leaves, hide mouse follower text
 font color
-style variables
+slide bg color
+text shadow
+comments
+margin is property of a style
+font size is 1/100th of a screen height
+line-height is just a multiplier (-1 will reverse lines)
+declare-font variables
+declare-style variables
 stateful soft-wraps (bug in resize where y-computed weirdly)
+don't change slide index unless it's no longer valid (copy slide index to new slideshow)
+fix memory leaks
+load font files once, and don't close them until the end of the program
 images
+more image formats than bmp
+hot-load images! OMFG ? could just do the same thing as reading the image each time show.md changes
+image crop, rotate
+rotated text
 x pos
 hyperlinks
 drag and drop show.md files
@@ -15,11 +29,19 @@ audience viewing conditions use case
 transitions
 drawing on the slides
 templates (including a slide in another slide) "shared content"
+declare-slide variables (templates)
+- slide visibility set to no for templates
+- use-slide command to include templates in the current slide
+- can't use the same name for the templates
+- use a shown-slide list
+package free fonts
 slide editor in game
 videos
-rotated text
 tables
 tablets github.com/ApoorvaJ/EasyTab
+slideshow progress bar
+picture in a picture
+game-like effects, subtle
 
 # notes
 
