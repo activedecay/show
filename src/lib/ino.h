@@ -1,7 +1,6 @@
 #ifndef ino_h
 #define ino_h
 
-#include <errno.h>
 #include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,20 +8,19 @@
 #include <unistd.h>
 #include <libgen.h>
 #include <sys/param.h>
+#include "csapp.h"
 
 
 static void
-handle_events(int fd, int wd, char *string);
+handle_events(int fd, int wd, char *string, void (*routine)(void));
 
 int
-inotify(char *filepath, int signal);
+inotify(char *filepath, void (*routine)(void));
 
 #ifndef ino_def
 #define ino_def
 
-int sig;
-
-void handle_events(int fd, int wd, char *filename) {
+void handle_events(int fd, int wd, char *filename, void (*routine)(void)) {
   char buf[4096]
       __attribute__ ((aligned(__alignof__(struct inotify_event))));
   const struct inotify_event *event;
@@ -41,15 +39,14 @@ void handle_events(int fd, int wd, char *filename) {
       if (wd == event->wd &&
           event->len &&
           strcmp(filename, event->name) == 0) {
-        kill(getppid(), sig);
-
+        routine();
       }
     }
   }
 }
 
-int inotify(char *filepath, int s) {
-  sig = s;
+
+int inotify(char *filepath, void (*routine)(void)) {
   int fd, poll_num, wd;
   nfds_t nfds;
   struct pollfd fds[1];
@@ -74,7 +71,7 @@ int inotify(char *filepath, int s) {
   fds[0].fd = fd;
   fds[0].events = POLLIN;
 
-  info("Listening for changes to %s", filepath);
+  info("listening for changes to %s", filepath);
   while (1) {
     if ((poll_num = poll(fds, nfds, -1)) == -1) {
       if (errno == EINTR) continue;
@@ -82,7 +79,7 @@ int inotify(char *filepath, int s) {
       exit(EXIT_FAILURE);
     }
     if (poll_num > 0 && fds[0].revents & POLLIN) {
-      handle_events(fd, wd, basename(filepath));
+      handle_events(fd, wd, basename(filepath), routine);
     }
   }
 }

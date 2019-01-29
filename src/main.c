@@ -31,6 +31,7 @@ void lol(void) {
 
 #include "lib/stretchy.h"
 #include "lib/ino.h"
+#include "lib/csapp.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
@@ -38,19 +39,24 @@ void lol(void) {
 #pragma ide diagnostic ignored "OCDFAInspection"
 
 
-void read_slideshow_file(int signal);
+void read_slideshow_file(void);
+font *add_font(char *name, char *filepath);
 
 init_slides_ptr make_slides;
 render_slide_ptr draw_slide;
 texturize_text_ptr make_text;
-add_font_ptr make_font;
 char *slide_show_file = 0;
 size_t read_len = 24;
 slide_show *show;
+font *fonts = 0;
 void *game_lib;
 
+sem_t slide_sem;
+sem_t game_sem;
+
 void
-load_game_library(int _) {
+load_game_library(void) {
+  P(&game_sem);
   if (game_lib) dlclose(game_lib);
 
   if (!(game_lib = dlopen("libslider.so", RTLD_LAZY))) {
@@ -62,8 +68,8 @@ load_game_library(int _) {
   make_slides = dlsym(game_lib, "init_slides");
   draw_slide = dlsym(game_lib, "render_slide");;
   make_text = dlsym(game_lib, "texturize_text");;
-  make_font = dlsym(game_lib, "add_font");;
   info("shh s'alibrary %p", game_lib);
+  V(&game_sem);
 
   char *error;
   if ((error = dlerror()) != 0) {
@@ -71,11 +77,11 @@ load_game_library(int _) {
     // exit(EXIT_FAILURE);
   }
 
-  read_slideshow_file(SIGCONT);
+  read_slideshow_file();
 }
 
 void
-do_window(SDL_Event *event, uint32_t *frame_delay, int *w, int *h) {
+do_window(SDL_Event *event, uint32_t *frame_delay, int *w, int *h, bool *in_frame) {
   switch ((SDL_WindowEventID) (*event).window.event) {
     default:
       break;
@@ -90,11 +96,13 @@ do_window(SDL_Event *event, uint32_t *frame_delay, int *w, int *h) {
     }
     case SDL_WINDOWEVENT_ENTER:
     case SDL_WINDOWEVENT_FOCUS_GAINED: {
+      *in_frame = true;
       (*frame_delay) = 16;
       break;
     }
     case SDL_WINDOWEVENT_LEAVE:
     case SDL_WINDOWEVENT_FOCUS_LOST: {
+      *in_frame = false;
       (*frame_delay) = 200;
       break;
     }
@@ -150,28 +158,26 @@ die(char *s) {
   return EXIT_FAILURE;
 }
 
+void *watch_slideshow_file(void *slide_show_file) {
+  inotify(slide_show_file, read_slideshow_file); // child
+}
+
+void *watch_game_library(void *_) {
+  inotify("lib/libslider.so", load_game_library); // child
+}
+
 int
 main(int argc, char *argv[]) {
-  load_game_library(0);
+  if (argc < 2) return die("usage: path/to/show.md");
   atexit(quit);
+  Sem_init(&game_sem, 0, 1); // mutual exclusion
+  Sem_init(&slide_sem, 0, 1); // mutual exclusion
+  load_game_library();
 
-  if (argc < 2) {
-    error("usage: path/to/show.md");
-  }
-
+  pthread_t tidp;
   slide_show_file = argc < 2 ? 0 : argv[1];
-
-  if (fork() == 0) {
-    inotify(slide_show_file, SIGUSR1); // child
-    return 0;
-  }
-  if (fork() == 0) {
-    inotify("lib/libslider.so", SIGUSR2); // child
-    return 0;
-  }
-
-  signal(SIGUSR1, read_slideshow_file);
-  signal(SIGUSR2, load_game_library);
+  Pthread_create(&tidp, 0, watch_slideshow_file, slide_show_file);
+  Pthread_create(&tidp, 0, watch_game_library, 0);
 
   SDL_Window *window = 0;
   SDL_Renderer *renderer = 0;
@@ -215,17 +221,19 @@ main(int argc, char *argv[]) {
   u32 frame_delay = 16;
   int mouse_x, mouse_y;
 
-  make_font("sansnormal", "/usr/share/fonts/truetype/freefont/FreeSans.ttf");
-  make_font("sansbold", "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf");
-  make_font("sansitalic", "/usr/share/fonts/truetype/freefont/FreeSansOblique.ttf");
-  make_font("serifnormal", "/usr/share/fonts/truetype/freefont/FreeSerif.ttf");
-  make_font("serifbold", "/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf");
-  make_font("serifitalic", "/usr/share/fonts/truetype/freefont/FreeSerifItalic.ttf");
-  make_font("mononormal", "/usr/share/fonts/truetype/freefont/FreeMono.ttf");
-  make_font("monobold", "/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf");
-  make_font("monoitalic", "/usr/share/fonts/truetype/freefont/FreeMonoOblique.ttf");
+  add_font("sansnormal", "/usr/share/fonts/truetype/freefont/FreeSans.ttf");
+  add_font("sansbold", "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf");
+  add_font("sansitalic", "/usr/share/fonts/truetype/freefont/FreeSansOblique.ttf");
+  add_font("serifnormal", "/usr/share/fonts/truetype/freefont/FreeSerif.ttf");
+  add_font("serifbold", "/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf");
+  add_font("serifitalic", "/usr/share/fonts/truetype/freefont/FreeSerifItalic.ttf");
+  add_font("mononormal", "/usr/share/fonts/truetype/freefont/FreeMono.ttf");
+  add_font("monobold", "/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf");
+  add_font("monoitalic", "/usr/share/fonts/truetype/freefont/FreeMonoOblique.ttf");
+  add_font("scriptnormal", "./res/AlexBrush-Regular.ttf");
 
-  read_slideshow_file(SIGCONT);
+  read_slideshow_file();
+  bool in_frame;
   while (!quit) {
     while (SDL_PollEvent(&event)) {
       if (event.type == SDL_QUIT) {
@@ -235,7 +243,7 @@ main(int argc, char *argv[]) {
       }
       switch ((SDL_EventType) event.type) {
         case SDL_WINDOWEVENT: {
-          do_window(&event, &frame_delay, &w, &h);
+          do_window(&event, &frame_delay, &w, &h, &in_frame);
           break;
         }
         case SDL_KEYDOWN: {
@@ -256,16 +264,14 @@ main(int argc, char *argv[]) {
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, babe, 0, 0);
 
-    slide_show *show_baby = show;
-
-    draw_slide(renderer, w, h, show_baby);
+    draw_slide(renderer, w, h, show, fonts);
 
     SDL_GetMouseState(&mouse_x, &mouse_y);
     mouse_follow_rect.x = mouse_x + 20;
     mouse_follow_rect.y = mouse_y + 20;
 
     SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
-    SDL_RenderCopy(renderer, mouse_follow_word, 0, &mouse_follow_rect);
+    if (in_frame) SDL_RenderCopy(renderer, mouse_follow_word, 0, &mouse_follow_rect);
     SDL_RenderPresent(renderer);
     SDL_Delay(frame_delay);
   }
@@ -284,13 +290,11 @@ main(int argc, char *argv[]) {
 }
 
 void quit(void) {
-  waitpid(-1, 0, WNOHANG);
   SDL_Quit();
   TTF_Quit();
 }
 
-void read_slideshow_file(int signal) {
-  info("received %s. reading %s", strsignal(signal), slide_show_file);
+void read_slideshow_file() {
   if (slide_show_file) {
     FILE *f = fopen(slide_show_file, "r");
     char *content = 0;
@@ -305,12 +309,26 @@ void read_slideshow_file(int signal) {
     }
     content[total] = 0;
     fclose(f);
-    if ((show = make_slides(content)) == 0) {
+
+    P(&slide_sem);
+    if ((show = make_slides(show, content)) == 0) {
       die("this file sucks");
       exit(EXIT_FAILURE);
     }
+    V(&slide_sem);
   }
 }
+
+font *add_font(char *name, char *filepath) {
+  font *found;
+  HASH_FIND_STR(fonts, name, found);
+  if (found) return found;
+  found = malloc(sizeof(font));
+  found->id = name;
+  found->filename = filepath;
+  HASH_ADD_STR(fonts, id, found);
+}
+
 
 #pragma clang diagnostic pop
 

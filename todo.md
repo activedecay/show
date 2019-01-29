@@ -1,19 +1,14 @@
 # do it
-segfaults on load library
-when mouse leaves, hide mouse follower text
-font color
-slide bg color
+line-height is just a multiplier (-1 will reverse lines)
+way better error handling
 text shadow
 comments
 margin is property of a style
 font size is 1/100th of a screen height
-line-height is just a multiplier (-1 will reverse lines)
 declare-font variables
 declare-style variables
 stateful soft-wraps (bug in resize where y-computed weirdly)
-don't change slide index unless it's no longer valid (copy slide index to new slideshow)
 fix memory leaks
-load font files once, and don't close them until the end of the program
 images
 more image formats than bmp
 hot-load images! OMFG ? could just do the same thing as reading the image each time show.md changes

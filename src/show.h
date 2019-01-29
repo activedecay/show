@@ -14,10 +14,8 @@
 #define slideshow_h
 
 #include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <stdint.h>
 
 #include <SDL2/SDL.h>
@@ -116,6 +114,7 @@ typedef enum {
     sans,
     serif,
     mono,
+    script,
     num_families
 } font_family;
 
@@ -126,6 +125,7 @@ static struct {
     {sans,  "sans"},
     {serif, "serif"},
     {mono,  "mono"},
+    {script,  "script"},
 };
 
 typedef enum {
@@ -182,31 +182,25 @@ typedef struct {
     UT_hash_handle hh; /* makes this structure hashable */
 } font;
 
-font *fonts = 0;
+font *find_font(font *fonts, char *name);
 
-font *find_font(char *name);
-
-font *add_font(char *name, char *filepath);
-
-slide_show *init_slides(char *content);
+slide_show *init_slides(slide_show *previous_show, char *content);
 
 void render_slide(SDL_Renderer *renderer, int w, int h,
-                  slide_show *show_baby);
+                  slide_show *show, font *fonts);
 
 SDL_Texture *texturize_text(SDL_Renderer *renderer,
                             TTF_Font *font, char *string,
                             SDL_Color fg, SDL_Rect *r);
 
 typedef void (*render_slide_ptr)(SDL_Renderer *renderer, int w, int h,
-                                 slide_show *show_baby);
+                                 slide_show *show, font *fonts);
 
 typedef SDL_Texture *(*texturize_text_ptr)(SDL_Renderer *renderer,
                                            TTF_Font *font, char *string,
                                            SDL_Color fg, SDL_Rect *r);
 
-typedef slide_show *(*init_slides_ptr)(char *content);
-
-typedef font *(*add_font_ptr)(char *name, char *filepath);
+typedef slide_show *(*init_slides_ptr)(slide_show *previous_show, char *content);
 
 #endif //slideshow_h
 
