@@ -1,13 +1,15 @@
 # tits
-. color 0 0 1
+. bg 0 0 1 .5
+. color 0 0 1 .02
 . font .3 script center
 . y -.2
-Justin    Faust
-. color 0 1 0
-is so excited 
-. color 1 0 0 
-!!!!!
-
+. line-height -.2
+Baby A!?baby
+so0O excited 
+!!!
+; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+; !!!!!!!!!!!!!!!!!!!!!omfg comments!!!!!!!!!!!!!!!!!!!!!!!!!!
+; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # 2its and hips
 . color 0 1 0
@@ -78,3 +80,8 @@ serif
 * structure to act as the key. Then use 
 * these macros to store, retrieve or 
 * delete items from the hash table.
+
+# test
+. font .5 script
+. y -.5
+baby

@@ -216,7 +216,8 @@ main(int argc, char *argv[]) {
   SDL_SetCursor(cursor);
 
   SDL_Rect mouse_follow_rect = {10, 10};
-  mouse_follow_word = make_text(renderer, font, "*", (SDL_Color) {255, 255, 255, 255}, &mouse_follow_rect);
+  mouse_follow_word = make_text(renderer, font, "*", (SDL_Color) {255, 255, 255, 255}, &mouse_follow_rect,
+      SDL_BLENDMODE_BLEND);
 
   u32 frame_delay = 16;
   int mouse_x, mouse_y;

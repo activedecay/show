@@ -1,8 +1,7 @@
 # do it
 line-height is just a multiplier (-1 will reverse lines)
 way better error handling
-text shadow
-comments
+text shadow (wtf alpha on text is broken)
 margin is property of a style
 font size is 1/100th of a screen height
 declare-font variables

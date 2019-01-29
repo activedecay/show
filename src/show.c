@@ -49,6 +49,7 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
   slide_show *the_show = 0;
   int command_starter = '.';
   int slide_starter = '#';
+  int comment_starter = ';';
 
   if (!content) {
     return default_show();
@@ -75,7 +76,8 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
     char *line = strtok_r(content, "\n", &line_tokenizer);
     while (line) {
       debug("(line ): %s", line);
-      if (line[0] == slide_starter) { /* start of a slide */
+      if (line[0] == comment_starter) { /* start of a slide */
+      } else if (line[0] == slide_starter) { /* start of a slide */
 
         style = 0;
         yyy = 0;
@@ -83,7 +85,7 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
         char *title = strtok_r(0, "\n", &space_tokenizer);
         slide = Calloc(1, sizeof(slide_item));
         slide->title = title;
-        slide->bg_color = last_bg ? *last_bg: initial_bg;
+        slide->bg_color = last_bg ? *last_bg : initial_bg;
         push(the_show->slides, slide);
 
       } else if (line[0] == command_starter) { /* start of command */
@@ -173,49 +175,49 @@ slide_show *default_show() {
   int line_cnt = 2;
 
   for (int i = 0; i < slide_cnt; ++i) {
-      char **arr = 0;
-      for (int j = 0; j < line_cnt; ++j) {
-        char *line;
-        char *str;
-        size_t len;
-        line = "Oh, baby! Lookit dem!";
-        len = strlen(line);
-        str = malloc(len * sizeof(char) + 1);
-        memcpy(str, line, len + 1);
-        push(arr, str);
-      }
-      push(slides, arr);
+    char **arr = 0;
+    for (int j = 0; j < line_cnt; ++j) {
+      char *line;
+      char *str;
+      size_t len;
+      line = "Oh, baby! Lookit dem!";
+      len = strlen(line);
+      str = malloc(len * sizeof(char) + 1);
+      memcpy(str, line, len + 1);
+      push(arr, str);
     }
+    push(slides, arr);
+  }
   slide_item *slide;
   style_item *style;
 
   for (int i = 0; i < count(slides); ++i) {
 
-      slide = Calloc(1, sizeof(slide_item));
-      push(the_show->slides, slide);
+    slide = Calloc(1, sizeof(slide_item));
+    push(the_show->slides, slide);
 
-      slide->bg_color = cf4(0, 0, 0, .8);
+    slide->bg_color = cf4(0, 0, 0, .8);
 
-      for (int j = 0; j < count(slides[i]); ++j) {
-        char *str = slides[i][j];
+    for (int j = 0; j < count(slides[i]); ++j) {
+      char *str = slides[i][j];
 
-        style = Calloc(1, sizeof(style_item));
-        push(slide->styles, style);
+      style = Calloc(1, sizeof(style_item));
+      push(slide->styles, style);
 
-        style->style = (i + j) % num_styles;
-        style->family = (i + j) % num_families;
-        style->align = (i + j) % num_alignments;
-        style->size = .1f;
+      style->style = (i + j) % num_styles;
+      style->family = (i + j) % num_families;
+      style->align = (i + j) % num_alignments;
+      style->size = .1f;
 
-        text_item *item = Calloc(1, sizeof(text_item));
-        push(slide->items, item);
+      text_item *item = Calloc(1, sizeof(text_item));
+      push(slide->items, item);
 
-        item->fg_color = cf4(1, 1, 1, 1);
-        item->type = text_slide;
-        item->text = str;
-        item->y = .5;
-      }
+      item->fg_color = cf4(1, 1, 1, 1);
+      item->type = text_slide;
+      item->text = str;
+      item->y = .5;
     }
+  }
   return the_show;
 }
 
@@ -241,11 +243,16 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
     if ((f = TTF_OpenFont(
         find_font(fonts, font_idx)->filename,
         (int) (style->size * h)))) {
-      SDL_Texture *slide_text =
+      SDL_Texture *shadow =
           texturize_text(renderer, f,
                          item->text,
                          item->fg_color,
-                         &box);
+                         &box, SDL_BLENDMODE_MOD);
+//      SDL_Texture *slide_text =
+//          texturize_text(renderer, f,
+//                         item->text,
+//                         item->fg_color,
+//                         &box, SDL_BLENDMODE_BLEND);
       TTF_CloseFont(f);
       box.y -= -(box.h * 2 / 3 + slide_i * box.h);
       int margins_x = (int) (w * .05f);
@@ -261,22 +268,29 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
           box.x = w - box.w - margins_x;
           break;
       }
-      SDL_RenderCopy(renderer, slide_text, 0, &box);
-      SDL_DestroyTexture(slide_text);
+      SDL_Rect rect = box;
+      rect.x += 2;
+      rect.y += 2;
+      SDL_RenderCopy(renderer, shadow, 0, &rect);
+//      SDL_RenderCopy(renderer, slide_text, 0, &box);
+      SDL_DestroyTexture(shadow);
+//      SDL_DestroyTexture(slide_text);
     } else {
       assert(!"needs a font");
     }
   }
 }
 
-SDL_Texture *texturize_text(SDL_Renderer *renderer, TTF_Font *font,
-                            char *string, SDL_Color fg, SDL_Rect *r) {
+SDL_Texture *
+texturize_text(SDL_Renderer *renderer, TTF_Font *font, char *string,
+               SDL_Color fg, SDL_Rect *r, SDL_BlendMode mode) {
   SDL_Surface *t;
   if (!(t = TTF_RenderText_Blended(font, string, fg))) return 0;
-  SDL_SetSurfaceBlendMode(t, SDL_BLENDMODE_BLEND);
+  assert(!SDL_SetSurfaceBlendMode(t, SDL_BLENDMODE_BLEND));
   SDL_Texture *words = SDL_CreateTextureFromSurface(renderer, t);
   SDL_FreeSurface(t);
   SDL_QueryTexture(words, 0, 0, &r->w, &r->h);
+  assert(!SDL_SetTextureBlendMode(words, SDL_BLENDMODE_ADD));
   return words;
 }
 

@@ -122,10 +122,10 @@ static struct {
     font_family f;
     char *name;
 } family[] = {
-    {sans,  "sans"},
-    {serif, "serif"},
-    {mono,  "mono"},
-    {script,  "script"},
+    {sans,   "sans"},
+    {serif,  "serif"},
+    {mono,   "mono"},
+    {script, "script"},
 };
 
 typedef enum {
@@ -189,16 +189,16 @@ slide_show *init_slides(slide_show *previous_show, char *content);
 void render_slide(SDL_Renderer *renderer, int w, int h,
                   slide_show *show, font *fonts);
 
-SDL_Texture *texturize_text(SDL_Renderer *renderer,
-                            TTF_Font *font, char *string,
-                            SDL_Color fg, SDL_Rect *r);
+SDL_Texture *
+texturize_text(SDL_Renderer *renderer, TTF_Font *font, char *string,
+               SDL_Color fg, SDL_Rect *r, SDL_BlendMode mode);
 
 typedef void (*render_slide_ptr)(SDL_Renderer *renderer, int w, int h,
                                  slide_show *show, font *fonts);
 
 typedef SDL_Texture *(*texturize_text_ptr)(SDL_Renderer *renderer,
                                            TTF_Font *font, char *string,
-                                           SDL_Color fg, SDL_Rect *r);
+                                           SDL_Color fg, SDL_Rect *r, SDL_BlendMode mode);
 
 typedef slide_show *(*init_slides_ptr)(slide_show *previous_show, char *content);
 
