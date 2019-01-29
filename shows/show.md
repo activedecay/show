@@ -1,11 +1,15 @@
+# more
+. font .3 center
+Title!!!!
+
 # tits
-. bg 0 0 1 .5
+. bg 0 0 1 .2
 . color 0 0 1 .02
 . font .3 script center
 . y -.2
 . line-height -.2
-Baby A!?baby
-so0O excited 
+Oh Baby
+
 !!!
 ; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ; !!!!!!!!!!!!!!!!!!!!!omfg comments!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -14,6 +18,10 @@ so0O excited
 # 2its and hips
 . color 0 1 0
 . bg .1 0 .1 .8
+. y .4
+BABY omg!!!
+ 
+# 2its and hips 
 . font .1 serif center
 baby!
 . y -.1
@@ -47,7 +55,7 @@ serif
 . font .12 italic center mono
 . y -1.4
 center
-italic
+italic!!!!!!!!!!!
 mono
 . y -.1
 . font .03 bold right sans

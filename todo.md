@@ -1,4 +1,5 @@
 # do it
+spell-cheker
 line-height is just a multiplier (-1 will reverse lines)
 way better error handling
 text shadow (wtf alpha on text is broken)
