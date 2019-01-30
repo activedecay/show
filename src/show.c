@@ -97,9 +97,8 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
 
         yyy = 0;
         strtok_r(line, " ", &space_tokenizer); // eat space tokens
-        char *title = strtok_r(0, "\n", &space_tokenizer);
         slide = Calloc(1, sizeof(slide_item));
-        slide->title = title;
+        slide->title = strtok_r(0, "\n", &space_tokenizer);
         slide->bg_color = last_bg ? *last_bg : initial_bg;
         push(the_show->slides, slide);
 

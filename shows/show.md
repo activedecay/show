@@ -22,7 +22,7 @@
 . color 0.760 0.549 0.505
 . save-style
 . define-style purp
-. color 0.533 0.309 0.368
+. color 0.633 0.209 0.52
 . save-style
 
 # neapolitan
@@ -35,6 +35,7 @@ what
 what
 . style purp
 what
+lol
 
 # more
 . bg 0 0 0 .1
