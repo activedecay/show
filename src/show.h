@@ -21,6 +21,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "lib/uthash.h"
+#include "lib/stretchy.h"
+
 #define u64 uint64_t
 #define u32 uint32_t
 #define u16 uint16_t
@@ -90,7 +93,6 @@ typedef enum {
 typedef struct {
     float y;
     item_type type;
-    SDL_Color fg_color;
     char *text;
 } text_item;
 
@@ -149,7 +151,17 @@ typedef struct {
     font_style style;
     font_family family;
     align_text align;
+    float line_height;
+    float margins_x;
+    SDL_Color fg_color;
+    char *name;
 } style_item;
+
+typedef struct {
+    char *name;
+    style_item *style;
+    UT_hash_handle hh; /* makes this structure hashable */
+} style_hash;
 
 typedef struct {
     SDL_Color bg_color;
@@ -172,9 +184,6 @@ static SDL_Color cf4(float fr, float fg, float fb, float fa) {
   };
   return c;
 }
-
-#include "lib/uthash.h"
-#include "lib/stretchy.h"
 
 typedef struct {
     char *id;

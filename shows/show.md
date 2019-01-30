@@ -1,22 +1,65 @@
+. define-style default
+. save-style
+
+. define-style show
+. font .5 left script
+. color .1 .4 .8
+. save-style
+
+. define-style baby
+. font .3 script center
+. color 0 0 1 .02
+. line-height -.4
+. save-style
+
+. define-style pink
+. color 0.964 0.411 0.529
+. save-style
+. define-style skin
+. color 0.972 0.874 0.752
+. save-style
+. define-style dark
+. color 0.760 0.549 0.505
+. save-style
+. define-style purp
+. color 0.533 0.309 0.368
+. save-style
+
+#
+. bg 0.043 0.047 0.349 .9
+. style pink
+what
+. style skin
+what
+. style dark
+what
+. style purp
+what
+
+
+
 # more
-. font .3 center
-Title!!!!
+. bg 0 0 0 .1
+. style show
+Show!!!!
 
 # tits
 . bg 0 0 1 .2
-. color 0 0 1 .02
-. font .3 script center
-. y -.2
-. line-height -.2
+. style baby
 Oh Baby
-
 !!!
+
+# default style test
+. style default
+hmmm
+
 ; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ; !!!!!!!!!!!!!!!!!!!!!omfg comments!!!!!!!!!!!!!!!!!!!!!!!!!!
 ; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # 2its and hips
 . color 0 1 0
+. style baby
 . bg .1 0 .1 .8
 . y .4
 BABY omg!!!
@@ -32,7 +75,7 @@ OwO
 
 # baby
 . font .01 script right
-. bg .01 0 .02 .9
+. bg .01 0 .02 .2
 . color 1 0 0
 nope
 . y -0.1
@@ -53,7 +96,8 @@ left
 normal
 serif
 . font .12 italic center mono
-. y -1.4
+. y -.9
+. line-height .65
 center
 italic!!!!!!!!!!!
 mono
@@ -78,10 +122,11 @@ serif
 
 
 # cold
-. bg 1 0 1 .2
+. bg .1 0 .1 .8
+. color 1 0 .5
 . y -.03
-. font .11 serif 
-* Any C structure can be stored in a hash 
+. font .11 left serif italic
+* Any C struct can be stored in a hash 
 * table using uthash. Just add a 
 * UT_hash_handle to the structure and 
 * choose one or more fields in your 

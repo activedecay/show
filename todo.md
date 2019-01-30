@@ -1,12 +1,9 @@
 # do it
-spell-cheker
-line-height is just a multiplier (-1 will reverse lines)
-way better error handling
-text shadow (wtf alpha on text is broken)
 margin is property of a style
+text shadow (wtf alpha on text is broken)
+way better error handling
 font size is 1/100th of a screen height
 declare-font variables
-declare-style variables
 stateful soft-wraps (bug in resize where y-computed weirdly)
 fix memory leaks
 images
@@ -37,6 +34,11 @@ tablets github.com/ApoorvaJ/EasyTab
 slideshow progress bar
 picture in a picture
 game-like effects, subtle
+spell-cheker
+
+# features
+declare-style variables
+
 
 # notes
 

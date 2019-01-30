@@ -8,6 +8,8 @@
 #include "lib/stretchy.h"
 #include "lib/csapp.h"
 
+style_hash *saved_styles;
+
 slide_show *default_show();
 
 void set_fam(style_item *style, const char *token) {
@@ -53,9 +55,15 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
 
   if (!content) {
     return default_show();
+
   } else {
+    /* let's make a new show from the content */
+
     the_show = Calloc(1, sizeof(slide_show));
     if (previous_show) the_show->index = previous_show->index;
+
+    style_item *defined_style = 0;
+
     slide_item *slide = 0;
     style_item *style = 0;
     text_item *item = 0;
@@ -64,9 +72,14 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
     style_item *initial;
     initial = Calloc(1, sizeof(style_item));
     initial->style = normal;
-    initial->family = sans;
+    initial->family = serif;
     initial->align = center;
     initial->size = .1f;
+    initial->fg_color = cf4(1, 1, 1, 1);
+    float initial_line_height = 1.f;
+    initial->line_height = initial_line_height;
+    float initial_margin_x = .05f;
+    initial->margins_x = initial_margin_x;
     SDL_Color initial_bg = cf4(0, 0, 0, .8);
     float initialY = .5f;
     SDL_Color last_color = cf4(1, 1, 1, 1);
@@ -75,11 +88,14 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
     char *line_tokenizer, *space_tokenizer;
     char *line = strtok_r(content, "\n", &line_tokenizer);
     while (line) {
-      debug("(line ): %s", line);
-      if (line[0] == comment_starter) { /* start of a slide */
-      } else if (line[0] == slide_starter) { /* start of a slide */
+      info("(line ): %s", line);
 
-        style = 0;
+      if (line[0] == comment_starter) {
+        /* ; comment line */
+
+      } else if (line[0] == slide_starter) {
+        /* # start of a slide */
+
         yyy = 0;
         strtok_r(line, " ", &space_tokenizer); // eat space tokens
         char *title = strtok_r(0, "\n", &space_tokenizer);
@@ -88,14 +104,19 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
         slide->bg_color = last_bg ? *last_bg : initial_bg;
         push(the_show->slides, slide);
 
-      } else if (line[0] == command_starter) { /* start of command */
+      } else if (line[0] == command_starter) {
+        /* . [*]... start of command */
 
         char *token = strtok_r(line, " ", &space_tokenizer);
         while (token) {
           if (strcmp("font", token) == 0) {
-            style = Calloc(1, sizeof(style_item));
+            /* . font [float] [*]... */
+
+            style = defined_style ? : Calloc(1, sizeof(style_item));
+            style->line_height = initial_line_height;
+            style->margins_x = initial_margin_x;
             token = strtok_r(0, " ", &space_tokenizer);
-            style->size = strtof(token, 0); // require `. font [size] * * *`
+            style->size = strtof(token, 0);
             while (token) {
               set_fam(style, token);
               set_style(style, token);
@@ -104,13 +125,52 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
             }
             continue; // we ate all tokens on the font line
 
-          } else if (strcmp("y", token) == 0) { /* y-height of text */
+          } else if (strcmp("define-style", token) == 0) {
+            /* . define-style [unique-name] */
 
             token = strtok_r(0, " ", &space_tokenizer);
-            yyy = strtof(token, 0); // require `. y [size]`
+            style_hash *found = 0;
+            HASH_FIND_STR(saved_styles, token, found);
+            if (!found) {
+              defined_style = Calloc(1, sizeof(style_item));
+              memcpy(defined_style, initial, sizeof(style_item));
+              defined_style->name = token;
+            } else {
+              defined_style = found->style;
+            }
 
-          } else if (strcmp("bg", token) == 0) { /* background color */
-            info("hi bg");
+          } else if (strcmp("style", token) == 0) {
+            /* . style [name] */
+
+            token = strtok_r(0, " ", &space_tokenizer);
+            style_hash *found = 0;
+            HASH_FIND_STR(saved_styles, token, found);
+            if (found) style = found->style;
+            else
+              error("can't find style named %s", token);
+
+          } else if (strcmp("save-style", token) == 0) {
+            /* . save-style */
+
+            if (defined_style) {
+              style_hash *found = 0;
+              found = Malloc(sizeof(style_hash));
+              found->name = defined_style->name;
+              found->style = defined_style;
+              HASH_ADD_STR(saved_styles, name, found);
+              defined_style = 0;
+            } else {
+              error("tried to save a style before defining one");
+            }
+
+          } else if (strcmp("y", token) == 0) {
+            /* . y [float] */
+
+            token = strtok_r(0, " ", &space_tokenizer);
+            yyy = strtof(token, 0); // fixme error require `. y [float]`
+
+          } else if (strcmp("bg", token) == 0) {
+            /* . bg [float_r] [float_g] [float_b] [? alpha] */
 
             token = strtok_r(0, " ", &space_tokenizer);
             float r = strtof(token, 0);
@@ -122,8 +182,11 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
             float a = token ? strtof(token, 0) : 1;
             slide->bg_color = cf4(r, g, b, a);
             last_bg = &slide->bg_color;
-          } else if (strcmp("color", token) == 0) { /* text color */
 
+          } else if (strcmp("color", token) == 0) {
+            /* text color [float_r] [float_g] [float_b] */
+
+            style = defined_style ? : Calloc(1, sizeof(style_item));
             token = strtok_r(0, " ", &space_tokenizer);
             float r = strtof(token, 0);
             token = strtok_r(0, " ", &space_tokenizer);
@@ -132,11 +195,28 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
             float b = strtof(token, 0);
             token = strtok_r(0, " ", &space_tokenizer);
             float a = token ? strtof(token, 0) : 1;
-            last_color = cf4(r, g, b, a);
+            style->fg_color = cf4(r, g, b, a);
 
-          } else if (token[0] != command_starter) { /* unknown command */
+          } else if (strcmp("line-height", token) == 0) {
+            /* line-height [float] */
 
-            error("unknown token: %s", token);
+            token = strtok_r(0, " ", &space_tokenizer);
+            float f = strtof(token, 0);
+            if (defined_style) {
+              defined_style->line_height = f;
+            } else {
+              style->line_height = f;
+            }
+
+          } else if (token[0] != command_starter) {
+            /* unknown */
+
+            error("unknown command: %s", token);
+            token = strtok_r(0, " ", &space_tokenizer);
+            while (token) {
+              error("unknown attribute: %s", token);
+              token = strtok_r(0, " ", &space_tokenizer);
+            }
           }
           token = strtok_r(0, " ", &space_tokenizer);
         }
@@ -150,7 +230,6 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
 
         item = Calloc(1, sizeof(text_item));
         push(slide->items, item);
-        item->fg_color = last_color;
         item->type = text_slide;
         item->y = yyy == MINFLOAT ? initialY : yyy;
         size_t len = strlen(line);
@@ -158,9 +237,13 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
         memcpy(item->text, line, len + 1);
         push(slide->styles, style ? : initial);
       }
+
+      /* advance to the next line */
       line = strtok_r(0, "\n", &line_tokenizer);
     }
   }
+
+  /* the previous index was saved; ensure slide index still ok */
   the_show->index = the_show->index < 0 ? 0
       : min(the_show->index, count(the_show->slides) - 1);
   return the_show;
@@ -208,11 +291,11 @@ slide_show *default_show() {
       style->family = (i + j) % num_families;
       style->align = (i + j) % num_alignments;
       style->size = .1f;
+      style->fg_color = cf4(1, 1, 1, 1);
 
       text_item *item = Calloc(1, sizeof(text_item));
       push(slide->items, item);
 
-      item->fg_color = cf4(1, 1, 1, 1);
       item->type = text_slide;
       item->text = str;
       item->y = .5;
@@ -246,35 +329,34 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
       SDL_Texture *shadow =
           texturize_text(renderer, f,
                          item->text,
-                         item->fg_color,
-                         &box, SDL_BLENDMODE_MOD);
-//      SDL_Texture *slide_text =
-//          texturize_text(renderer, f,
-//                         item->text,
-//                         item->fg_color,
-//                         &box, SDL_BLENDMODE_BLEND);
+                         cf4(.1, .1, .1, .1),
+                         &box, SDL_BLENDMODE_ADD);
+      SDL_Texture *slide_text =
+          texturize_text(renderer, f,
+                         item->text,
+                         style->fg_color,
+                         &box, SDL_BLENDMODE_BLEND);
       TTF_CloseFont(f);
-      box.y -= -(box.h * 2 / 3 + slide_i * box.h);
-      int margins_x = (int) (w * .05f);
+      box.y -= -(box.h * 2 / 3 + slide_i * box.h * style->line_height);
       switch (style->align) {
         default:
         case left:
-          box.x += margins_x;
+          box.x += (int) (w * style->margins_x);
           break;
         case center:
           box.x += w / 2 - box.w / 2;
           break;
         case right:
-          box.x = w - box.w - margins_x;
+          box.x = w - box.w - (int) (w * style->margins_x);
           break;
       }
       SDL_Rect rect = box;
-      rect.x += 2;
-      rect.y += 2;
+      rect.x++;
+      rect.y++;
       SDL_RenderCopy(renderer, shadow, 0, &rect);
-//      SDL_RenderCopy(renderer, slide_text, 0, &box);
+      SDL_RenderCopy(renderer, slide_text, 0, &box);
       SDL_DestroyTexture(shadow);
-//      SDL_DestroyTexture(slide_text);
+      SDL_DestroyTexture(slide_text);
     } else {
       assert(!"needs a font");
     }
@@ -286,14 +368,13 @@ texturize_text(SDL_Renderer *renderer, TTF_Font *font, char *string,
                SDL_Color fg, SDL_Rect *r, SDL_BlendMode mode) {
   SDL_Surface *t;
   if (!(t = TTF_RenderText_Blended(font, string, fg))) return 0;
-  assert(!SDL_SetSurfaceBlendMode(t, SDL_BLENDMODE_BLEND));
+  assert(!SDL_SetSurfaceBlendMode(t, mode));
   SDL_Texture *words = SDL_CreateTextureFromSurface(renderer, t);
   SDL_FreeSurface(t);
   SDL_QueryTexture(words, 0, 0, &r->w, &r->h);
-  assert(!SDL_SetTextureBlendMode(words, SDL_BLENDMODE_ADD));
+  assert(!SDL_SetTextureBlendMode(words, mode));
   return words;
 }
-
 
 font *find_font(font *fonts, char *name) {
   font *s;

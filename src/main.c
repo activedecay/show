@@ -234,7 +234,7 @@ main(int argc, char *argv[]) {
   add_font("scriptnormal", "./res/AlexBrush-Regular.ttf");
 
   read_slideshow_file();
-  bool in_frame;
+  bool in_frame = false;
   while (!quit) {
     while (SDL_PollEvent(&event)) {
       if (event.type == SDL_QUIT) {
@@ -324,7 +324,7 @@ font *add_font(char *name, char *filepath) {
   font *found;
   HASH_FIND_STR(fonts, name, found);
   if (found) return found;
-  found = malloc(sizeof(font));
+  found = Malloc(sizeof(font));
   found->id = name;
   found->filename = filepath;
   HASH_ADD_STR(fonts, id, found);
