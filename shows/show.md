@@ -25,7 +25,7 @@
 . color 0.533 0.309 0.368
 . save-style
 
-#
+# neapolitan
 . bg 0.043 0.047 0.349 .9
 . style pink
 what
@@ -35,8 +35,6 @@ what
 what
 . style purp
 what
-
-
 
 # more
 . bg 0 0 0 .1
@@ -59,18 +57,15 @@ hmmm
 
 # 2its and hips
 . color 0 1 0
-. style baby
+. style pink
 . bg .1 0 .1 .8
 . y .4
 BABY omg!!!
  
 # 2its and hips 
-. font .1 serif center
+. style pink
 baby!
-. y -.1
-. font .3 
 !!!
-. font .1 right
 OwO
 
 # baby
@@ -135,6 +130,7 @@ serif
 * delete items from the hash table.
 
 # test
+. bg 1 1 1 .8
 . font .5 script
-. y -.5
+. color 0 0 0
 baby

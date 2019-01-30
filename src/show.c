@@ -82,7 +82,6 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
     initial->margins_x = initial_margin_x;
     SDL_Color initial_bg = cf4(0, 0, 0, .8);
     float initialY = .5f;
-    SDL_Color last_color = cf4(1, 1, 1, 1);
     SDL_Color *last_bg = 0;
 
     char *line_tokenizer, *space_tokenizer;
@@ -186,7 +185,7 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
           } else if (strcmp("color", token) == 0) {
             /* text color [float_r] [float_g] [float_b] */
 
-            style = defined_style ? : Calloc(1, sizeof(style_item));
+            style = defined_style ? : memcpy(Calloc(1, sizeof(style_item)), initial, sizeof(style_item));
             token = strtok_r(0, " ", &space_tokenizer);
             float r = strtof(token, 0);
             token = strtok_r(0, " ", &space_tokenizer);
