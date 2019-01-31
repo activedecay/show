@@ -86,13 +86,7 @@ typedef struct {
 
 /* slide show */
 
-typedef enum {
-    text_slide
-} item_type;
-
 typedef struct {
-    float y;
-    item_type type;
     char *text;
 } text_item;
 
@@ -164,10 +158,15 @@ typedef struct {
 } style_hash;
 
 typedef struct {
-    SDL_Color bg_color;
+    float x, y;
+} point;
+
+typedef struct {
     char *title;
+    SDL_Color bg_color;
     text_item **items;
     style_item **styles;
+    point **points;
 } slide_item;
 
 typedef struct {

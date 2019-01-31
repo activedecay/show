@@ -222,18 +222,23 @@ main(int argc, char *argv[]) {
   u32 frame_delay = 16;
   int mouse_x, mouse_y;
 
-  add_font("sansnormal", "/usr/share/fonts/truetype/freefont/FreeSans.ttf");
-  add_font("sansbold", "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf");
-  add_font("sansitalic", "/usr/share/fonts/truetype/freefont/FreeSansOblique.ttf");
-  add_font("serifnormal", "/usr/share/fonts/truetype/freefont/FreeSerif.ttf");
-  add_font("serifbold", "/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf");
-  add_font("serifitalic", "/usr/share/fonts/truetype/freefont/FreeSerifItalic.ttf");
-  add_font("mononormal", "/usr/share/fonts/truetype/freefont/FreeMono.ttf");
-  add_font("monobold", "/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf");
-  add_font("monoitalic", "/usr/share/fonts/truetype/freefont/FreeMonoOblique.ttf");
+  add_font("sansnormal", "./res/FreeSans.ttf");
+  add_font("sansbold", "./res/FreeSansBold.ttf");
+  add_font("sansitalic", "./res/FreeSansOblique.ttf");
+  add_font("serifnormal", "./res/FreeSerif.ttf");
+  add_font("serifbold", "./res/FreeSerifBold.ttf");
+  add_font("serifitalic", "./res/FreeSerifItalic.ttf");
+  add_font("mononormal", "./res/FreeMono.ttf");
+  add_font("monobold", "./res/FreeMonoBold.ttf");
+  add_font("monoitalic", "./res/FreeMonoOblique.ttf");
   add_font("scriptnormal", "./res/AlexBrush-Regular.ttf");
+  add_font("scriptitalic", "./res/AlexBrush-Regular.ttf");
+  add_font("scriptbold", "./res/AlexBrush-Regular.ttf");
 
   read_slideshow_file();
+
+  if (!show->slides) error("no slides! create a slide using '# Title'");
+
   bool in_frame = false;
   while (!quit) {
     while (SDL_PollEvent(&event)) {
@@ -265,7 +270,7 @@ main(int argc, char *argv[]) {
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, babe, 0, 0);
 
-    draw_slide(renderer, w, h, show, fonts);
+    if (show->slides) draw_slide(renderer, w, h, show, fonts);
 
     SDL_GetMouseState(&mouse_x, &mouse_y);
     mouse_follow_rect.x = mouse_x + 20;
@@ -312,8 +317,8 @@ void read_slideshow_file() {
     fclose(f);
 
     P(&slide_sem);
-    if ((show = make_slides(show, content)) == 0) {
-      die("this file sucks");
+    if ((show = make_slides(show, content)) == 0) { // @Leak!
+      die("this show file sucks!");
       exit(EXIT_FAILURE);
     }
     V(&slide_sem);

@@ -1,11 +1,10 @@
 # do it
-margin is property of a style
+declare-font variables that import fonts from disk on the fly
+assert(!"needs a better font failure mechanism");
 text shadow (wtf alpha on text is broken)
 way better error handling
-font size is 1/100th of a screen height
-declare-font variables
-stateful soft-wraps (bug in resize where y-computed weirdly)
-fix memory leaks
+vertical-align middle and shit.
+fix memory @Leaks
 images
 more image formats than bmp
 hot-load images! OMFG ? could just do the same thing as reading the image each time show.md changes
@@ -26,7 +25,6 @@ declare-slide variables (templates)
 - use-slide command to include templates in the current slide
 - can't use the same name for the templates
 - use a shown-slide list
-package free fonts
 slide editor in game
 videos
 tables
@@ -38,7 +36,14 @@ spell-cheker
 
 # features
 declare-style variables
+properties of a style:
+  margin
+package of free fonts
+initialize a new rect y for each y encountered. draw a box
+allow all style variables to change independently
 
+# usage
+font size is 1/100th of a screen height
 
 # notes
 
