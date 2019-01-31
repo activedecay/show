@@ -338,7 +338,8 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
                          &rect, SDL_BLENDMODE_BLEND);
       TTF_CloseFont(f);
       int vertical_align = 0; // todo
-      rect.y = rect.y + vertical_align + (int) (line_number++ * rect.h * style->line_height);
+      rect.y = rect.y + vertical_align +
+          (int) (line_number++ * rect.h * style->line_height);
       switch (style->align) {
         default:
         case left:

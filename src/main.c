@@ -81,7 +81,8 @@ load_game_library(void) {
 }
 
 void
-do_window(SDL_Event *event, uint32_t *frame_delay, int *w, int *h, bool *in_frame) {
+do_window(SDL_Event *event, uint32_t *frame_delay,
+          int *w, int *h, bool *in_frame) {
   switch ((SDL_WindowEventID) (*event).window.event) {
     default:
       break;
@@ -109,7 +110,8 @@ do_window(SDL_Event *event, uint32_t *frame_delay, int *w, int *h, bool *in_fram
   }
 }
 
-bool do_keydown(SDL_Event *event, slide_show *show, uint32_t *frame_delay) {
+bool do_keydown(SDL_Event *event, slide_show *show,
+                uint32_t *frame_delay) {
   bool quit = false;
 
   switch ((SDL_Scancode) (*event).key.keysym.scancode) {
@@ -196,17 +198,21 @@ main(int argc, char *argv[]) {
   if (!babe_surface) return die("surfaces are missing");
   w = babe_surface->w / 2;
   h = babe_surface->h / 2;
-  if (SDL_Init(SDL_INIT_EVERYTHING) < 0) return die("can't init SDL");
+  if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+    return die("can't init SDL");
   if (TTF_Init() < 0) return die("can't init fonts");
-  if (!(font = TTF_OpenFont("/usr/share/fonts/truetype/freefont/FreeSans.ttf", 72))) return die("can't load the font");
-  SDL_CreateWindowAndRenderer(w, h, SDL_WINDOW_RESIZABLE, &window, &renderer);
+  if (!(font = TTF_OpenFont("./res/FreeSans.ttf", 72)))
+    return die("can't load the font");
+  SDL_CreateWindowAndRenderer(w, h, SDL_WINDOW_RESIZABLE,
+                              &window, &renderer);
 
   babe = SDL_CreateTextureFromSurface(renderer, babe_surface);
   if (!babe) return die("functionality is limited");
   SDL_FreeSurface(babe_surface);
 
   cursor_surface = SDL_LoadBMP("res/cursor.bmp");
-  if ((cursor = SDL_CreateColorCursor(cursor_surface, 5, 7)) == 0) return die("cursor nope'd");
+  if ((cursor = SDL_CreateColorCursor(cursor_surface, 5, 7)) == 0)
+    return die("cursor nope'd");
   SDL_FreeSurface(cursor_surface);
   SDL_SetCursor(cursor);
   SDL_Cursor *cursors[SDL_NUM_SYSTEM_CURSORS];
@@ -216,7 +222,8 @@ main(int argc, char *argv[]) {
   SDL_SetCursor(cursor);
 
   SDL_Rect mouse_follow_rect = {10, 10};
-  mouse_follow_word = make_text(renderer, font, "*", (SDL_Color) {255, 255, 255, 255}, &mouse_follow_rect,
+  mouse_follow_word = make_text(renderer, font, "*",
+      (SDL_Color) {255, 255, 255, 255}, &mouse_follow_rect,
       SDL_BLENDMODE_BLEND);
 
   u32 frame_delay = 16;
@@ -237,7 +244,8 @@ main(int argc, char *argv[]) {
 
   read_slideshow_file();
 
-  if (!show->slides) error("no slides! create a slide using '# Title'");
+  if (!show->slides)
+    error("Error: no slides! create a slide with '# Title'");
 
   bool in_frame = false;
   while (!quit) {
@@ -263,7 +271,8 @@ main(int argc, char *argv[]) {
         default:
           break;
       }
-      show->index = show->index < 0 ? 0 : min(show->index, count(show->slides) - 1);
+      show->index = show->index < 0 ? 0
+          : min(show->index, count(show->slides) - 1);
     }
 
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
@@ -277,7 +286,8 @@ main(int argc, char *argv[]) {
     mouse_follow_rect.y = mouse_y + 20;
 
     SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
-    if (in_frame) SDL_RenderCopy(renderer, mouse_follow_word, 0, &mouse_follow_rect);
+    if (in_frame) SDL_RenderCopy(renderer, mouse_follow_word,
+                                 0, &mouse_follow_rect);
     SDL_RenderPresent(renderer);
     SDL_Delay(frame_delay);
   }

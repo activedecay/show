@@ -9,10 +9,10 @@
 #
 . bg .1 .3 .7 .5
 . color 1 1 .5
-. font .19 bold
+. font .49 bold
 wow
 . y .6
-. font .32 italic left
+. font .32 italic left serif
 Cool as shit!
 . y 0
 . font .1 left

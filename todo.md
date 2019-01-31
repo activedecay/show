@@ -1,14 +1,22 @@
 # do it
 declare-font variables that import fonts from disk on the fly
+templates (including a slide in another slide) "shared content"
+declare-slide variables (templates)
+- slide visibility set to no for templates
+- use-slide command to include templates in the current slide
+- can't use the same name for the templates
+- use a shown-slide list
+load-image lol pic.png
+image scale, crop, rotate
+\ escape handling
 assert(!"needs a better font failure mechanism");
 text shadow (wtf alpha on text is broken)
 way better error handling
 vertical-align middle and shit.
 fix memory @Leaks
-images
 more image formats than bmp
-hot-load images! OMFG ? could just do the same thing as reading the image each time show.md changes
-image crop, rotate
+hot-load images! OMFG ? could just do the same 
+        thing as reading the image each time show.md changes
 rotated text
 x pos
 hyperlinks
@@ -19,12 +27,6 @@ overview mode
 audience viewing conditions use case
 transitions
 drawing on the slides
-templates (including a slide in another slide) "shared content"
-declare-slide variables (templates)
-- slide visibility set to no for templates
-- use-slide command to include templates in the current slide
-- can't use the same name for the templates
-- use a shown-slide list
 slide editor in game
 videos
 tables
@@ -33,6 +35,12 @@ slideshow progress bar
 picture in a picture
 game-like effects, subtle
 spell-cheker
+
+aspect ratio (hard)
+image tiling (uv-scale 1 -1)
+image borders
+rectangles
+poly lines
 
 # features
 declare-style variables
@@ -64,11 +72,15 @@ font size is 1/100th of a screen height
     SDL_ShowCursor(false);
     SDL_SetRelativeMouseMode(true);
     
-    SDL_GetGlobalMouseState(&mouse_x, &mouse_y); // desktop relative
+    // desktop relative
+    SDL_GetGlobalMouseState(&mouse_x, &mouse_y); 
 
     SDL_CaptureMouse(true);
     
-    window = SDL_CreateWindow("schlides!", 0, 0, w / 2, h / 2, SDL_WINDOW_RESIZABLE);
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
-    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    window = SDL_CreateWindow("schlides!", 0,
+            0, w / 2, h / 2, SDL_WINDOW_RESIZABLE);
+    renderer = SDL_CreateRenderer(window, -1,
+            SDL_RENDERER_PRESENTVSYNC);
+    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED,
+            SDL_WINDOWPOS_CENTERED);
 
