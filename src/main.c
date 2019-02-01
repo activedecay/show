@@ -1,12 +1,15 @@
+//
+// Created by justin on Sat Jan 26 08:30:09 MST 2019
+//
+
 #pragma clang diagnostic push
 /* fuck you const! fuck you! */
 #pragma clang diagnostic ignored \
   "-Wincompatible-pointer-types-discards-qualifiers"
 #pragma ide diagnostic ignored "cert-msc30-c" // rand is weak
 #pragma ide diagnostic ignored "cert-msc32-c" // rand is weak
-//
-// Created by justin on Sat Jan 26 08:30:09 MST 2019
-//
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
+#pragma ide diagnostic ignored "OCDFAInspection"
 
 #include <dirent.h>
 #include <dlfcn.h>
@@ -24,13 +27,11 @@
 
 #include "show.h"
 
-void quit(void);
-
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCDFAInspection"
 
 void lol(void) {
-  error("lol you ran out of memory");
+  error("lol you ran out of memory!");
 }
 
 #pragma clang diagnostic pop
@@ -43,7 +44,6 @@ void lol(void) {
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#define STBI_FAILURE_USERMSG
 #define STBI_ONLY_PNG
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_BMP
@@ -51,150 +51,43 @@ void lol(void) {
 
 #include "../src/lib/stb_image.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunknown-pragmas"
-#pragma clang diagnostic ignored "-Wimplicit-int"
-#pragma ide diagnostic ignored "OCDFAInspection"
+/* shared object functions */
+void *game_lib;
+init_slides_ptr init_slides_func;
+render_slide_ptr render_slide_func;
+texturize_text_ptr texturize_text_func;
 
+/* globals */
+char *slide_show_file = 0;
+font *fonts = 0;
+sem_t game_sem;
+sem_t slide_sem;
+size_t read_len = 24;
+slide_show *show;
 
-void read_slideshow_file(void);
+bool do_keydown(SDL_Event *event, slide_show *show,
+                uint32_t *frame_delay);
 
 font *add_font(char *, char *);
 
-SDL_Texture *get_texture_from_image(SDL_Renderer *, char *);
+int die(char *s);
 
 SDL_Cursor *get_cursor();
 
-init_slides_ptr make_slides;
-render_slide_ptr draw_slide;
-texturize_text_ptr make_text;
-char *slide_show_file = 0;
-size_t read_len = 24;
-slide_show *show;
-font *fonts = 0;
-void *game_lib;
+SDL_Texture *get_texture_from_image(SDL_Renderer *, char *);
 
-sem_t slide_sem;
-sem_t game_sem;
+void do_window(SDL_Event *event, uint32_t *frame_delay,
+               int *w, int *h, bool *in_frame);
 
-void
-load_game_library(void) {
-  P(&game_sem);
-  if (game_lib) dlclose(game_lib);
+void load_game_library(void);
 
-  if (!(game_lib = dlopen("libslider.so", RTLD_LAZY))) {
-    fprintf(stderr, "bitch %s\n", dlerror());
-    exit(EXIT_FAILURE);
-  }
-  dlerror(); // clear existing errors
+void quit(void);
 
-  make_slides = dlsym(game_lib, "init_slides");
-  draw_slide = dlsym(game_lib, "render_slide");;
-  make_text = dlsym(game_lib, "texturize_text");;
-  info("shh s'alibrary %p", game_lib);
-  V(&game_sem);
+void read_slideshow_file(void);
 
-  char *error;
-  if ((error = dlerror()) != 0) {
-    fprintf(stderr, "todo lasagna %s\n", error);
-    exit(EXIT_FAILURE);
-  }
+void *watch_library(void *library);
 
-  read_slideshow_file();
-}
-
-void
-do_window(SDL_Event *event, uint32_t *frame_delay,
-          int *w, int *h, bool *in_frame) {
-  switch ((SDL_WindowEventID) (*event).window.event) {
-    default:
-      break;
-    case SDL_WINDOWEVENT_CLOSE: {
-      (*frame_delay) = 0;
-      break;
-    }
-    case SDL_WINDOWEVENT_SIZE_CHANGED: {
-      *w = event->window.data1;
-      *h = event->window.data2;
-      break;
-    }
-    case SDL_WINDOWEVENT_ENTER:
-    case SDL_WINDOWEVENT_FOCUS_GAINED: {
-      *in_frame = true;
-      (*frame_delay) = 16;
-      break;
-    }
-    case SDL_WINDOWEVENT_LEAVE:
-    case SDL_WINDOWEVENT_FOCUS_LOST: {
-      *in_frame = false;
-      (*frame_delay) = 200;
-      break;
-    }
-  }
-}
-
-bool do_keydown(SDL_Event *event, slide_show *show,
-                uint32_t *frame_delay) {
-  bool quit = false;
-
-  switch ((SDL_Scancode) (*event).key.keysym.scancode) {
-    case SDL_SCANCODE_Q:
-      quit = true;
-      (*frame_delay) = 1;
-      break;
-    case SDL_SCANCODE_ESCAPE:
-      quit = true;
-      (*frame_delay) = 1;
-      break;
-    case SDL_SCANCODE_HOME:
-      show->index = 0;
-      break;
-    case SDL_SCANCODE_PAGEUP:
-      show->index--;
-      break;
-    case SDL_SCANCODE_END:
-      show->index = count(show->slides) - 1;
-      break;
-    case SDL_SCANCODE_PAGEDOWN:
-      show->index++;
-      break;
-    case SDL_SCANCODE_RIGHT:
-      show->index++;
-      break;
-    case SDL_SCANCODE_LEFT:
-      show->index--;
-      break;
-    case SDL_SCANCODE_DOWN:
-      show->index++;
-      break;
-    case SDL_SCANCODE_UP:
-      show->index--;
-      break;
-    default:
-      break;
-  }
-  return quit;
-}
-
-
-int
-die(char *s) {
-  error("sorry, charlie: %s", s);
-  return EXIT_FAILURE;
-}
-
-void *watch_slideshow_file(void *slide_show_file) {
-  inotify(slide_show_file, read_slideshow_file); // child
-}
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-
-void *watch_library(void *library) {
-  inotify(library, load_game_library); // child
-}
-
-#pragma clang diagnostic pop
+void *watch_slideshow_file(void *slide_show_file);
 
 int
 main(int argc, char *argv[]) {
@@ -222,8 +115,8 @@ main(int argc, char *argv[]) {
   if (TTF_Init() < 0) return die("can't init fonts");
   if (!(font = TTF_OpenFont("./res/FreeSans.ttf", 72)))
     return die("can't load the font");
-  SDL_CreateWindowAndRenderer(w, h, SDL_WINDOW_RESIZABLE,
-                              &window, &renderer);
+  SDL_CreateWindowAndRenderer(
+      w, h, SDL_WINDOW_RESIZABLE, &window, &renderer);
 
   SDL_Texture *babe = get_texture_from_image(
       renderer, "./res/blue-lambo.jpg");
@@ -231,7 +124,7 @@ main(int argc, char *argv[]) {
   SDL_Cursor *cursor = get_cursor();
 
   SDL_Rect mouse_follow_rect = {10, 10};
-  mouse_follow_word = make_text(
+  mouse_follow_word = texturize_text_func(
       renderer, font, "*", (SDL_Color) {255, 255, 255, 255},
       &mouse_follow_rect, SDL_BLENDMODE_BLEND);
 
@@ -290,7 +183,7 @@ main(int argc, char *argv[]) {
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, babe, 0, 0);
 
-    if (show->slides) draw_slide(renderer, w, h, show, fonts);
+    if (show->slides) render_slide_func(renderer, w, h, show, fonts);
 
     SDL_GetMouseState(&mouse_x, &mouse_y);
     mouse_follow_rect.x = mouse_x + 20;
@@ -326,15 +219,15 @@ SDL_Texture *get_texture_from_image(SDL_Renderer *renderer, char *filename) {
                 &image_height, &n_chans, desire_rgba);
   if (!image) {
     error("image load failure: %s", stbi_failure_reason());
-//    return 0;
+    return 0;
   }
   int bits_ppix = n_chans * 8;
   image_surface = SDL_CreateRGBSurfaceWithFormatFrom(
       image, image_width, image_height, bits_ppix,
       image_width * 4, SDL_PIXELFORMAT_ABGR8888);
   if (!image_surface) {
-    error("could not create texture from image surface");
-//    return 0;
+    error("could not create surface from image file");
+    return 0;
   }
 
   SDL_Texture *image_texture =
@@ -371,7 +264,7 @@ void read_slideshow_file() {
     fclose(f);
 
     P(&slide_sem);
-    if ((show = make_slides(show, content)) == 0) { // @Leak!
+    if ((show = init_slides_func(show, content)) == 0) { // @Leak!
       die("this show file sucks!");
       exit(EXIT_FAILURE);
     }
@@ -412,6 +305,114 @@ SDL_Cursor *get_cursor() {
   return cursor;
 }
 
+bool do_keydown(SDL_Event *event, slide_show *show,
+                uint32_t *frame_delay) {
+  bool quit = false;
 
+  switch ((SDL_Scancode) (*event).key.keysym.scancode) {
+    case SDL_SCANCODE_Q:
+      quit = true;
+      (*frame_delay) = 1;
+      break;
+    case SDL_SCANCODE_ESCAPE:
+      quit = true;
+      (*frame_delay) = 1;
+      break;
+    case SDL_SCANCODE_HOME:
+      show->index = 0;
+      break;
+    case SDL_SCANCODE_PAGEUP:
+      show->index--;
+      break;
+    case SDL_SCANCODE_END:
+      show->index = count(show->slides) - 1;
+      break;
+    case SDL_SCANCODE_PAGEDOWN:
+      show->index++;
+      break;
+    case SDL_SCANCODE_RIGHT:
+      show->index++;
+      break;
+    case SDL_SCANCODE_LEFT:
+      show->index--;
+      break;
+    case SDL_SCANCODE_DOWN:
+      show->index++;
+      break;
+    case SDL_SCANCODE_UP:
+      show->index--;
+      break;
+    default:
+      break;
+  }
+  return quit;
+}
+
+void load_game_library(void) {
+  P(&game_sem);
+  if (game_lib) dlclose(game_lib);
+
+  if (!(game_lib = dlopen("libslider.so", RTLD_LAZY))) {
+    fprintf(stderr, "bitch %s\n", dlerror());
+    exit(EXIT_FAILURE);
+  }
+  dlerror(); // clear existing errors
+
+  init_slides_func = dlsym(game_lib, "init_slides");
+  render_slide_func = dlsym(game_lib, "render_slide");
+  texturize_text_func = dlsym(game_lib, "texturize_text");
+  info("shh s'alibrary %p", game_lib);
+  V(&game_sem);
+
+  char *error;
+  if ((error = dlerror()) != 0) {
+    fprintf(stderr, "todo lasagna %s\n", error);
+    exit(EXIT_FAILURE);
+  }
+
+  read_slideshow_file();
+}
+
+void do_window(SDL_Event *event, uint32_t *frame_delay,
+               int *w, int *h, bool *in_frame) {
+  switch ((SDL_WindowEventID) (*event).window.event) {
+    default:
+      break;
+    case SDL_WINDOWEVENT_CLOSE: {
+      (*frame_delay) = 0;
+      break;
+    }
+    case SDL_WINDOWEVENT_SIZE_CHANGED: {
+      *w = event->window.data1;
+      *h = event->window.data2;
+      break;
+    }
+    case SDL_WINDOWEVENT_ENTER:
+    case SDL_WINDOWEVENT_FOCUS_GAINED: {
+      *in_frame = true;
+      (*frame_delay) = 16;
+      break;
+    }
+    case SDL_WINDOWEVENT_LEAVE:
+    case SDL_WINDOWEVENT_FOCUS_LOST: {
+      *in_frame = false;
+      (*frame_delay) = 200;
+      break;
+    }
+  }
+}
+
+int die(char *s) {
+  error("sorry, charlie: %s", s);
+  return EXIT_FAILURE;
+}
+
+void *watch_slideshow_file(void *slide_show_file) {
+  inotify(slide_show_file, read_slideshow_file); // child
+}
+
+void *watch_library(void *library) {
+  inotify(library, load_game_library); // child
+}
 
 #pragma clang diagnostic pop
