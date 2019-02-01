@@ -59,7 +59,11 @@ void lol(void) {
 
 void read_slideshow_file(void);
 
-font *add_font(char *name, char *filepath);
+font *add_font(char *, char *);
+
+SDL_Texture *get_texture_from_image(SDL_Renderer *, char *);
+
+SDL_Cursor *get_cursor();
 
 init_slides_ptr make_slides;
 render_slide_ptr draw_slide;
@@ -207,37 +211,11 @@ main(int argc, char *argv[]) {
 
   SDL_Window *window = 0;
   SDL_Renderer *renderer = 0;
-  SDL_Surface *babe_surface = 0;
-  SDL_Texture *babe = 0;
   TTF_Font *font = 0;
   SDL_Texture *mouse_follow_word = 0;
-  SDL_Surface *cursor_surface = 0;
-  SDL_Cursor *cursor = 0;
   SDL_Event event;
-  int w;
-  int h;
-
-  int image_width;
-  int image_height;
-  int n_chans;
-  int desire_rgba = 4;
-  stbi_uc *image =
-      stbi_load("./res/blue-chiron.jpg", &image_width,
-                &image_height, &n_chans, desire_rgba);
-  if (!image) {
-    error("image load failure: %s", stbi_failure_reason());
-    return die("...and for that reason, we're exiting!");
-  }
-  int bits_ppix = n_chans * 8;
-  babe_surface = SDL_CreateRGBSurfaceWithFormatFrom(
-      image, image_width, image_height, bits_ppix,
-      image_width * 4, SDL_PIXELFORMAT_ABGR8888);
-  if (!babe_surface) {
-    return die("surfaces are missing");
-  }
-
-  w = babe_surface->w / 2;
-  h = babe_surface->h / 2;
+  int w = 960;
+  int h = 540;
 
   if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
     return die("can't init SDL");
@@ -247,27 +225,10 @@ main(int argc, char *argv[]) {
   SDL_CreateWindowAndRenderer(w, h, SDL_WINDOW_RESIZABLE,
                               &window, &renderer);
 
-  babe = SDL_CreateTextureFromSurface(renderer, babe_surface);
-  if (!babe) return die("functionality is limited");
-  SDL_FreeSurface(babe_surface);
-  stbi_image_free(image);
+  SDL_Texture *babe = get_texture_from_image(
+      renderer, "./res/blue-lambo.jpg");
 
-  stbi_uc *cursor_image =
-      stbi_load("./res/cursor.png", &image_width,
-                &image_height, &n_chans, desire_rgba);
-  cursor_surface = SDL_CreateRGBSurfaceWithFormatFrom(
-      cursor_image, image_width, image_height, bits_ppix,
-      image_width * 4, SDL_PIXELFORMAT_ABGR8888);
-  if ((cursor = SDL_CreateColorCursor(cursor_surface, 5, 7)) == 0)
-    return die("cursor nope'd");
-  SDL_FreeSurface(cursor_surface);
-
-  SDL_SetCursor(cursor);
-  SDL_Cursor *cursors[SDL_NUM_SYSTEM_CURSORS];
-  for (int i = 0; i < SDL_NUM_SYSTEM_CURSORS; ++i) {
-    cursors[i] = SDL_CreateSystemCursor(i);
-  }
-  SDL_SetCursor(cursor);
+  SDL_Cursor *cursor = get_cursor();
 
   SDL_Rect mouse_follow_rect = {10, 10};
   mouse_follow_word = make_text(
@@ -345,16 +306,47 @@ main(int argc, char *argv[]) {
 
   TTF_CloseFont(font);
   SDL_FreeCursor(cursor);
-  for (int i = 0; i < SDL_NUM_SYSTEM_CURSORS; ++i) {
-    SDL_FreeCursor(cursors[i]);
-  }
   SDL_DestroyTexture(mouse_follow_word);
   SDL_DestroyTexture(babe);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
-  stbi_image_free(cursor_image);
 
   return EXIT_SUCCESS;
+}
+
+
+SDL_Texture *get_texture_from_image(SDL_Renderer *renderer, char *filename) {
+  SDL_Surface *image_surface = 0;
+  int image_width;
+  int image_height;
+  int n_chans;
+  int desire_rgba = 4;
+  stbi_uc *image =
+      stbi_load(filename, &image_width,
+                &image_height, &n_chans, desire_rgba);
+  if (!image) {
+    error("image load failure: %s", stbi_failure_reason());
+//    return 0;
+  }
+  int bits_ppix = n_chans * 8;
+  image_surface = SDL_CreateRGBSurfaceWithFormatFrom(
+      image, image_width, image_height, bits_ppix,
+      image_width * 4, SDL_PIXELFORMAT_ABGR8888);
+  if (!image_surface) {
+    error("could not create texture from image surface");
+//    return 0;
+  }
+
+  SDL_Texture *image_texture =
+      SDL_CreateTextureFromSurface(renderer, image_surface);
+//  SDL_UpdateTexture(image_texture, 0, image, image_width * 4);
+  if (!image_texture) {
+    error("could not create texture from image surface");
+    return 0;
+  }
+  SDL_FreeSurface(image_surface);
+  stbi_image_free(image);
+  return image_texture;
 }
 
 void quit(void) {
@@ -396,6 +388,30 @@ font *add_font(char *name, char *filepath) {
   found->filename = filepath;
   HASH_ADD_STR(fonts, id, found);
 }
+
+SDL_Cursor *get_cursor() {
+  SDL_Cursor *cursor = 0;
+  SDL_Surface *cursor_surface = 0;
+  int image_width;
+  int image_height;
+  int n_chans;
+  int desire_rgba = 4;
+  stbi_uc *cursor_image =
+      stbi_load("./res/cursor.png", &image_width,
+                &image_height, &n_chans, desire_rgba);
+  int bits_ppix = n_chans * 8;
+  cursor_surface = SDL_CreateRGBSurfaceWithFormatFrom(
+      cursor_image, image_width, image_height, bits_ppix,
+      image_width * 4, SDL_PIXELFORMAT_ABGR8888);
+  if ((cursor = SDL_CreateColorCursor(cursor_surface, 5, 7)) == 0) {
+    error("can't create a cursor");
+  }
+  SDL_FreeSurface(cursor_surface);
+  SDL_SetCursor(cursor);
+  stbi_image_free(cursor_image);
+  return cursor;
+}
+
 
 
 #pragma clang diagnostic pop

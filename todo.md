@@ -84,3 +84,11 @@ font size is 1/100th of a screen height
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED,
             SDL_WINDOWPOS_CENTERED);
 
+    SDL_Cursor *cursors[SDL_NUM_SYSTEM_CURSORS];
+    for (int i = 0; i < SDL_NUM_SYSTEM_CURSORS; ++i) {
+        cursors[i] = SDL_CreateSystemCursor(i);
+    }
+    SDL_SetCursor(cursor);
+    for (int i = 0; i < SDL_NUM_SYSTEM_CURSORS; ++i) {
+        SDL_FreeCursor(cursors[i]);
+    }
