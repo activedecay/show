@@ -1,5 +1,4 @@
 # do it
-declare-font variables that import fonts from disk on the fly
 templates (including a slide in another slide) "shared content"
 declare-slide variables (templates)
 - slide visibility set to no for templates
@@ -41,6 +40,8 @@ image tiling (uv-scale 1 -1)
 image borders
 rectangles
 poly lines
+
+declare-font variables that import fonts from disk on the fly (eh)
 
 # features
 declare-style variables

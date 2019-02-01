@@ -7,13 +7,14 @@
 . save-style
 
 #
-. bg 0 0 0 0
+. bg 0 0 0 .8
 . color 1 1 .5
-. font .49 bold
-wow
+. font .51 bold
+wow!
 . y .6
 . font .32 italic left serif
 Cool as shit!
+. color 1 0
 . y 0
 . font .1 left
 fuuuukin'
@@ -32,7 +33,7 @@ hmm!
 
 . style default
 #
-. bg .1 .3 .7 .8
+. bg .1 .3 .7 .75
 . color 1 1 .5
 . font .19 bold center
 . line-height .34

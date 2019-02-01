@@ -118,7 +118,7 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
           token = strtok_r(0, " ", &space_tokenizer);
           style = memcpy(Calloc(1, sizeof(style_item)),
                          style ? : &DEFAULT_STYLE, sizeof(style_item));
-          style->size = strtof(token, 0);
+          style->size = !token ? .1f : strtof(token, 0);
           while (token) {
             set_fam(style, token);
             set_style(style, token);
@@ -134,7 +134,7 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
           HASH_FIND_STR(saved_styles, token, found);
           if (!found) {
             style = memcpy(Calloc(1, sizeof(style_item)),
-                           style ? : &DEFAULT_STYLE, sizeof(style_item));
+                           style ?: &DEFAULT_STYLE, sizeof(style_item));
             style->name = token;
           } else {
             style = found->style;
@@ -168,18 +168,18 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
 
           token = strtok_r(0, " ", &space_tokenizer);
           box = Calloc(1, sizeof(SDL_Rect));
-          box->y = strtof(token, 0);
+          box->y = !token ? 0 : strtof(token, 0);
 
         } else if (strcmp("bg", token) == 0) {
           /* . bg [float_r] [float_g] [float_b] [? alpha] */
 
           if (slide) {
             token = strtok_r(0, " ", &space_tokenizer);
-            float r = strtof(token, 0);
+            float r = !token ?: strtof(token, 0);
             token = strtok_r(0, " ", &space_tokenizer);
-            float g = strtof(token, 0);
+            float g = !token ?: strtof(token, 0);
             token = strtok_r(0, " ", &space_tokenizer);
-            float b = strtof(token, 0);
+            float b = !token ?: strtof(token, 0);
             token = strtok_r(0, " ", &space_tokenizer);
             float a = token ? strtof(token, 0) : 1;
             bg = cf4(r, g, b, a);
@@ -193,11 +193,11 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
           /* text color [float_r] [float_g] [float_b] */
 
           token = strtok_r(0, " ", &space_tokenizer);
-          float r = strtof(token, 0);
+          float r = !token ?: strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
-          float g = strtof(token, 0);
+          float g = !token ?: strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
-          float b = strtof(token, 0);
+          float b = !token ?: strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
           float a = token ? strtof(token, 0) : 1;
           color = cf4(r, g, b, a);
@@ -211,7 +211,7 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
           token = strtok_r(0, " ", &space_tokenizer);
           style = memcpy(Calloc(1, sizeof(style_item)),
                          style ? : &DEFAULT_STYLE, sizeof(style_item));
-          float f = strtof(token, 0);
+          float f = !token ?: strtof(token, 0);
           style->line_height = f;
 
         } else if (token[0] != command_starter) {
@@ -224,6 +224,8 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
             token = strtok_r(0, " ", &space_tokenizer);
           }
         }
+
+        /* advance to next space-separated token */
         token = strtok_r(0, " ", &space_tokenizer);
       }
     } else {
