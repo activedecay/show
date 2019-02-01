@@ -93,7 +93,7 @@ load_game_library(void) {
   char *error;
   if ((error = dlerror()) != 0) {
     fprintf(stderr, "todo lasagna %s\n", error);
-    // exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
 
   read_slideshow_file();
@@ -186,8 +186,8 @@ void *watch_slideshow_file(void *slide_show_file) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
 
-void *watch_game_library(void *_) {
-  inotify("lib/libslider.so", load_game_library); // child
+void *watch_library(void *library) {
+  inotify(library, load_game_library); // child
 }
 
 #pragma clang diagnostic pop
@@ -203,7 +203,7 @@ main(int argc, char *argv[]) {
   pthread_t tidp;
   slide_show_file = argc < 2 ? 0 : argv[1];
   Pthread_create(&tidp, 0, watch_slideshow_file, slide_show_file);
-  Pthread_create(&tidp, 0, watch_game_library, 0);
+  Pthread_create(&tidp, 0, watch_library, "lib/libslider.so");
 
   SDL_Window *window = 0;
   SDL_Renderer *renderer = 0;
@@ -217,28 +217,28 @@ main(int argc, char *argv[]) {
   int w;
   int h;
 
-  bool quit = false;
-
-  int x;
-  int y;
+  int image_width;
+  int image_height;
   int n_chans;
-  int desired = 4; // RGBA always, no matter what
-  char str[1000];
-  stbi_uc *image = stbi_load("./res/blue-lambo.jpg", &x, &y, &n_chans, desired);
+  int desire_rgba = 4;
+  stbi_uc *image =
+      stbi_load("./res/blue-chiron.jpg", &image_width,
+                &image_height, &n_chans, desire_rgba);
   if (!image) {
-    error("%s", stbi_failure_reason());
+    error("image load failure: %s", stbi_failure_reason());
     return die("...and for that reason, we're exiting!");
   }
-  printf("image %s has x%d y%d at %p with %d chans\n", str, x, y, (void *) image, n_chans);
-  babe_surface = SDL_CreateRGBSurfaceWithFormatFrom(image, x, y, n_chans * 8, x * 4,
-                                                    SDL_PIXELFORMAT_ABGR8888);
+  int bits_ppix = n_chans * 8;
+  babe_surface = SDL_CreateRGBSurfaceWithFormatFrom(
+      image, image_width, image_height, bits_ppix,
+      image_width * 4, SDL_PIXELFORMAT_ABGR8888);
   if (!babe_surface) {
-    char *string = stbi_failure_reason();
-    error("stbi failed %s", string);
     return die("surfaces are missing");
   }
+
   w = babe_surface->w / 2;
   h = babe_surface->h / 2;
+
   if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
     return die("can't init SDL");
   if (TTF_Init() < 0) return die("can't init fonts");
@@ -252,9 +252,12 @@ main(int argc, char *argv[]) {
   SDL_FreeSurface(babe_surface);
   stbi_image_free(image);
 
-  stbi_uc *cursor_image = stbi_load("./res/cursor.png", &x, &y, &n_chans, desired);
+  stbi_uc *cursor_image =
+      stbi_load("./res/cursor.png", &image_width,
+                &image_height, &n_chans, desire_rgba);
   cursor_surface = SDL_CreateRGBSurfaceWithFormatFrom(
-      cursor_image, x, y, n_chans * 8, x * 4, SDL_PIXELFORMAT_ABGR8888);
+      cursor_image, image_width, image_height, bits_ppix,
+      image_width * 4, SDL_PIXELFORMAT_ABGR8888);
   if ((cursor = SDL_CreateColorCursor(cursor_surface, 5, 7)) == 0)
     return die("cursor nope'd");
   SDL_FreeSurface(cursor_surface);
@@ -267,13 +270,11 @@ main(int argc, char *argv[]) {
   SDL_SetCursor(cursor);
 
   SDL_Rect mouse_follow_rect = {10, 10};
-  mouse_follow_word = make_text(renderer, font, "*",
-                                (SDL_Color) {255, 255, 255, 255}, &mouse_follow_rect,
-                                SDL_BLENDMODE_BLEND);
+  mouse_follow_word = make_text(
+      renderer, font, "*", (SDL_Color) {255, 255, 255, 255},
+      &mouse_follow_rect, SDL_BLENDMODE_BLEND);
 
-  u32 frame_delay = 16;
-  int mouse_x, mouse_y;
-
+  /* note @Evict from main */
   add_font("sansnormal", "./res/FreeSans.ttf");
   add_font("sansbold", "./res/FreeSansBold.ttf");
   add_font("sansitalic", "./res/FreeSansOblique.ttf");
@@ -293,6 +294,10 @@ main(int argc, char *argv[]) {
     error("Error: no slides! create a slide with '# Title'");
 
   bool in_frame = false;
+  bool quit = false;
+  int mouse_x, mouse_y;
+  u32 frame_delay = 16;
+
   while (!quit) {
     while (SDL_PollEvent(&event)) {
       if (event.type == SDL_QUIT) {
