@@ -7,7 +7,7 @@
 . save-style
 
 #
-. bg .1 .3 .7 .5
+. bg 0 0 0 0
 . color 1 1 .5
 . font .49 bold
 wow

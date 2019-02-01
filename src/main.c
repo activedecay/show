@@ -1,4 +1,6 @@
 #pragma clang diagnostic push
+/* fuck you const! fuck you! */
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
 #pragma ide diagnostic ignored "cert-msc30-c" // rand is weak
 #pragma ide diagnostic ignored "cert-msc32-c" // rand is weak
 //
@@ -23,15 +25,28 @@
 
 void quit(void);
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCDFAInspection"
 void lol(void) {
   error("lol you ran out of memory");
 }
+#pragma clang diagnostic pop
 
 #define STRETCHY_BUFFER_OUT_OF_MEMORY lol;
 
 #include "lib/stretchy.h"
 #include "lib/ino.h"
 #include "lib/csapp.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STBI_FAILURE_USERMSG
+#define STBI_ONLY_PNG
+#define STBI_ONLY_JPEG
+#define STBI_ONLY_BMP
+#define STBI_ONLY_GIF
+
+#include "../src/lib/stb_image.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
@@ -164,9 +179,12 @@ void *watch_slideshow_file(void *slide_show_file) {
   inotify(slide_show_file, read_slideshow_file); // child
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 void *watch_game_library(void *_) {
   inotify("lib/libslider.so", load_game_library); // child
 }
+#pragma clang diagnostic pop
 
 int
 main(int argc, char *argv[]) {
@@ -194,8 +212,21 @@ main(int argc, char *argv[]) {
   int h;
 
   bool quit = false;
-  babe_surface = SDL_LoadBMP("res/car.bmp");
-  if (!babe_surface) return die("surfaces are missing");
+
+  int x;
+  int y;
+  int n_chans;
+  int desired = 4; // RGBA always, no matter what
+  char str[1000];
+  stbi_uc *image = stbi_load("./res/blue-lambo.jpg", &x, &y, &n_chans, desired);
+  printf("image %s has x%d y%d at %p with %d chans\n", str, x, y, (void*)image, n_chans);
+  babe_surface = SDL_CreateRGBSurfaceWithFormatFrom(image, x, y, n_chans * 8, x * 4,
+      SDL_PIXELFORMAT_ABGR8888);
+  if (!babe_surface) {
+    char *string = stbi_failure_reason();
+    error("stbi failed %s", string);
+    return die("surfaces are missing");
+  }
   w = babe_surface->w / 2;
   h = babe_surface->h / 2;
   if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
@@ -209,11 +240,15 @@ main(int argc, char *argv[]) {
   babe = SDL_CreateTextureFromSurface(renderer, babe_surface);
   if (!babe) return die("functionality is limited");
   SDL_FreeSurface(babe_surface);
+  stbi_image_free(image);
 
-  cursor_surface = SDL_LoadBMP("res/cursor.bmp");
+  stbi_uc *cursor_image = stbi_load("./res/cursor.png", &x, &y, &n_chans, desired);
+  cursor_surface = SDL_CreateRGBSurfaceWithFormatFrom(cursor_image, x, y, n_chans * 8, x * 4,
+                                                      SDL_PIXELFORMAT_ABGR8888);
   if ((cursor = SDL_CreateColorCursor(cursor_surface, 5, 7)) == 0)
     return die("cursor nope'd");
   SDL_FreeSurface(cursor_surface);
+
   SDL_SetCursor(cursor);
   SDL_Cursor *cursors[SDL_NUM_SYSTEM_CURSORS];
   for (int i = 0; i < SDL_NUM_SYSTEM_CURSORS; ++i) {
@@ -301,6 +336,7 @@ main(int argc, char *argv[]) {
   SDL_DestroyTexture(babe);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
+  stbi_image_free(cursor_image);
 
   return EXIT_SUCCESS;
 }
@@ -347,4 +383,3 @@ font *add_font(char *name, char *filepath) {
 
 
 #pragma clang diagnostic pop
-

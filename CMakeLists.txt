@@ -19,6 +19,7 @@ add_executable(show src/main.c
         src/lib/ino.h
         src/lib/csapp.c
         )
-target_link_libraries(show SDL2 SDL2_ttf pthread dl)
+target_link_libraries(show SDL2 SDL2_ttf pthread m dl)
 
 add_executable(test test/test.c)
+target_link_libraries(test m)
