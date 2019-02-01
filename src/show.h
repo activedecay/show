@@ -190,32 +190,26 @@ typedef struct {
     UT_hash_handle hh; /* makes this structure hashable */
 } font;
 
-font *find_font(font *fonts, char *name);
+/* fancy defines for robustly making a fuction pointer
+ * whose parameter list can change at will */
+#define FUNCTION_FF(fun) font *fun(font *, char *)
+typedef FUNCTION_FF((*find_font_ptr));
+FUNCTION_FF(find_font);
 
-slide_show *init_slides(slide_show *previous_show,
-                        char *content);
+#define FUNCTION_IS(fun) slide_show *fun(slide_show *, char *)
+typedef FUNCTION_IS((*init_slides_ptr));
+FUNCTION_IS(init_slides);
 
-void render_slide(SDL_Renderer *renderer, int w, int h,
-                  slide_show *show, font *fonts);
+#define FUNCTION_RS(fun) void fun(SDL_Renderer *, int, int,        \
+        slide_show *, font *)
+typedef FUNCTION_RS((*render_slide_ptr));
+FUNCTION_RS(render_slide);
 
-SDL_Texture *
-texturize_text(SDL_Renderer *renderer,
-               TTF_Font *font, char *string,
-               SDL_Color fg, SDL_Rect *r,
-               SDL_BlendMode mode);
-
-typedef void (*render_slide_ptr)
-    (SDL_Renderer *renderer, int w, int h,
-     slide_show *show, font *fonts);
-
-typedef SDL_Texture *(*texturize_text_ptr)
-    (SDL_Renderer *renderer,
-     TTF_Font *font, char *string,
-     SDL_Color fg, SDL_Rect *r, SDL_BlendMode mode);
-
-typedef slide_show *(*init_slides_ptr)
-    (slide_show *previous_show, char *content);
+#define FUNCTION_TT(fun) SDL_Texture * fun(SDL_Renderer *renderer, \
+        TTF_Font *font, char *string, SDL_Color fg,                \
+        SDL_Rect *r, SDL_BlendMode mode)
+typedef FUNCTION_TT((*texturize_text_ptr));
+FUNCTION_TT(texturize_text);
 
 #endif //slideshow_h
-
 #pragma clang diagnostic pop

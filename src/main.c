@@ -56,6 +56,7 @@ void *game_lib;
 init_slides_ptr init_slides_func;
 render_slide_ptr render_slide_func;
 texturize_text_ptr texturize_text_func;
+find_font_ptr find_font_func;
 
 /* globals */
 char *slide_show_file = 0;
