@@ -11,13 +11,14 @@
 #pragma clang diagnostic push
 /* clion, you're fucking retarded */
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
-/* file too complex */
-#pragma ide diagnostic ignored "OCDFAInspection"
 
 style_hash *saved_styles;
 
 slide_show *default_show();
 
+#pragma clang diagnostic push
+/* AGAIN, clion, you're fucking retarded */
+#pragma ide diagnostic ignored "OCDFAInspection"
 void set_fam(style_item *style, const char *token) {
   for (int i = 0; i < num_families; ++i)
     if (strcmp(family[i].name, token) == 0) {
@@ -25,6 +26,7 @@ void set_fam(style_item *style, const char *token) {
       break;
     }
 }
+#pragma clang diagnostic pop
 
 char *get_fam(style_item *style) {
   for (int i = 0; i < num_families; ++i)
@@ -79,8 +81,8 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
 
   slide_item *slide = 0;
   style_item *style = 0;
-  text_item *item =   0;
-  point *box =        0;
+  text_item *item = 0;
+  point *box = 0;
   SDL_Color bg = cf4(0, 0, 0, .9);
   SDL_Color color;
 
@@ -100,7 +102,8 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
       // eats a space before the actual title
       strtok_r(line, " ", &space_tokenizer);
       slide = Calloc(1, sizeof(slide_item));
-      slide->title = strtok_r(0, "\n", &space_tokenizer) ?: strcpy(Malloc(5), "none");
+      slide->title = strtok_r(0, "\n", &space_tokenizer) ?:
+                     strcpy(Malloc(5), "none");
       slide->bg_color = bg;
       push(the_show->slides, slide);
 
@@ -113,7 +116,8 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
           /* . font [float] [*]... */
 
           token = strtok_r(0, " ", &space_tokenizer);
-          style = memcpy(Calloc(1, sizeof(style_item)), style ?: &DEFAULT_STYLE, sizeof(style_item));
+          style = memcpy(Calloc(1, sizeof(style_item)),
+                         style ? : &DEFAULT_STYLE, sizeof(style_item));
           style->size = strtof(token, 0);
           while (token) {
             set_fam(style, token);
@@ -129,7 +133,8 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
           style_hash *found = 0;
           HASH_FIND_STR(saved_styles, token, found);
           if (!found) {
-            style = memcpy(Calloc(1, sizeof(style_item)), style ?: &DEFAULT_STYLE, sizeof(style_item));
+            style = memcpy(Calloc(1, sizeof(style_item)),
+                           style ? : &DEFAULT_STYLE, sizeof(style_item));
             style->name = token;
           } else {
             style = found->style;
@@ -179,8 +184,9 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
             float a = token ? strtof(token, 0) : 1;
             bg = cf4(r, g, b, a);
             slide->bg_color = bg;
-          }  else {
-            error("Error: plain text before `# slide heading`; use a slide heading before '%s'", line);
+          } else {
+            error("Error: plain text before `# slide heading`;"
+                  " use a slide heading before '%s'", line);
           }
 
         } else if (strcmp("color", token) == 0) {
@@ -195,14 +201,16 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
           token = strtok_r(0, " ", &space_tokenizer);
           float a = token ? strtof(token, 0) : 1;
           color = cf4(r, g, b, a);
-          style = memcpy(Calloc(1, sizeof(style_item)), style ?: &DEFAULT_STYLE, sizeof(style_item));
+          style = memcpy(Calloc(1, sizeof(style_item)),
+                         style ? : &DEFAULT_STYLE, sizeof(style_item));
           style->fg_color = color;
 
         } else if (strcmp("line-height", token) == 0) {
           /* line-height [float] */
 
           token = strtok_r(0, " ", &space_tokenizer);
-          style = memcpy(Calloc(1, sizeof(style_item)), style ?: &DEFAULT_STYLE, sizeof(style_item));
+          style = memcpy(Calloc(1, sizeof(style_item)),
+                         style ? : &DEFAULT_STYLE, sizeof(style_item));
           float f = strtof(token, 0);
           style->line_height = f;
 
@@ -224,14 +232,17 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
       if (slide) {
         item = Calloc(1, sizeof(text_item));
         push(slide->items, item);
-        style = style ?: memcpy(Calloc(1, sizeof(style_item)), &DEFAULT_STYLE, sizeof(style_item));
+        style = style ? : memcpy(Calloc(1, sizeof(style_item)),
+                                 &DEFAULT_STYLE, sizeof(style_item));
         push(slide->styles, style);
         size_t len = strlen(line);
-        item->text = memcpy(Malloc(len * sizeof(char) + 1), line, len + 1);
-        box = box ?: Calloc(1, sizeof(SDL_Rect));
+        item->text = memcpy(Malloc(len * sizeof(char) + 1),
+                            line, len + 1);
+        box = box ? : Calloc(1, sizeof(SDL_Rect));
         push(slide->points, box);
       } else {
-        error("Error: plain text before `# slide heading`; use a slide heading before '%s'", line);
+        error("Error: plain text before `# slide heading`;"
+              " use a slide heading before '%s'", line);
       }
     }
 
@@ -318,9 +329,10 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
     style_item *style = current_slide->styles[i];
     point *box = current_slide->points[i];
 
-    if (box != last_box) line_number = 0; // boxes reset the y-coordinate
+    // boxes reset the y-coordinate
+    if (box != last_box) line_number = 0;
 
-    SDL_Rect rect = {0, (int)(h * box->y), 0, 0};
+    SDL_Rect rect = {0, (int) (h * box->y), 0, 0};
 
     char *fam = get_fam(style);
     char *sty = get_style(style);
@@ -339,7 +351,7 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
       TTF_CloseFont(f);
       int vertical_align = 0; // todo
       rect.y = rect.y + vertical_align +
-          (int) (line_number++ * rect.h * style->line_height);
+               (int) (line_number++ * rect.h * style->line_height);
       switch (style->align) {
         default:
         case left:

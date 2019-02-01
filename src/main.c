@@ -1,6 +1,7 @@
 #pragma clang diagnostic push
 /* fuck you const! fuck you! */
-#pragma clang diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
+#pragma clang diagnostic ignored \
+  "-Wincompatible-pointer-types-discards-qualifiers"
 #pragma ide diagnostic ignored "cert-msc30-c" // rand is weak
 #pragma ide diagnostic ignored "cert-msc32-c" // rand is weak
 //
@@ -27,9 +28,11 @@ void quit(void);
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCDFAInspection"
+
 void lol(void) {
   error("lol you ran out of memory");
 }
+
 #pragma clang diagnostic pop
 
 #define STRETCHY_BUFFER_OUT_OF_MEMORY lol;
@@ -55,6 +58,7 @@ void lol(void) {
 
 
 void read_slideshow_file(void);
+
 font *add_font(char *name, char *filepath);
 
 init_slides_ptr make_slides;
@@ -181,9 +185,11 @@ void *watch_slideshow_file(void *slide_show_file) {
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+
 void *watch_game_library(void *_) {
   inotify("lib/libslider.so", load_game_library); // child
 }
+
 #pragma clang diagnostic pop
 
 int
@@ -219,9 +225,13 @@ main(int argc, char *argv[]) {
   int desired = 4; // RGBA always, no matter what
   char str[1000];
   stbi_uc *image = stbi_load("./res/blue-lambo.jpg", &x, &y, &n_chans, desired);
-  printf("image %s has x%d y%d at %p with %d chans\n", str, x, y, (void*)image, n_chans);
+  if (!image) {
+    error("%s", stbi_failure_reason());
+    return die("...and for that reason, we're exiting!");
+  }
+  printf("image %s has x%d y%d at %p with %d chans\n", str, x, y, (void *) image, n_chans);
   babe_surface = SDL_CreateRGBSurfaceWithFormatFrom(image, x, y, n_chans * 8, x * 4,
-      SDL_PIXELFORMAT_ABGR8888);
+                                                    SDL_PIXELFORMAT_ABGR8888);
   if (!babe_surface) {
     char *string = stbi_failure_reason();
     error("stbi failed %s", string);
@@ -243,8 +253,8 @@ main(int argc, char *argv[]) {
   stbi_image_free(image);
 
   stbi_uc *cursor_image = stbi_load("./res/cursor.png", &x, &y, &n_chans, desired);
-  cursor_surface = SDL_CreateRGBSurfaceWithFormatFrom(cursor_image, x, y, n_chans * 8, x * 4,
-                                                      SDL_PIXELFORMAT_ABGR8888);
+  cursor_surface = SDL_CreateRGBSurfaceWithFormatFrom(
+      cursor_image, x, y, n_chans * 8, x * 4, SDL_PIXELFORMAT_ABGR8888);
   if ((cursor = SDL_CreateColorCursor(cursor_surface, 5, 7)) == 0)
     return die("cursor nope'd");
   SDL_FreeSurface(cursor_surface);
@@ -258,8 +268,8 @@ main(int argc, char *argv[]) {
 
   SDL_Rect mouse_follow_rect = {10, 10};
   mouse_follow_word = make_text(renderer, font, "*",
-      (SDL_Color) {255, 255, 255, 255}, &mouse_follow_rect,
-      SDL_BLENDMODE_BLEND);
+                                (SDL_Color) {255, 255, 255, 255}, &mouse_follow_rect,
+                                SDL_BLENDMODE_BLEND);
 
   u32 frame_delay = 16;
   int mouse_x, mouse_y;
@@ -321,8 +331,9 @@ main(int argc, char *argv[]) {
     mouse_follow_rect.y = mouse_y + 20;
 
     SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
-    if (in_frame) SDL_RenderCopy(renderer, mouse_follow_word,
-                                 0, &mouse_follow_rect);
+    if (in_frame)
+      SDL_RenderCopy(renderer, mouse_follow_word,
+                     0, &mouse_follow_rect);
     SDL_RenderPresent(renderer);
     SDL_Delay(frame_delay);
   }
