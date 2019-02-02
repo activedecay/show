@@ -14,11 +14,10 @@
 
 style_hash *saved_styles;
 
-slide_show *default_show();
-
 #pragma clang diagnostic push
 /* AGAIN, clion, you're fucking retarded */
 #pragma ide diagnostic ignored "OCDFAInspection"
+
 void set_fam(style_item *style, const char *token) {
   for (int i = 0; i < num_families; ++i)
     if (strcmp(family[i].name, token) == 0) {
@@ -26,6 +25,7 @@ void set_fam(style_item *style, const char *token) {
       break;
     }
 }
+
 #pragma clang diagnostic pop
 
 char *get_fam(style_item *style) {
@@ -66,6 +66,16 @@ static style_item DEFAULT_STYLE = {
     /* name        char        */  "default",
 };
 
+template_slide *templatize(char *name, template_slide **template_slides) {
+  template_slide *template;
+  HASH_FIND_STR(*template_slides, name, template);
+  if (template) return template;
+  template = Calloc(1, sizeof(template_slide));
+  template->id = name;
+  HASH_ADD_STR(*template_slides, id, template);
+  return template;
+}
+
 slide_show *init_slides(slide_show *previous_show, char *content) {
   slide_show *the_show = 0;
 
@@ -102,10 +112,11 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
       // eats a space before the actual title
       strtok_r(line, " ", &space_tokenizer);
       slide = Calloc(1, sizeof(slide_item));
-      slide->title = strtok_r(0, "\n", &space_tokenizer) ?:
-                     strcpy(Malloc(5), "none");
+      slide->title = strtok_r(0, "\n", &space_tokenizer) ? :
+          strcpy(Malloc(5), "none");
       slide->bg_color = bg;
       push(the_show->slides, slide);
+      info("reassigned slide pointer -> '%s'", slide->title);
 
     } else if (line[0] == command_starter) {
       /* . [*]... start of command */
@@ -125,6 +136,26 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
             set_align(style, token);
             token = strtok_r(0, " ", &space_tokenizer);
           }
+          info("assigned font to '%s'", !slide ? "a style i guess" : slide->title);
+
+        } else if (strcmp("#", token) == 0) {
+          /* . # template slide */
+
+          char *slide_title = strtok_r(0, "\n", &space_tokenizer);
+          template_slide *x = templatize(slide_title, &the_show->template_slides);
+          slide = x->slide = !x ? 0 : Calloc(1, sizeof(slide_item));
+          info(GREEN
+                   "start saving attributes to slide '%s' at %p", slide_title, x->slide);
+          slide->title = slide_title;
+
+        } else if (strcmp("using", token) == 0) {
+
+          char *slide_title = strtok_r(0, "\n", &space_tokenizer);
+          template_slide *x = templatize(slide_title, &the_show->template_slides);
+          info(BLUE
+                   "found slide template: '%s' at %p"
+                   RESET, slide_title, x->slide);
+          push(slide->using, x->slide);
 
         } else if (strcmp("define-style", token) == 0) {
           /* . define-style [unique-name] */
@@ -134,7 +165,7 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
           HASH_FIND_STR(saved_styles, token, found);
           if (!found) {
             style = memcpy(Calloc(1, sizeof(style_item)),
-                           style ?: &DEFAULT_STYLE, sizeof(style_item));
+                           style ? : &DEFAULT_STYLE, sizeof(style_item));
             style->name = token;
           } else {
             style = found->style;
@@ -175,29 +206,29 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
 
           if (slide) {
             token = strtok_r(0, " ", &space_tokenizer);
-            float r = !token ?: strtof(token, 0);
+            float r = !token ? : strtof(token, 0);
             token = strtok_r(0, " ", &space_tokenizer);
-            float g = !token ?: strtof(token, 0);
+            float g = !token ? : strtof(token, 0);
             token = strtok_r(0, " ", &space_tokenizer);
-            float b = !token ?: strtof(token, 0);
+            float b = !token ? : strtof(token, 0);
             token = strtok_r(0, " ", &space_tokenizer);
             float a = token ? strtof(token, 0) : 1;
             bg = cf4(r, g, b, a);
             slide->bg_color = bg;
           } else {
-            error("Error: plain text before `# slide heading`;"
-                  " use a slide heading before '%s'", line);
+            error("No slide yet; define a slide before "
+                  "setting the background color '%s'", line);
           }
 
         } else if (strcmp("color", token) == 0) {
           /* text color [float_r] [float_g] [float_b] */
 
           token = strtok_r(0, " ", &space_tokenizer);
-          float r = !token ?: strtof(token, 0);
+          float r = !token ? : strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
-          float g = !token ?: strtof(token, 0);
+          float g = !token ? : strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
-          float b = !token ?: strtof(token, 0);
+          float b = !token ? : strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
           float a = token ? strtof(token, 0) : 1;
           color = cf4(r, g, b, a);
@@ -211,7 +242,7 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
           token = strtok_r(0, " ", &space_tokenizer);
           style = memcpy(Calloc(1, sizeof(style_item)),
                          style ? : &DEFAULT_STYLE, sizeof(style_item));
-          float f = !token ?: strtof(token, 0);
+          float f = !token ? : strtof(token, 0);
           style->line_height = f;
 
         } else if (token[0] != command_starter) {
@@ -242,9 +273,11 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
                             line, len + 1);
         box = box ? : Calloc(1, sizeof(SDL_Rect));
         push(slide->points, box);
+
+        info("pushed some text onto slide '%s': %s", slide->title, line);
       } else {
         error("Error: plain text before `# slide heading`;"
-              " use a slide heading before '%s'", line);
+              " define a slide before '%s'", line);
       }
     }
 
@@ -324,8 +357,19 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
                          slide_bg.r, slide_bg.g, slide_bg.b, slide_bg.a);
   SDL_RenderFillRect(renderer, 0);
 
-  point *last_box = 0;
+  for (int i = 0; i < count(current_slide->using); ++i) {
+    slide_item *using = current_slide->using[i];
+    if (using) draw_slide_items(renderer, w, h, fonts, using);
+  }
+
+  draw_slide_items(renderer, w, h, fonts, current_slide);
+}
+
+void draw_slide_items(const SDL_Renderer *renderer, int w, int h,
+                      const font *fonts, const slide_item *current_slide) {
   int line_number = 0;
+  point *last_box = 0;
+
   for (int i = 0; i < count(current_slide->items); ++i) {
     text_item *item = current_slide->items[i];
     style_item *style = current_slide->styles[i];

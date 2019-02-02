@@ -1,6 +1,12 @@
 # do it
+draw on slides with laser pointer
+use voice commands to launch a missle and blow up the text
+
+variables
+- math operations
+    - parenthesis
+
 templates (including a slide in another slide) "shared content"
-declare-slide variables (templates)
 - slide visibility set to no for templates
 - use-slide command to include templates in the current slide
 - can't use the same name for the templates
@@ -22,6 +28,12 @@ hyperlinks
 drag and drop show.md files
 change font attributes mid-line
 presenter mode
+- annotate/notes screen separate from presentation screen
+- previous/next slide
+- timers
+- progress
+- toggle between presenter and audience view during 
+  a 1-screen practice
 overview mode
 audience viewing conditions use case
 transitions
@@ -41,9 +53,11 @@ image borders
 rectangles
 poly lines
 
+
 declare-font variables that import fonts from disk on the fly (eh)
 
 # features
+re-usable slide templates (. using Company Legal Text)
 declare-style variables
 properties of a style:
   margin

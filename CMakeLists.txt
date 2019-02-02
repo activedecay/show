@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.12.3)
 project(show C)
 
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -Wno-discarded-qualifiers)
 
 add_library(slider SHARED src/show.c src/show.h
         src/lib/stretchy.h

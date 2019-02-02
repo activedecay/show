@@ -265,7 +265,9 @@ void read_slideshow_file() {
     fclose(f);
 
     P(&slide_sem);
-    if ((show = init_slides_func(show, content)) == 0) { // @Leak!
+    if ((show = init_slides_func(show, content)) == 0) {
+      // @Leak! we use these strings everywhere, though.
+      // so we can't really free(content) yet.
       die("this show file sucks!");
       exit(EXIT_FAILURE);
     }

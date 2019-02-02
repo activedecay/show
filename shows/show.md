@@ -1,12 +1,27 @@
 . define-style default
 . save-style
 
+. # teapot
+. font .06 right
+. color .4 .6 .3 1
+. y .9
+i'm alil template
+
 . define-style tits
 . font .4 bold mono
 . color 1 .2 .7
 . save-style
 
-#
+# slide with template
+. style tits
+. using teapot
+. font .1 center
+prepare
+your  
+butt 
+
+# slide 1
+. using teapot
 . bg 0 0 0 .8
 . color 1 1 .5
 . font .51 bold
@@ -30,9 +45,9 @@ hehheh
 . style tits
 hmm!
 
-
 . style default
-#
+# slide 2
+. using teapot
 . bg .1 .3 .7 .75
 . color 1 1 .5
 . font .19 bold center

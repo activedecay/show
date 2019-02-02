@@ -161,16 +161,25 @@ typedef struct {
     float x, y;
 } point;
 
-typedef struct {
+typedef struct slide_item slide_item;
+struct slide_item {
     char *title;
     SDL_Color bg_color;
     text_item **items;
     style_item **styles;
     point **points;
-} slide_item;
+    slide_item **using;
+};
+
+typedef struct {
+    char *id;
+    slide_item *slide;
+    UT_hash_handle hh; /* makes this structure hashable */
+} template_slide;
 
 typedef struct {
     int index;
+    template_slide *template_slides;
     slide_item **slides;
 } slide_show;
 
@@ -189,6 +198,11 @@ typedef struct {
     char *filename;
     UT_hash_handle hh; /* makes this structure hashable */
 } font;
+
+slide_show *default_show();
+
+void draw_slide_items(const SDL_Renderer *, int, int,
+                      const font *, const slide_item *);
 
 /* fancy defines for robustly making a fuction pointer
  * whose parameter list can change at will */
