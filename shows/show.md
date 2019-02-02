@@ -7,6 +7,9 @@
 . y .9
 i'm alil template
 
+. # teapotty
+i'm a lil busted
+
 . define-style title
 . font .4 bold mono center
 . color 1 .2 .7
@@ -21,7 +24,7 @@ your
 butt 
 
 # slide 1
-. using teapot
+. using teapotty
 . bg 0 0 0 .8
 . color 1 1 .5
 . font .51 bold

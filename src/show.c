@@ -66,16 +66,6 @@ static style_item DEFAULT_STYLE = {
     /* name        char        */  "default",
 };
 
-template_slide *templatize(char *name, template_slide **template_slides) {
-  template_slide *template;
-  HASH_FIND_STR(*template_slides, name, template);
-  if (template) return template;
-  template = Calloc(1, sizeof(template_slide));
-  template->id = name;
-  HASH_ADD_STR(*template_slides, id, template);
-  return template;
-}
-
 slide_show *init_slides(slide_show *previous_show, char *content) {
   slide_show *the_show = 0;
 
@@ -123,6 +113,9 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
 
       char *token = strtok_r(line, " ", &space_tokenizer);
       while (token) {
+        // Note: Warning!!! please always re-assign token!
+        //  this will avoid errors, always walking the data!
+
         if (strcmp("font", token) == 0) {
           /* . font [float] [*]... */
 
@@ -141,31 +134,47 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
         } else if (strcmp("#", token) == 0) {
           /* . # template slide */
 
-          char *slide_title = strtok_r(0, "\n", &space_tokenizer);
-          template_slide *x = templatize(slide_title, &the_show->template_slides);
-          slide = x->slide = !x ? 0 : Calloc(1, sizeof(slide_item));
-          info(GREEN
-                   "start saving attributes to slide '%s' at %p", slide_title, x->slide);
-          slide->title = slide_title;
+          token = strtok_r(0, "\n", &space_tokenizer);
+
+          template_slide *template;
+          HASH_FIND_STR(the_show->template_slides, token, template);
+          if (!template) {
+            template = Calloc(1, sizeof(template_slide));
+            template->id = token;
+            HASH_ADD_STR(the_show->template_slides, id, template);
+
+            slide = template->slide = !template ? 0 : Calloc(1, sizeof(slide_item));
+            info(GREEN"start saving attributes to slide '%s' at %p",
+                 token, template->slide);
+            slide->title = token;
+          } else {
+            slide = 0;
+            error("attempt to redefine slide template '%s'!", token);
+          }
 
         } else if (strcmp("using", token) == 0) {
 
-          char *slide_title = strtok_r(0, "\n", &space_tokenizer);
-          template_slide *x = templatize(slide_title, &the_show->template_slides);
-          info(BLUE"found slide template: '%s' at %p"RESET,
-               slide_title, x->slide);
-          push(slide->using, x->slide);
+          token = strtok_r(0, "\n", &space_tokenizer);
+          template_slide *template;
+          HASH_FIND_STR(the_show->template_slides, token, template);
+          if (template) {
+            info(BLUE"found slide template: '%s' at %p"RESET,
+                 token, template->slide);
+            push(slide->using, template->slide);
+          } else {
+            error("attempt to use a slide template that doesn't exist '%s'", token);
+          }
 
         } else if (strcmp("define-style", token) == 0) {
           /* . define-style [unique-name] */
 
-          char *style_name = strtok_r(0, "\n", &space_tokenizer);
+          token = strtok_r(0, "\n", &space_tokenizer);
           style_hash *found = 0;
-          HASH_FIND_STR(saved_styles, style_name, found);
+          HASH_FIND_STR(saved_styles, token, found);
           if (!found) {
             style = memcpy(Calloc(1, sizeof(style_item)),
                            style ? : &DEFAULT_STYLE, sizeof(style_item));
-            style->name = style_name;
+            style->name = token;
           } else {
             style = found->style;
           }
@@ -186,12 +195,12 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
         } else if (strcmp("style", token) == 0) {
           /* . style [name] */
 
-          char *style_name = strtok_r(0, "\n", &space_tokenizer);
+          token = strtok_r(0, "\n", &space_tokenizer);
           style_hash *found = 0;
-          HASH_FIND_STR(saved_styles, style_name, found);
+          HASH_FIND_STR(saved_styles, token, found);
           if (found) style = found->style;
           else
-            error("can't find style named %s", style_name);
+            error("can't find style named %s", token);
 
         } else if (strcmp("y", token) == 0) {
           /* . y [float] */

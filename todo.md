@@ -6,8 +6,6 @@ variables
 - math operations
     - parenthesis
 
-- slide visibility set to no for templates
-- use-slide command to include templates in the current slide
 - can't use the same name for the templates
 - use a shown-slide list
 load-image lol pic.png
