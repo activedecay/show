@@ -7,14 +7,14 @@
 . y .9
 i'm alil template
 
-. define-style tits
-. font .4 bold mono
+. define-style title
+. font .4 bold mono center
 . color 1 .2 .7
 . save-style
 
 # slide with template
-. style tits
 . using teapot
+. style title
 . font .1 center
 prepare
 your  
@@ -42,7 +42,7 @@ hah
 . font .109
 hehheh
 . y 0.14
-. style tits
+. style title
 hmm!
 
 . style default

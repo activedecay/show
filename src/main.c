@@ -52,19 +52,20 @@ void lol(void) {
 #include "../src/lib/stb_image.h"
 
 /* shared object functions */
-void *game_lib;
-init_slides_ptr init_slides_func;
-render_slide_ptr render_slide_func;
-texturize_text_ptr texturize_text_func;
-find_font_ptr find_font_func;
+init_slides_ptr init_slides_func = 0;
+render_slide_ptr render_slide_func = 0;
+texturize_text_ptr texturize_text_func = 0;
+find_font_ptr find_font_func = 0;
 
 /* globals */
-char *slide_show_file = 0;
 font *fonts = 0;
-sem_t game_sem;
-sem_t slide_sem;
-size_t read_len = 24;
+sem_t show_sem;
+char *slide_show_file = 0;
 slide_show *show;
+size_t read_len = 1024 * 4;
+sem_t game_sem;
+void *game_lib;
+
 
 bool do_keydown(SDL_Event *event, slide_show *show,
                 uint32_t *frame_delay);
@@ -94,8 +95,12 @@ int
 main(int argc, char *argv[]) {
   if (argc < 2) return die("usage: path/to/show.md");
   atexit(quit);
-  Sem_init(&game_sem, 0, 1); // mutual exclusion
-  Sem_init(&slide_sem, 0, 1); // mutual exclusion
+  // mutual exclusion specifically for game lib thread and main
+  Sem_init(&game_sem, 0, 1);
+  // mutual exclusion specifically for slide file thread and main
+  Sem_init(&show_sem, 0, 1);
+
+  // make sure we have a game library before forking a thread
   load_game_library();
 
   pthread_t tidp;
@@ -264,14 +269,14 @@ void read_slideshow_file() {
     content[total] = 0;
     fclose(f);
 
-    P(&slide_sem);
+    P(&show_sem);
     if ((show = init_slides_func(show, content)) == 0) {
       // @Leak! we use these strings everywhere, though.
       // so we can't really free(content) yet.
       die("this show file sucks!");
       exit(EXIT_FAILURE);
     }
-    V(&slide_sem);
+    V(&show_sem);
   }
 }
 

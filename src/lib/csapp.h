@@ -82,7 +82,9 @@ pid_t            Waitpid(pid_t pid, int *iptr, int options);
 
 void             Kill(pid_t pid, int signum);
 
-unsigned         int Sleep(unsigned int secs);
+unsigned int     Sleep(unsigned int secs);
+
+int              Nanosleep(time_t sec, long nsec);
 
 void             Pause(void);
 

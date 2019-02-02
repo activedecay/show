@@ -103,6 +103,19 @@ unsigned int Sleep(unsigned int secs) {
   return rc;
 }
 
+int Nanosleep(time_t sec, long nsec) {
+  int rc;
+
+  const struct timespec requested_time = {
+      sec,
+      nsec
+  };
+  struct timespec *remaining = 0;
+  if ((rc = nanosleep(&requested_time, remaining)) < 0)
+    unix_error("Nanosleep error");
+  return rc;
+}
+
 unsigned int Alarm(unsigned int seconds) {
   return alarm(seconds);
 }

@@ -6,7 +6,6 @@ variables
 - math operations
     - parenthesis
 
-templates (including a slide in another slide) "shared content"
 - slide visibility set to no for templates
 - use-slide command to include templates in the current slide
 - can't use the same name for the templates
@@ -57,11 +56,31 @@ poly lines
 declare-font variables that import fonts from disk on the fly (eh)
 
 # features
-re-usable slide templates (. using Company Legal Text)
-declare-style variables
-properties of a style:
-  margin
-package of free fonts
+Note: the command syntax uses `. ` as the start of a command.
+
+Reusable slide templates allow for including a slide in another slide.
+This allows a slide to share content inside other slides across the show.
+Example usage: 
+
+- declare with: `. # Company Legal Text` - declarations are hidden
+- use with: `. using Company Legal Text` in another slide
+
+Declare styles and apply them across all the text lines that follow.
+Styles will apply across slide boundaries.
+Example usage:
+- declare a new style with: `. define-style Title Text`
+- then define the style properties
+    - properties of a style:
+    - `. font [float size] [font-attribute]*`
+    - `. margin [float]`
+    - `. color [float-red] [float-green] [float-blue] [float-alpha]`
+. finally save with: `. save-style`
+- use with: `style trolol`
+
+Text position flows from the most recent `. y [float-height]`.
+Text position starts at the top for every new slide.
+
+packaged with free fonts
 initialize a new rect y for each y encountered. draw a box
 allow all style variables to change independently
 

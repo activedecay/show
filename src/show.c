@@ -136,7 +136,7 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
             set_align(style, token);
             token = strtok_r(0, " ", &space_tokenizer);
           }
-          info("assigned font to '%s'", !slide ? "a style i guess" : slide->title);
+          info("assigned font to '%s'", !slide ? "unknown slide" : slide->title);
 
         } else if (strcmp("#", token) == 0) {
           /* . # template slide */
@@ -152,21 +152,20 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
 
           char *slide_title = strtok_r(0, "\n", &space_tokenizer);
           template_slide *x = templatize(slide_title, &the_show->template_slides);
-          info(BLUE
-                   "found slide template: '%s' at %p"
-                   RESET, slide_title, x->slide);
+          info(BLUE"found slide template: '%s' at %p"RESET,
+               slide_title, x->slide);
           push(slide->using, x->slide);
 
         } else if (strcmp("define-style", token) == 0) {
           /* . define-style [unique-name] */
 
-          token = strtok_r(0, " ", &space_tokenizer);
+          char *style_name = strtok_r(0, "\n", &space_tokenizer);
           style_hash *found = 0;
-          HASH_FIND_STR(saved_styles, token, found);
+          HASH_FIND_STR(saved_styles, style_name, found);
           if (!found) {
             style = memcpy(Calloc(1, sizeof(style_item)),
                            style ? : &DEFAULT_STYLE, sizeof(style_item));
-            style->name = token;
+            style->name = style_name;
           } else {
             style = found->style;
           }
@@ -187,12 +186,12 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
         } else if (strcmp("style", token) == 0) {
           /* . style [name] */
 
-          token = strtok_r(0, " ", &space_tokenizer);
+          char *style_name = strtok_r(0, "\n", &space_tokenizer);
           style_hash *found = 0;
-          HASH_FIND_STR(saved_styles, token, found);
+          HASH_FIND_STR(saved_styles, style_name, found);
           if (found) style = found->style;
           else
-            error("can't find style named %s", token);
+            error("can't find style named %s", style_name);
 
         } else if (strcmp("y", token) == 0) {
           /* . y [float] */
