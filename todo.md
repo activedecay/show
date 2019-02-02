@@ -4,6 +4,7 @@ use voice commands to launch a missle and blow up the text
 
 shadowed text!
 all wrapped text centered on y!
+- vertical-align middle around text items
 background should be global without a slide
 disassemble font-size with font-align
 
@@ -11,20 +12,14 @@ variables
 - math operations
     - parenthesis
 
-
-- can't use the same name for the templates
-- use a shown-slide list
 load-image lol pic.png
 image scale, crop, rotate
 \ escape handling
-assert(!"needs a better font failure mechanism");
-text shadow (wtf alpha on text is broken)
-way better error handling
-vertical-align middle and shit.
+in particular, (!"needs a better font failure mechanism");
+- way better error handling in general
 fix memory @Leaks
-more image formats than bmp
-hot-load images! OMFG ? could just do the same 
-        thing as reading the image each time show.md changes
+- hot-load images! OMFG ? could just do the same 
+  thing as reading the image each time show.md changes
 rotated text
 x pos
 hyperlinks
@@ -60,6 +55,13 @@ poly lines
 declare-font variables that import fonts from disk on the fly (eh)
 
 # features
+packaged with free fonts
+initialize a new rect y for each y encountered. draw a box
+allow all style variables to change independently
+shadowed text!
+many image types (png, jpg, bmp, gif)
+
+# usage
 Note: the command syntax uses `. ` as the start of a command.
 
 Reusable slide templates allow for including a slide in another slide.
@@ -84,11 +86,6 @@ Example usage:
 Text position flows from the most recent `. y [float-height]`.
 Text position starts at the top for every new slide.
 
-packaged with free fonts
-initialize a new rect y for each y encountered. draw a box
-allow all style variables to change independently
-
-# usage
 font size is 1/100th of a screen height
 
 # notes
