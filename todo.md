@@ -1,4 +1,6 @@
 # do it
+gigantic crash at high res, locks the os. holy shit. fixme now.
+
 draw on slides with laser pointer
 use voice commands to launch a missle and blow up the text
 
