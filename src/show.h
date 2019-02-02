@@ -17,12 +17,15 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <values.h>
+#include <assert.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
 #include "lib/uthash.h"
 #include "lib/stretchy.h"
+#include "lib/csapp.h"
 
 #define u64 uint64_t
 #define u32 uint32_t
@@ -86,16 +89,27 @@ typedef struct {
 
 /* slide show */
 
-typedef struct {
-    char *text;
-} text_item;
-
 typedef enum {
     normal,
     italic,
     bold,
     num_styles
 } font_style;
+
+typedef enum {
+    sans,
+    serif,
+    mono,
+    script,
+    num_families
+} font_family;
+
+typedef enum {
+    left,
+    center,
+    right,
+    num_alignments
+} align_text;
 
 static struct {
     font_style s;
@@ -106,14 +120,6 @@ static struct {
     {bold,   "bold"},
 };
 
-typedef enum {
-    sans,
-    serif,
-    mono,
-    script,
-    num_families
-} font_family;
-
 static struct {
     font_family f;
     char *name;
@@ -123,13 +129,6 @@ static struct {
     {mono,   "mono"},
     {script, "script"},
 };
-
-typedef enum {
-    left,
-    center,
-    right,
-    num_alignments
-} align_text;
 
 static struct {
     align_text a;
@@ -152,6 +151,17 @@ typedef struct {
 } style_item;
 
 typedef struct {
+    enum grocer_types {
+        text_t_item,
+        image_t_item
+    } type;
+    union {
+        char *text;
+        SDL_Texture *image;
+    } item;
+} item_grocer;
+
+typedef struct {
     char *name;
     style_item *style;
     UT_hash_handle hh; /* makes this structure hashable */
@@ -165,7 +175,7 @@ typedef struct slide_item slide_item;
 struct slide_item {
     char *title;
     SDL_Color bg_color;
-    text_item **items;
+    item_grocer **grocery_items;
     style_item **styles;
     point **points;
     slide_item **using;

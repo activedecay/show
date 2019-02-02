@@ -185,9 +185,9 @@ main(int argc, char *argv[]) {
           : min(show->index, count(show->slides) - 1);
     }
 
-    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, babe, 0, 0);
+//    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
+//    SDL_RenderClear(renderer);
+//    SDL_RenderCopy(renderer, babe, 0, 0);
 
     if (show->slides) render_slide_func(renderer, w, h, show, fonts);
 

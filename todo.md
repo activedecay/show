@@ -2,9 +2,15 @@
 draw on slides with laser pointer
 use voice commands to launch a missle and blow up the text
 
+shadowed text!
+all wrapped text centered on y!
+background should be global without a slide
+disassemble font-size with font-align
+
 variables
 - math operations
     - parenthesis
+
 
 - can't use the same name for the templates
 - use a shown-slide list

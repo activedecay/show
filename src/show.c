@@ -2,11 +2,7 @@
 // Created by justin on 1/12/19.
 //
 
-#include <values.h>
-#include <assert.h>
 #include "show.h"
-#include "lib/stretchy.h"
-#include "lib/csapp.h"
 
 #pragma clang diagnostic push
 /* clion, you're fucking retarded */
@@ -81,9 +77,9 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
 
   slide_item *slide = 0;
   style_item *style = 0;
-  text_item *item = 0;
+  char *text_on_slide = 0;
   point *box = 0;
-  SDL_Color bg = cf4(0, 0, 0, .9);
+  SDL_Color bg = cf4(1, 1, 1, 1); // default slide bg
   SDL_Color color;
 
   char *line_tokenizer, *space_tokenizer;
@@ -271,13 +267,13 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
       /* plain text */
 
       if (slide) {
-        item = Calloc(1, sizeof(text_item));
-        push(slide->items, item);
+        item_grocer *item = Calloc(1, sizeof(item_grocer));
+        push(slide->grocery_items, item);
         style = style ? : memcpy(Calloc(1, sizeof(style_item)),
                                  &DEFAULT_STYLE, sizeof(style_item));
         push(slide->styles, style);
         size_t len = strlen(line);
-        item->text = memcpy(Malloc(len * sizeof(char) + 1),
+        item->item.text = memcpy(Malloc(len * sizeof(char) + 1),
                             line, len + 1);
         box = box ? : Calloc(1, sizeof(SDL_Rect));
         push(slide->points, box);
@@ -295,12 +291,34 @@ slide_show *init_slides(slide_show *previous_show, char *content) {
 
   for (int i = 0; i < count(the_show->slides); ++i) {
     assert(count(the_show->slides[i]->points) == count(the_show->slides[i]->styles));
-    assert(count(the_show->slides[i]->points) == count(the_show->slides[i]->items));
+    assert(count(the_show->slides[i]->points) == count(the_show->slides[i]->grocery_items));
   }
   /* the previous index was saved; ensure slide index still ok */
   the_show->index = the_show->index < 0 ? 0
       : min(the_show->index, count(the_show->slides) - 1);
   return the_show;
+}
+
+void use(void) {
+  item_grocer **grocery_items = 0;
+  item_grocer *item = Calloc(1, sizeof(item_grocer));
+
+  item->type = text_t_item;
+  char *s = "i'm a little teapot short and stout";
+  item->item.text = strcpy(Malloc(sizeof(strlen(s)) + 1), s);
+
+  push(grocery_items, item);
+
+  switch (item->type) {
+    case text_t_item: {
+      info("draw text %s", item->item.text);
+      break;
+    }
+    case image_t_item: {
+      info("draw image %p", item->item.image);
+      break;
+    }
+  }
 }
 
 slide_show *default_show() {
@@ -347,10 +365,10 @@ slide_show *default_show() {
       style->size = .1f;
       style->fg_color = cf4(1, 1, 1, 1);
 
-      text_item *item = Calloc(1, sizeof(text_item));
-      push(slide->items, item);
+      item_grocer *item = Calloc(1, sizeof(item_grocer));
+      push(slide->grocery_items, item);
 
-      item->text = str;
+      item->item.text = str;
     }
   }
   return the_show;
@@ -365,6 +383,11 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
                          slide_bg.r, slide_bg.g, slide_bg.b, slide_bg.a);
   SDL_RenderFillRect(renderer, 0);
 
+  SDL_Rect x = {100, 100, 100, 100};
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 1);
+  SDL_RenderFillRect(renderer, &x);
+
+
   for (int i = 0; i < count(current_slide->using); ++i) {
     slide_item *using = current_slide->using[i];
     if (using) draw_slide_items(renderer, w, h, fonts, using);
@@ -378,8 +401,8 @@ void draw_slide_items(const SDL_Renderer *renderer, int w, int h,
   int line_number = 0;
   point *last_box = 0;
 
-  for (int i = 0; i < count(current_slide->items); ++i) {
-    text_item *item = current_slide->items[i];
+  for (int i = 0; i < count(current_slide->grocery_items); ++i) {
+    item_grocer *item = current_slide->grocery_items[i];
     style_item *style = current_slide->styles[i];
     point *box = current_slide->points[i];
 
@@ -397,9 +420,14 @@ void draw_slide_items(const SDL_Renderer *renderer, int w, int h,
     if ((f = TTF_OpenFont(
         find_font(fonts, font_idx)->filename,
         (int) (style->size * h)))) {
+      SDL_Texture *shadow_text =
+          texturize_text(renderer, f,
+                         item->item.text,
+                         cf4(0,0,0,.4),
+                         &rect, SDL_BLENDMODE_BLEND);
       SDL_Texture *slide_text =
           texturize_text(renderer, f,
-                         item->text,
+                         item->item.text,
                          style->fg_color,
                          &rect, SDL_BLENDMODE_BLEND);
       TTF_CloseFont(f);
@@ -418,9 +446,9 @@ void draw_slide_items(const SDL_Renderer *renderer, int w, int h,
           rect.x = w - rect.w - (int) (w * style->margins_x);
           break;
       }
-      rect.x++;
-      rect.y++;
-
+      SDL_RenderCopy(renderer, shadow_text, 0, &rect);
+      rect.x-= 2;
+      rect.y-= 2;
       SDL_RenderCopy(renderer, slide_text, 0, &rect);
       SDL_DestroyTexture(slide_text);
 
@@ -441,6 +469,9 @@ texturize_text(SDL_Renderer *renderer, TTF_Font *font, char *string,
   SDL_FreeSurface(t);
   SDL_QueryTexture(words, 0, 0, &r->w, &r->h);
   assert(!SDL_SetTextureBlendMode(words, mode));
+
+  SDL_SetTextureAlphaMod(words, fg.a);
+
   return words;
 }
 

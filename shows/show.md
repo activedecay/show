@@ -1,86 +1,172 @@
 . define-style default
 . save-style
 
-. # teapot
-. font .06 right
-. color .4 .6 .3 1
-. y .9
-i'm alil template
-
-. # teapotty
-i'm a lil busted
-
 . define-style title
-. font .4 bold mono center
-. color 1 .2 .7
+. color 1 1 1
+. font .5 center bold
+. line-height .69
 . save-style
 
-# slide with template
-. using teapot
-. style title
-. font .1 center
-prepare
-your  
-butt 
+. define-style subtitle
+. font .3
+. save-style
 
-# slide 1
-. using teapotty
-. bg 0 0 0 .8
-. color 1 1 .5
-. font .51 bold
-wow!
-. y .6
-. font .32 italic left serif
-Cool as shit!
-. color 1 0
-. y 0
-. font .1 left
-fuuuukin'
-as shit
-. font .2 right
-. color 1 1 1
-. y 0
-hah
-. color .1 .3 .7
-. font .109
-hehheh
-. y 0.14
-. style title
-hmm!
+. define-style body
+. font .2
+. line-height .8
+. save-style
 
-. style default
-# slide 2
-. using teapot
-. bg .1 .3 .7 .75
-. color 1 1 .5
-. font .19 bold center
-. line-height .34
-baby
-. font .3 italic
-ohmy
-. line-height 1
-. y 0
-. font .1 left
-ohohoh'
-the... .. .
-. font .2 right
-. color 1 1 1
-. y 0
-. line-height .23
-the
-pu
-tine
-yer 
-mouth
-. color 0 0 0
+# shadowed text
+. bg .8 .1 .2
+. style title
+shade
+me
+
+# negotiate
+negoti
+ - ate
+
+# positivity
+. style subtitle
+be positive!
+. style body
+. y .4
+You're more likely
+to get agreement
+
+# compromise
+Never be so sure
+of what you want
+that
+you wouldn't accept
+something better
+
+# their business model
 . y .3
-. font .5 left bold
-yer
-. color .1 .3 .7
-. font .5 center italic
-. y .3
-boobies
-. color 0 0 0
-. y .3
-. font .5 right
-tho
+Be aware of their
+business model
+
+# help
+. style subtitle
+. line-height .85
+How you 
+gonna
+help me?
+
+# understand them
+. style body
+Proving you know
+what they're
+thinking
+removes their
+barries
+
+# yes
+Let's ditch yes.
+. y .24
+. font .2 left
+"Would you like to
+   make more
+   MONEY!!??"
+. y .85
+. font .1 right
+ ... the only answer to this is WTF?
+
+# celebrity
+Is it a
+rediculous idea
+to come speak
+at the course
+I teach at USC?
+. style title
+. y .40
+ ...no
+
+# hey boss
+. style body
+To your boss, 
+"you want me
+to fail."
+Imagine the
+power of that
+
+# no fails
+No isn't working?
+Try, 
+. style subtitle
+'that's right!'
+
+# repeat their nonsense
+. style body
+You're asking for
+. y .2
+WAR DAMAGES!
+A TIME MACHINE
+FRIED ICE AND
+DONUT HOLES!
+
+# respect
+Pay due respect
+and in return:
+"I'd deal with you
+again  -  I feel
+respected by you."
+
+# perfect
+Dont try
+to be
+. style subtitle
+perfect
+
+# space
+. style body
+there's more space
+between
+Yes and No
+than we realize
+it's ok to say no
+
+# 
+yes is commitment
+no is protection
+be pleasant
+
+# if you hear a no
+if you hear no
+hesitate
+give them time to
+think
+
+# start
+Start with, "is now 
+a bad time to talk?"
+. style subtitle
+ ... no
+
+# the subtle epiphany
+. style body
+get them to
+say "that's right"
+by summarizing
+their situation
+from how they see it
+
+#
+. style title
+oh, you 
+  get it
+
+# 
+. style body
+fight
+flight
+. style subtitle
+make friends
+
+#
+. font .05
+take approach not prob to deal with respect
+they'll let you know they're willing to
+felt resp apprec and bond
+move with that and be happy
+thanks i enjoyed being here
