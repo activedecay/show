@@ -92,6 +92,9 @@ main(int argc, char *argv[]) {
   // make sure we have a game library before forking a thread
   load_game_library(&global_state);
 
+  if (!global_state.show->slides)
+    return die("Error: no slides! create a slide with '# Title'");
+
   pthread_t tidp;
   Pthread_create(&tidp, 0, watch_slideshow_file, &global_state);
   Pthread_create(&tidp, 0, watch_library, &global_state);
@@ -132,9 +135,6 @@ main(int argc, char *argv[]) {
   add_font(&global_state.fonts, "scriptnormal", "./res/AlexBrush-Regular.ttf");
   add_font(&global_state.fonts, "scriptitalic", "./res/AlexBrush-Regular.ttf");
   add_font(&global_state.fonts, "scriptbold", "./res/AlexBrush-Regular.ttf");
-
-  if (!global_state.show->slides)
-    error("Error: no slides! create a slide with '# Title'");
 
   bool in_frame = false;
   bool quit = false;
