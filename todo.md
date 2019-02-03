@@ -1,10 +1,10 @@
 # do it
-horrible crash locks the os. holy shit. fixme now.
 
 draw on slides with laser pointer
 use voice commands to launch a missle and blow up the text
 
-shadowed text!
+declare-font variables that import fonts from disk on the fly (eh)
+
 all wrapped text centered on y!
 - vertical-align middle around text items
 background should be global without a slide
@@ -54,7 +54,6 @@ rectangles
 poly lines
 
 
-declare-font variables that import fonts from disk on the fly (eh)
 
 # features
 packaged with free fonts
@@ -62,6 +61,7 @@ initialize a new rect y for each y encountered. draw a box
 allow all style variables to change independently
 shadowed text!
 many image types (png, jpg, bmp, gif)
+shadowed text!
 
 # usage
 Note: the command syntax uses `. ` as the start of a command.

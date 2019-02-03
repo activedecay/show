@@ -106,16 +106,18 @@ main(int argc, char *argv[]) {
 
   if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
     return die("can't init SDL");
-  if (TTF_Init() < 0) return die("can't init fonts");
-  if (!(font = TTF_OpenFont("./res/FreeSans.ttf", 72)))
-    return die("can't load the font");
+  if (TTF_Init() < 0)
+    return die("can't init fonts");
   SDL_CreateWindowAndRenderer(
       w, h, SDL_WINDOW_RESIZABLE, &window, &renderer);
 
+  if (!(font = TTF_OpenFont("./res/FreeSans.ttf", 72)))
+    return die("can't load the font");
   SDL_Rect mouse_follow_rect = {10, 10};
   mouse_follow_word = global_state.game_library.texturize_text_func(
       renderer, font, "*", (SDL_Color) {255, 255, 255, 255},
       &mouse_follow_rect, SDL_BLENDMODE_BLEND);
+  TTF_CloseFont(font);
 
   /* note @Evict from main */
   add_font(&global_state.fonts, "sansnormal", "./res/FreeSans.ttf");
@@ -188,8 +190,6 @@ main(int argc, char *argv[]) {
     SDL_RenderPresent(renderer);
     SDL_Delay(frame_delay);
   }
-
-  TTF_CloseFont(font);
 
   SDL_DestroyTexture(mouse_follow_word);
   SDL_DestroyRenderer(renderer);

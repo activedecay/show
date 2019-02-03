@@ -185,12 +185,12 @@ make friends
 . y .3
 . line-height 1.5
 Take the approach assuming that
-it will be no problem to deal with you later.
+  it will be no problem to deal with you later.
 . font .05 center
-Lead with respect.
+  Lead with respect.
 . font .05 left
 They'll let you know they're willing to work with you again.
-They felt respected by you. They appreciate you and felt a bond.
+They feel respected by you. They appreciate you and a strong bond.
 Move through your life with that and be happy!
 . font .05 right
 Thanks, I enjoyed being here.

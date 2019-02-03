@@ -486,12 +486,10 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 1);
   SDL_RenderFillRect(renderer, &x);
 
-
   for (int i = 0; i < count(current_slide->using); ++i) {
     slide_item *using = current_slide->using[i];
     if (using) draw_slide_items(renderer, w, h, fonts, using);
   }
-
   draw_slide_items(renderer, w, h, fonts, current_slide);
 }
 
@@ -524,6 +522,11 @@ void draw_slide_items(const SDL_Renderer *renderer, int w, int h,
     char font_idx[strlen(fam) + strlen(sty) + 1];
     strcpy(font_idx, fam);
     strcat(font_idx, sty);
+    // todo using sdl and sdl_ttf source would allow us
+    //  to call the SetFontSize() instead of reading the
+    //  thing every frame. that way we can keep the pointers
+    //  and don't have to store all the sizes. we can just
+    //  keep the pointers and set the size in the render call
     TTF_Font *f;
     if ((f = TTF_OpenFont(
         find_font(fonts, font_idx)->filename,
@@ -558,6 +561,7 @@ void draw_slide_items(const SDL_Renderer *renderer, int w, int h,
       rect.x -= SHADOW_DISTANCE;
       rect.y -= SHADOW_DISTANCE;
       SDL_RenderCopy(renderer, slide_text, 0, &rect);
+      SDL_DestroyTexture(shadow_text);
       SDL_DestroyTexture(slide_text);
     } else {
       assert(!"needs a better font failure mechanism");
