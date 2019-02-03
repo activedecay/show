@@ -148,6 +148,7 @@ typedef struct {
     float margins_x;
     SDL_Color fg_color;
     char *name;
+    UT_hash_handle hh; /* makes this structure hashable */
 } style_item;
 
 typedef struct {
@@ -156,16 +157,11 @@ typedef struct {
         image_t_item
     } type;
     union {
+        void *free_me;
         char *text;
         SDL_Texture *image;
     } item;
 } item_grocer;
-
-typedef struct {
-    char *name;
-    style_item *style;
-    UT_hash_handle hh; /* makes this structure hashable */
-} style_hash;
 
 typedef struct {
     float x, y;
@@ -220,9 +216,13 @@ void draw_slide_items(const SDL_Renderer *, int, int,
 typedef FUNCTION_FF((*find_font_ptr));
 FUNCTION_FF(find_font);
 
-#define FUNCTION_IS(fun) slide_show *fun(slide_show *, char *)
+#define FUNCTION_IS(fun) slide_show *fun(slide_show *, style_item **, char *)
 typedef FUNCTION_IS((*init_slides_ptr));
 FUNCTION_IS(init_slides);
+
+//#define FUNCTION_FS(fun) int fun(slide_show *)
+//typedef FUNCTION_FS((*free_show_ptr));
+//FUNCTION_FS(free_show);
 
 #define FUNCTION_RS(fun) void fun(SDL_Renderer *, int, int,        \
         slide_show *, font *)
@@ -234,6 +234,15 @@ FUNCTION_RS(render_slide);
         SDL_Rect *r, SDL_BlendMode mode)
 typedef FUNCTION_TT((*texturize_text_ptr));
 FUNCTION_TT(texturize_text);
+
+typedef struct {
+    init_slides_ptr init_slides_func;
+    //free_show_ptr free_show_func;
+    render_slide_ptr render_slide_func;
+    texturize_text_ptr texturize_text_func;
+    find_font_ptr find_font_func;
+    void *it;
+} game_lib;
 
 #endif //slideshow_h
 #pragma clang diagnostic pop

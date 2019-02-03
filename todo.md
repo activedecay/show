@@ -1,5 +1,5 @@
 # do it
-gigantic crash at high res, locks the os. holy shit. fixme now.
+horrible crash locks the os. holy shit. fixme now.
 
 draw on slides with laser pointer
 use voice commands to launch a missle and blow up the text
@@ -128,4 +128,74 @@ font size is 1/100th of a screen height
     SDL_SetCursor(cursor);
     for (int i = 0; i < SDL_NUM_SYSTEM_CURSORS; ++i) {
         SDL_FreeCursor(cursors[i]);
+    }
+    
+    
+
+/*
+int free_show(slide_show *show) {
+  if (!show) return 0;
+
+  for (int i = 0; i < count(show->slides); ++i) {
+    slide_item *slide = show->slides[i];
+
+    for (int j = 0; j < count(slide->using); ++j) {
+      // these are already freed with show->template_slides
+      // slide_item *using_slide = slide->using[j];
+      
+      for (int k = 0; k < count(slide->grocery_items); ++k) {
+        free(slide->grocery_items[k]->item.free_me);
+        stretch_free(slide->grocery_items[k]);
+      }
+      for (int l = 0; l < count(slide->styles); ++l) {
+        free(slide->styles[l]->name);
+        slide->styles[l]->name = 0;
+      }
+      for (int m = 0; m < count(slide->points); ++m) {
+        free(slide->points[m]);
+        slide->points[m] = 0;
+      }
+
+      stretch_free(slide->using);
+      slide->using = 0;
+      stretch_free(slide->grocery_items);
+      slide->grocery_items = 0;
+      stretch_free(slide->styles);
+      slide->styles = 0;
+      stretch_free(slide->points);
+      slide->points = 0;
+      free(slide->title);
+      slide->title = 0;
+      free(slide);
+      show->slides[i] = 0;
+    }
+  }
+    
+    
+      template_slide *s, *tmp;
+      HASH_ITER(hh, show->template_slides, s, tmp) {
+        printf("slide template %s @ %p\n", s->id, s->slide);
+        free(s->slide);
+        s->slide = 0;
+        free(s);
+      }
+      free(show->template_slides);
+      show->template_slides = 0;
+    
+      style_hash *ss, *tmpp;
+      HASH_ITER(hh, saved_styles, ss, tmpp) {
+        printf("style hash %s @ %p\n", ss->name, ss->style);
+        free(ss->style->name);
+        ss->style->name = 0;
+        free(ss->name);
+        ss->name = 0;
+        free(ss->style);
+        ss->style = 0;
+        free(ss);
+      }
+      free(saved_styles);
+      saved_styles = 0;
+    
+      free(show);
+      return 0;
     }

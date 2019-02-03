@@ -10,17 +10,23 @@
 #include <sys/param.h>
 #include "csapp.h"
 
+/** explain void (*routine)(void *)
+ *
+ *  declare routine as
+ *    Pointer To Function (Pointer To Void) Returning Void
+ */
+typedef void (*ptfptvrv)(void *);
 
-static void
-handle_events(int fd, int wd, char *string, void (*routine)(void));
+// if the file changed, call the routine with data args
+static void handle_events(int, int, char *, ptfptvrv, void *);
 
-int
-inotify(char *filepath, void (*routine)(void));
+// if the filepath file changed, call the routine with data args
+int inotify(char *filepath, ptfptvrv, void *);
 
 #ifndef ino_def
 #define ino_def
 
-void handle_events(int fd, int wd, char *filename, void (*routine)(void)) {
+void handle_events(int fd, int wd, char *filename, ptfptvrv routine, void *data) {
   char buf[4096]
       __attribute__ ((aligned(__alignof__(struct inotify_event))));
   const struct inotify_event *event;
@@ -39,14 +45,14 @@ void handle_events(int fd, int wd, char *filename, void (*routine)(void)) {
       if (wd == event->wd &&
           event->len &&
           strcmp(filename, event->name) == 0) {
-        routine();
+        routine(data);
       }
     }
   }
 }
 
 
-int inotify(char *filepath, void (*routine)(void)) {
+int inotify(char *filepath, ptfptvrv routine, void *data) {
   int fd, poll_num, wd;
   nfds_t nfds;
   struct pollfd fds[1];
@@ -79,7 +85,8 @@ int inotify(char *filepath, void (*routine)(void)) {
       exit(EXIT_FAILURE);
     }
     if (poll_num > 0 && fds[0].revents & POLLIN) {
-      handle_events(fd, wd, basename(filepath), routine);
+      info(YELLOW"so like..."RESET);
+      handle_events(fd, wd, basename(filepath), routine, data);
     }
   }
 }

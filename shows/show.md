@@ -16,13 +16,9 @@
 . line-height .8
 . save-style
 
-# shadowed text
+# negotiate
 . bg .8 .1 .2
 . style title
-shade
-me
-
-# negotiate
 negoti
  - ate
 
@@ -84,9 +80,11 @@ I teach at USC?
 
 # hey boss
 . style body
-To your boss, 
+Say to your boss, 
+. font .2 right
 "you want me
 to fail."
+. font .2 left
 Imagine the
 power of that
 
@@ -106,8 +104,12 @@ FRIED ICE AND
 DONUT HOLES!
 
 # respect
+. font .15
 Pay due respect
-and in return:
+and in return ...
+
+. font .2
+. y .33
 "I'd deal with you
 again  -  I feel
 respected by you."
@@ -122,25 +124,38 @@ perfect
 . style body
 there's more space
 between
-Yes and No
+Yes                   No
 than we realize
 it's ok to say no
 
 # 
-yes is commitment
-no is protection
-be pleasant
+. y .2
+Yes is commitment
+No is protection
+. font .15 
+. y .7
+either way, be pleasant
 
 # if you hear a no
-if you hear no
+. y .2
+If you hear no
+. font .2 right
 hesitate
-give them time to
-think
+. font .1 left
+. y .7
+. line-height 1
+Give them time to think.
+Give them time to feel protection
 
 # start
-Start with, "is now 
-a bad time to talk?"
+. style body
+Start with
+this,
+. font .1 
+. y .4
+"Is now a bad time to talk?"
 . style subtitle
+. y .5
  ... no
 
 # the subtle epiphany
@@ -163,10 +178,18 @@ flight
 . style subtitle
 make friends
 
+
 #
-. font .05
-take approach not prob to deal with respect
-they'll let you know they're willing to
-felt resp apprec and bond
-move with that and be happy
-thanks i enjoyed being here
+. font .05 left
+. y .3
+. line-height 1.5
+Take the approach assuming that
+it will be no problem to deal with you later.
+. font .05 center
+Lead with respect.
+. font .05 left
+They'll let you know they're willing to work with you again.
+They felt respted by you. They appreciated you, and felt a bond.
+Move through your life with that and be happy!
+. font .05 right
+Thanks, I enjoyed being here.
