@@ -279,7 +279,7 @@ void do_window(SDL_Event *event, uint32_t *frame_delay,
     case SDL_WINDOWEVENT_LEAVE:
     case SDL_WINDOWEVENT_FOCUS_LOST: {
       *in_frame = false;
-      (*frame_delay) = 500;
+      (*frame_delay) = 150;
       break;
     }
   }
