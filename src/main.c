@@ -27,14 +27,9 @@
 
 #include "show.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "OCDFAInspection"
-
 void lol(void) {
   error("lol you ran out of memory!");
 }
-
-#pragma clang diagnostic pop
 
 #define STRETCHY_BUFFER_OUT_OF_MEMORY lol;
 
@@ -83,9 +78,9 @@ main(int argc, char *argv[]) {
       "lib/libslider.so",
       argc < 2 ? 0 : argv[1],
       // mutual exclusion specifically for game lib thread and main
-      {},
+      {0},
       // mutual exclusion specifically for slide file thread and main
-      {},
+      {0},
       0,
       0,
       0,
@@ -349,10 +344,10 @@ void read_slideshow_file(void *ll) {
     size_t total = 0;
     char *next;
     bool done = false;
+    size_t rc;
     while (!done) {
       next = grow_by(content, read_len);
-      size_t rc = fread(next, sizeof(char), read_len, f);
-      total += rc;
+      total += (rc = fread(next, sizeof(char), read_len, f));
       if (rc == 0) done = true;
     }
     content[total] = 0;

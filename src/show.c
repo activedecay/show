@@ -69,6 +69,19 @@ static style_item DEFAULT_STYLE = {
     /* name        char        */  "default",
 };
 
+int free_show(slide_show *show) {
+  for (int i = 0; i < count(show->slides); ++i) {
+    // slide_item *slide = show->slides[i];
+    // slide->styles;
+    // slide->grocery_items;
+    // slide->using;
+    // slide->title;
+    // slide->points;
+  }
+  stretch_free(show->slides);
+  free(show);
+}
+
 void free_styles(style_item **saved_styles) {
   style_item *some_style, *temp;
 
@@ -95,7 +108,9 @@ slide_show *init_slides(slide_show *previous, style_item **saved_styles,
   slide_item *slide = 0;
   style_item *style = 0;
   style_item *style_declaration = 0;
-  point *box = 0;
+  bool reassign_y = false;
+  float new_y = .0f;
+
   SDL_Color bg = cf4(1, 1, 1, 1); // default slide bg
   SDL_Color color;
 
@@ -110,7 +125,8 @@ slide_show *init_slides(slide_show *previous, style_item **saved_styles,
     } else if (line[0] == slide_starter) {
       /* # start of a slide */
 
-      box = 0; // note boxes always start at the top on a new slide
+      reassign_y = true; // note boxes always start at the top on a new slide
+      new_y = .0f;
 
       // eats a space before the actual title
       strtok_r(line, " ", &space_tokenizer);
@@ -254,8 +270,8 @@ slide_show *init_slides(slide_show *previous, style_item **saved_styles,
           /* . y [float] */
 
           token = strtok_r(0, " ", &space_tokenizer);
-          box = Calloc(1, sizeof(SDL_Rect));
-          box->y = !token ? 0 : strtof(token, 0);
+          new_y = !token ? 0 : strtof(token, 0);
+          reassign_y = true;
 
         } else if (strcmp("bg", token) == 0) {
           /* . bg [float_r] [float_g] [float_b] [? alpha] */
@@ -328,6 +344,7 @@ slide_show *init_slides(slide_show *previous, style_item **saved_styles,
 
       if (slide) {
         item_grocer *item = Calloc(1, sizeof(item_grocer));
+        item->type = text_t_item;
         push(slide->grocery_items, item);
         style = style ? : memcpy(Calloc(1, sizeof(style_item)),
                                  &DEFAULT_STYLE, sizeof(style_item));
@@ -335,8 +352,17 @@ slide_show *init_slides(slide_show *previous, style_item **saved_styles,
         size_t len = strlen(line);
         item->item.text = memcpy(Malloc(len * sizeof(char) + 1),
                                  line, len + 1);
-        box = box ? : Calloc(1, sizeof(SDL_Rect));
-        push(slide->points, box);
+        if (reassign_y) {
+          // either we saw a . y command or
+          // we are in a new slide. in either case
+          // the new_y is set to the correct y coord
+          item->pos = grow_by(item->pos, 1);
+          item->pos->y = new_y;
+          item->pos->x = 777;
+          reassign_y = false;
+        } else {
+          item->pos = 0;
+        }
 
         info("pushed some text onto slide '%s': %s", slide->title, line);
       } else {
@@ -352,9 +378,7 @@ slide_show *init_slides(slide_show *previous, style_item **saved_styles,
   }
 
   for (int i = 0; i < count(the_show->slides); ++i) {
-    assert(count(the_show->slides[i]->points) ==
-           count(the_show->slides[i]->styles));
-    assert(count(the_show->slides[i]->points) ==
+    assert(count(the_show->slides[i]->styles) ==
            count(the_show->slides[i]->grocery_items));
   }
   /* the previous index was saved; ensure slide index still ok */
@@ -463,17 +487,24 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
 void draw_slide_items(const SDL_Renderer *renderer, int w, int h,
                       const font *fonts, const slide_item *current_slide) {
   int line_number = 0;
+  point top_left = {0, 0};
   point *last_box = 0;
 
   for (int i = 0; i < count(current_slide->grocery_items); ++i) {
     item_grocer *item = current_slide->grocery_items[i];
     style_item *style = current_slide->styles[i];
-    point *box = current_slide->points[i];
 
-    // boxes reset the y-coordinate
-    if (box != last_box) line_number = 0;
+    // if item pos, initialize our box there
+    // when no item pos, we should use the last box
+    // when no last box, we should use the top left
+    point box = item->pos ? *item->pos : last_box ? *last_box : top_left;
 
-    SDL_Rect rect = {0, (int) (h * box->y), 0, 0};
+    // seeing a new pos resets the y-coordinate
+    // and therefore our number line is also reset
+    // so our text flows
+    if (item->pos) line_number = 0;
+
+    SDL_Rect rect = {0, (int) (h * box.y), 0, 0};
 
     char *fam = get_fam(style);
     char *sty = get_style(style);
@@ -515,11 +546,10 @@ void draw_slide_items(const SDL_Renderer *renderer, int w, int h,
       rect.y -= 2;
       SDL_RenderCopy(renderer, slide_text, 0, &rect);
       SDL_DestroyTexture(slide_text);
-
-      last_box = box;
     } else {
       assert(!"needs a better font failure mechanism");
     }
+    last_box = &box;
   }
 }
 
@@ -582,7 +612,6 @@ SDL_Cursor *get_cursor() {
 
   /*SDL_Cursor **/ // cursor = get_cursor();
   SDL_FreeCursor(cursor);
-
 
   SDL_Surface *cursor_surface = 0;
   int image_width;

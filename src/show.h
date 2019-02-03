@@ -152,10 +152,15 @@ typedef struct {
 } style_item;
 
 typedef struct {
+    float x, y;
+} point;
+
+typedef struct {
     enum grocer_types {
         text_t_item,
         image_t_item
     } type;
+    point *pos;
     union {
         void *free_me;
         char *text;
@@ -163,17 +168,12 @@ typedef struct {
     } item;
 } item_grocer;
 
-typedef struct {
-    float x, y;
-} point;
-
 typedef struct slide_item slide_item;
 struct slide_item {
     char *title;
     SDL_Color bg_color;
     item_grocer **grocery_items;
     style_item **styles;
-    point **points;
     slide_item **using;
 };
 
@@ -220,9 +220,9 @@ FUNCTION_FF(find_font);
 typedef FUNCTION_IS((*init_slides_ptr));
 FUNCTION_IS(init_slides);
 
-//#define FUNCTION_FS(fun) int fun(slide_show *)
-//typedef FUNCTION_FS((*free_show_ptr));
-//FUNCTION_FS(free_show);
+#define FUNCTION_FS(fun) int fun(slide_show *)
+typedef FUNCTION_FS((*free_show_ptr));
+FUNCTION_FS(free_show);
 
 #define FUNCTION_RS(fun) void fun(SDL_Renderer *, int, int,        \
         slide_show *, font *)

@@ -122,11 +122,11 @@ perfect
 
 # space
 . style body
-there's more space
+There's more space
 between
-Yes                   No
-than we realize
-it's ok to say no
+Yes       and         No
+than we realize.
+It's ok to say no
 
 # 
 . y .2
@@ -189,7 +189,7 @@ it will be no problem to deal with you later.
 Lead with respect.
 . font .05 left
 They'll let you know they're willing to work with you again.
-They felt respted by you. They appreciated you, and felt a bond.
+They felt respected by you. They appreciate you and felt a bond.
 Move through your life with that and be happy!
 . font .05 right
 Thanks, I enjoyed being here.

@@ -132,45 +132,45 @@ font size is 1/100th of a screen height
     
     
 
-/*
-int free_show(slide_show *show) {
-  if (!show) return 0;
-
-  for (int i = 0; i < count(show->slides); ++i) {
-    slide_item *slide = show->slides[i];
-
-    for (int j = 0; j < count(slide->using); ++j) {
-      // these are already freed with show->template_slides
-      // slide_item *using_slide = slide->using[j];
-      
-      for (int k = 0; k < count(slide->grocery_items); ++k) {
-        free(slide->grocery_items[k]->item.free_me);
-        stretch_free(slide->grocery_items[k]);
-      }
-      for (int l = 0; l < count(slide->styles); ++l) {
-        free(slide->styles[l]->name);
-        slide->styles[l]->name = 0;
-      }
-      for (int m = 0; m < count(slide->points); ++m) {
-        free(slide->points[m]);
-        slide->points[m] = 0;
-      }
-
-      stretch_free(slide->using);
-      slide->using = 0;
-      stretch_free(slide->grocery_items);
-      slide->grocery_items = 0;
-      stretch_free(slide->styles);
-      slide->styles = 0;
-      stretch_free(slide->points);
-      slide->points = 0;
-      free(slide->title);
-      slide->title = 0;
-      free(slide);
-      show->slides[i] = 0;
-    }
-  }
+    /*
+    int free_show(slide_show *show) {
+      if (!show) return 0;
     
+      for (int i = 0; i < count(show->slides); ++i) {
+        slide_item *slide = show->slides[i];
+    
+        for (int j = 0; j < count(slide->using); ++j) {
+          // these are already freed with show->template_slides
+          // slide_item *using_slide = slide->using[j];
+          
+          for (int k = 0; k < count(slide->grocery_items); ++k) {
+            free(slide->grocery_items[k]->item.free_me);
+            stretch_free(slide->grocery_items[k]);
+          }
+          for (int l = 0; l < count(slide->styles); ++l) {
+            free(slide->styles[l]->name);
+            slide->styles[l]->name = 0;
+          }
+          for (int m = 0; m < count(slide->points); ++m) {
+            free(slide->points[m]);
+            slide->points[m] = 0;
+          }
+    
+          stretch_free(slide->using);
+          slide->using = 0;
+          stretch_free(slide->grocery_items);
+          slide->grocery_items = 0;
+          stretch_free(slide->styles);
+          slide->styles = 0;
+          stretch_free(slide->points);
+          slide->points = 0;
+          free(slide->title);
+          slide->title = 0;
+          free(slide);
+          show->slides[i] = 0;
+        }
+      }
+        
     
       template_slide *s, *tmp;
       HASH_ITER(hh, show->template_slides, s, tmp) {
