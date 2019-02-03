@@ -3,7 +3,15 @@
 draw on slides with laser pointer
 use voice commands to launch a missle and blow up the text
 
+load-image lol pic.png
+image scale, crop, rotate
+  - hot-load images! OMFG ? could just do the same
+    thing as reading the image each time show.md changes
+in particular, (!"needs a better font failure mechanism");
+- way better error handling in general
+
 declare-font variables that import fonts from disk on the fly (eh)
+fix memory @Leaks
 
 all wrapped text centered on y!
 - vertical-align middle around text items
@@ -14,14 +22,8 @@ variables
 - math operations
     - parenthesis
 
-load-image lol pic.png
-image scale, crop, rotate
 \ escape handling
-in particular, (!"needs a better font failure mechanism");
-- way better error handling in general
-fix memory @Leaks
-- hot-load images! OMFG ? could just do the same 
-  thing as reading the image each time show.md changes
+
 rotated text
 x pos
 hyperlinks

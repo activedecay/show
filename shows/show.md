@@ -161,8 +161,8 @@ this,
 
 # the subtle epiphany
 . style body
-get them to
-say "that's right"
+Get them to say
+"that's right"
 by summarizing
 their situation
 from how they see it
@@ -185,8 +185,9 @@ make friends
 . y .3
 . line-height 1.5
 Take the approach assuming that
-  it will be no problem to deal with you later.
-. font .05 center
+    it will be no problem to deal with you later.
+. font .07 center
+. y .49
   Lead with respect.
 . font .05 left
 They'll let you know they're willing to work with you again.

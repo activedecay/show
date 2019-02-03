@@ -22,5 +22,7 @@ add_executable(show src/main.c
         )
 target_link_libraries(show SDL2 SDL2_ttf pthread m dl)
 
-add_executable(test test/test.c)
-target_link_libraries(test m)
+#[[ cmake is retarded. why the fuck did you reserve the "test" keyword?
+ jesus christ. and the developers want me to rename my output. so dumb. ]]
+add_executable(test_ test/test.c)
+target_link_libraries(test_ m)
