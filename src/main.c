@@ -65,6 +65,7 @@ typedef struct {
     font *fonts;  /* = 0; important */
     slide_show *show;
     style_item *saved_styles;  /* = 0; important */
+    SDL_Renderer *renderer;
 } game_state;
 
 void load_game_library(void *);
@@ -89,16 +90,6 @@ main(int argc, char *argv[]) {
   Sem_init(&global_state.game_sem, 0, 1);
   Sem_init(&global_state.show_sem, 0, 1);
 
-  // make sure we have a game library before forking a thread
-  load_game_library(&global_state);
-
-  if (!global_state.show->slides)
-    return die("Error: no slides! create a slide with '# Title'");
-
-  pthread_t tidp;
-  Pthread_create(&tidp, 0, watch_slideshow_file, &global_state);
-  Pthread_create(&tidp, 0, watch_library, &global_state);
-
   SDL_Window *window = 0;
   SDL_Renderer *renderer = 0;
   TTF_Font *font = 0;
@@ -113,6 +104,19 @@ main(int argc, char *argv[]) {
     return die("can't init fonts");
   SDL_CreateWindowAndRenderer(
       w, h, SDL_WINDOW_RESIZABLE, &window, &renderer);
+
+  global_state.renderer = renderer;
+
+  // make sure we have a game library before forking a thread
+  load_game_library(&global_state);
+
+  if (!global_state.show->slides)
+    return die("Error: no slides! create a slide with '# Title'");
+
+  pthread_t tidp;
+  Pthread_create(&tidp, 0, watch_slideshow_file, &global_state);
+  Pthread_create(&tidp, 0, watch_library, &global_state);
+
 
   if (!(font = TTF_OpenFont("./res/FreeSans.ttf", 72)))
     return die("can't load the font");
@@ -175,8 +179,9 @@ main(int argc, char *argv[]) {
 //    SDL_RenderCopy(renderer, babe, 0, 0);
 
     P(&global_state.show_sem);
-    global_state.game_library.render_slide_func(
-        renderer, w, h, global_state.show, global_state.fonts);
+    if (global_state.show->slides)
+      global_state.game_library.render_slide_func(
+          renderer, w, h, global_state.show, global_state.fonts);
     V(&global_state.show_sem);
 
     SDL_GetMouseState(&mouse_x, &mouse_y);
@@ -361,7 +366,10 @@ void read_slideshow_file(void *ll) {
     }
 
     if ((state->show = state->game_library
-        .init_slides_func(idx, &state->saved_styles, content)) == 0) {
+        .init_slides_func(state->renderer,
+                          idx,
+                          &state->saved_styles,
+                          content)) == 0) {
       die("this show file sucks!");
       exit(EXIT_FAILURE);
     }

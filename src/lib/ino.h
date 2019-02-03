@@ -85,7 +85,6 @@ int inotify(char *filepath, ptfptvrv routine, void *data) {
       exit(EXIT_FAILURE);
     }
     if (poll_num > 0 && fds[0].revents & POLLIN) {
-      info(YELLOW"so like..."RESET);
       handle_events(fd, wd, basename(filepath), routine, data);
     }
   }

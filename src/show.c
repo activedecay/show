@@ -17,6 +17,8 @@
 
 #include "../src/lib/stb_image.h"
 
+char *RES_DIR = "./res/";
+
 void set_fam(style_item *style, const char *token) {
   for (int i = 0; i < num_families; ++i)
     if (strcmp(family[i].name, token) == 0) {
@@ -71,6 +73,17 @@ void free_styles(style_item **saved_styles) {
   }
 }
 
+void free_images(image_hash *images) {
+  image_hash *img, *temp;
+  HASH_ITER(hh, images, img, temp) {
+    HASH_DEL(images, img);
+    SDL_DestroyTexture(img->image);
+    info(GREEN"freeing image '%s'"RESET, img->id);
+    free(img->id);
+    free(img);
+  }
+}
+
 int free_show(slide_show *show, style_item **saved_styles) {
   if (!show) return 0;
   for (int i = 0; i < count(show->slides); ++i) {
@@ -79,25 +92,54 @@ int free_show(slide_show *show, style_item **saved_styles) {
     // slide->grocery_items;
     // slide->using;
     // slide->title;
-    for (int j = 0; j < count(slide->styles); ++j) {
-//      free(slide->styles[j]);
-//      free(slide->styles[j]->name);
-//      slide->styles[j]->name = 0;
-//      free(slide->styles[j]);
-    }
     free(slide);
   }
   free_styles(saved_styles);
+  free_images(show->images);
   for (int j = 0; j < count(show->positions); ++j)
     free(show->positions[j]);
 
+  stretch_free(show->styles);
   stretch_free(show->positions);
   stretch_free(show->slides);
   free(show);
 }
 
-slide_show *init_slides(int idx, style_item **saved_styles,
-                        char *content) {
+int
+filter_image_files(const struct dirent *d) {
+  char *name = d->d_name;
+  size_t len = strlen(name);
+
+  return
+      strncmp(&name[len - 4], ".png", 4) == 0 ||
+      strncmp(&name[len - 4], ".bmp", 4) == 0 ||
+      strncmp(&name[len - 4], ".jpg", 4) == 0 ||
+      strncmp(&name[len - 4], ".gif", 4) == 0;
+}
+
+/** returns pointer to malloc'd string of the file path, or else 0 */
+char *
+find_resource(char *resource_name) {
+  struct dirent **namelist = 0;
+  int n = scandir(RES_DIR, &namelist, filter_image_files, 0);
+  char *retval = 0;
+  while (n--) {
+    if (!retval && strstr(namelist[n]->d_name, resource_name) != 0) {
+      char temp[(strlen(RES_DIR) + strlen(namelist[n]->d_name) * sizeof(char)) + 1];
+      strcpy(temp, RES_DIR);
+      strcat(temp, namelist[n]->d_name);
+      retval = strcpy(malloc(strlen(temp) * /* destination */
+                             sizeof(char) + 1),
+                      temp); /* source */
+    }
+    free(namelist[n]);
+  }
+  free(namelist);
+  return retval;
+}
+
+slide_show *init_slides(SDL_Renderer *renderer, int idx,
+                        style_item **saved_styles, char *content) {
   slide_show *the_show = 0;
 
   if (!content) return default_show();
@@ -134,10 +176,8 @@ slide_show *init_slides(int idx, style_item **saved_styles,
       reassign_y = true;
       new_y = .0f;
 
-      // eats a space before the actual title
-      strtok_r(line, " ", &space_tokenizer);
+      char *title = strtok_r(&line[1], "\n", &space_tokenizer);
       slide = Calloc(1, sizeof(slide_item));
-      char *title = strtok_r(0, "\n", &space_tokenizer);
       slide->title = title ? strcpy(Malloc(strlen(title) + 1), title)
           : strcpy(Malloc(5), "none");
       slide->bg_color = bg;
@@ -169,18 +209,64 @@ slide_show *init_slides(int idx, style_item **saved_styles,
           info("assigned font props to style '%s'",
                !style ? "unknown style" : style->name);
 
+        } else if (strcmp("define-image", token) == 0) {
+
+          token = strtok_r(0, " ", &space_tokenizer);
+          char *variable_name = token;
+          token = strtok_r(0, "\n", &space_tokenizer);
+          char *filename = token;
+          char *res_name = find_resource(filename);
+          image_hash *found;
+          HASH_FIND_STR(the_show->images, variable_name, found);
+          if (found) {
+            info(RED
+                     "there's already an image named '%s'"
+                     RESET, variable_name);
+          } else {
+            image_hash *ihash = Calloc(1, sizeof(image_hash));
+            ihash->image = get_texture_from_image(renderer, res_name);
+            size_t len = strlen(variable_name);
+            ihash->id = strcpy(Malloc(len * sizeof(char) + 1),
+                               variable_name);
+            HASH_ADD_STR(the_show->images, id, ihash);
+            info("defined image '%s' from shortname '%s'"
+                 " in folder '%s' full path was '%s'",
+                 variable_name, filename, RES_DIR, res_name);
+          }
+          free(res_name);
+
+        } else if (strcmp("image", token) == 0) {
+
+          token = strtok_r(0, " ", &space_tokenizer);
+          info(YELLOW
+                   "todo using image '%s'"
+                   RESET, token);
+          image_hash *found;
+          HASH_FIND_STR(the_show->images, token, found);
+          if (found) {
+            item_grocer *item = Calloc(1, sizeof(item_grocer));
+            item->type = image_t_item;
+            item->item.image = found->image;
+            push(slide->grocery_items, item);
+          } else {
+            info(RED
+                     "can't find image named '%s'"
+                     RESET, token);
+          }
+
         } else if (strcmp("#", token) == 0) {
           /* . # template slide */
 
           token = strtok_r(0, "\n", &space_tokenizer);
 
           template_slide *template;
-          HASH_FIND_STR(the_show->template_slides, token, template);
+          HASH_FIND_PTR(the_show->template_slides, token, template);
           if (!template) {
             template = Calloc(1, sizeof(template_slide));
             size_t len = strlen(token);
             template->id = strcpy(Malloc(len * sizeof(char) + 1), token);
-            HASH_ADD_STR(the_show->template_slides, id, template);
+            HASH_ADD_KEYPTR(hh, the_show->template_slides,
+                            template->id, len, template);
 
             slide = template->slide = !template ? 0
                 : Calloc(1, sizeof(slide_item));
@@ -353,9 +439,9 @@ slide_show *init_slides(int idx, style_item **saved_styles,
         item_grocer *item = Calloc(1, sizeof(item_grocer));
         item->type = text_t_item;
         push(slide->grocery_items, item);
-        style = style ? : memcpy(Calloc(1, sizeof(style_item)),
-                                 &DEFAULT_STYLE, sizeof(style_item));
-        push(slide->styles, style);
+        item->style = style = style ? : memcpy(Calloc(1, sizeof(style_item)),
+                                               &DEFAULT_STYLE, sizeof(style_item));
+        push(the_show->styles, style);
         size_t len = strlen(line);
         item->item.text = memcpy(Malloc(len * sizeof(char) + 1),
                                  line, len + 1);
@@ -388,37 +474,12 @@ slide_show *init_slides(int idx, style_item **saved_styles,
     line = strtok_r(0, "\n", &line_tokenizer);
   }
 
-  for (int i = 0; i < count(the_show->slides); ++i) {
-    assert(count(the_show->slides[i]->styles) ==
-           count(the_show->slides[i]->grocery_items));
-  }
   /* the previous index was saved; ensure slide index still ok */
   the_show->index = the_show->index < 0 ? 0
       : min(the_show->index, count(the_show->slides) - 1);
   return the_show;
 }
 
-void use(void) {
-  item_grocer **grocery_items = 0;
-  item_grocer *item = Calloc(1, sizeof(item_grocer));
-
-  item->type = text_t_item;
-  char *s = "i'm a little teapot short and stout";
-  item->item.text = strcpy(Malloc(sizeof(strlen(s)) + 1), s);
-
-  push(grocery_items, item);
-
-  switch (item->type) {
-    case text_t_item: {
-      info("draw text %s", item->item.text);
-      break;
-    }
-    case image_t_item: {
-      info("draw image %p", item->item.image);
-      break;
-    }
-  }
-}
 
 slide_show *default_show() {
   slide_show *the_show = Calloc(1, sizeof(slide_show));
@@ -456,7 +517,7 @@ slide_show *default_show() {
       char *str = slides[i][j];
 
       style = Calloc(1, sizeof(style_item));
-      push(slide->styles, style);
+      push(the_show->styles, style);
 
       style->style = (i + j) % num_styles;
       style->family = (i + j) % num_families;
@@ -466,7 +527,7 @@ slide_show *default_show() {
 
       item_grocer *item = Calloc(1, sizeof(item_grocer));
       push(slide->grocery_items, item);
-
+      item->style = style;
       item->item.text = str;
     }
   }
@@ -503,70 +564,81 @@ void draw_slide_items(const SDL_Renderer *renderer, int w, int h,
 
   for (int i = 0; i < count(current_slide->grocery_items); ++i) {
     item_grocer *item = current_slide->grocery_items[i];
-    style_item *style = current_slide->styles[i];
-
-    // if item pos, initialize our box there
-    // when no item pos, we should use the last box
-    // when no last box, we should use the top left
-    box = item->pos ? *item->pos : last_box ? *last_box : top_left;
-    // seeing a new pos resets the y-coordinate
-    // and therefore our number line is also reset
-    // so our text flows
-    if (item->pos) line_number = 0;
-
-    rect.y = (int) (h * box.y);
-    rect.x = 0;
-
-    char *fam = get_fam(style);
-    char *sty = get_style(style);
-    char font_idx[strlen(fam) + strlen(sty) + 1];
-    strcpy(font_idx, fam);
-    strcat(font_idx, sty);
-    // todo using sdl and sdl_ttf source would allow us
-    //  to call the SetFontSize() instead of reading the
-    //  thing every frame. that way we can keep the pointers
-    //  and don't have to store all the sizes. we can just
-    //  keep the pointers and set the size in the render call
-    TTF_Font *f;
-    if ((f = TTF_OpenFont(
-        find_font(fonts, font_idx)->filename,
-        (int) (style->size * h)))) {
-      SDL_Texture *shadow_text =
-          texturize_text(renderer, f,
-                         item->item.text,
-                         cf4(0, 0, 0, .4),
-                         &rect, SDL_BLENDMODE_BLEND);
-      SDL_Texture *slide_text =
-          texturize_text(renderer, f,
-                         item->item.text,
-                         style->fg_color,
-                         &rect, SDL_BLENDMODE_BLEND);
-      TTF_CloseFont(f);
-      int vertical_align = 0; // todo
-      rect.y = rect.y + vertical_align +
-               (int) (line_number++ * rect.h * style->line_height);
-      switch (style->align) {
-        default:
-        case left:
-          rect.x += (int) (w * style->margins_x);
-          break;
-        case center:
-          rect.x += w / 2 - rect.w / 2;
-          break;
-        case right:
-          rect.x = w - rect.w - (int) (w * style->margins_x);
-          break;
+    switch (item->type) {
+      case image_t_item: {
+        SDL_RenderCopy(renderer, item->item.image, 0, 0);
+        break;
       }
-      SDL_RenderCopy(renderer, shadow_text, 0, &rect);
-      rect.x -= SHADOW_DISTANCE;
-      rect.y -= SHADOW_DISTANCE;
-      SDL_RenderCopy(renderer, slide_text, 0, &rect);
-      SDL_DestroyTexture(shadow_text);
-      SDL_DestroyTexture(slide_text);
-    } else {
-      assert(!"needs a better font failure mechanism");
+      case text_t_item: {
+
+        style_item *style = item->style;
+
+        // if item pos, initialize our box there
+        // when no item pos, we should use the last box
+        // when no last box, we should use the top left
+        box = item->pos ? *item->pos : last_box ? *last_box : top_left;
+        // seeing a new pos resets the y-coordinate
+        // and therefore our number line is also reset
+        // so our text flows
+        if (item->pos) line_number = 0;
+
+        rect.y = (int) (h * box.y);
+        rect.x = 0;
+
+        char *fam = get_fam(style);
+        char *sty = get_style(style);
+        char font_idx[strlen(fam) + strlen(sty) + 1];
+        strcpy(font_idx, fam);
+        strcat(font_idx, sty);
+        // todo using sdl and sdl_ttf source would allow us
+        //  to call the SetFontSize() instead of reading the
+        //  thing every frame. that way we can keep the pointers
+        //  and don't have to store all the sizes. we can just
+        //  keep the pointers and set the size in the render call
+        TTF_Font *f;
+        if ((f = TTF_OpenFont(
+            find_font(fonts, font_idx)->filename,
+            (int) (style->size * h)))) {
+          SDL_Texture *shadow_text =
+              texturize_text(renderer, f,
+                             item->item.text,
+                             cf4(0, 0, 0, .4),
+                             &rect, SDL_BLENDMODE_BLEND);
+          SDL_Texture *slide_text =
+              texturize_text(renderer, f,
+                             item->item.text,
+                             style->fg_color,
+                             &rect, SDL_BLENDMODE_BLEND);
+          TTF_CloseFont(f);
+          // todo wouldn't it be nice if we had vertical alignment!
+          int vertical_align = 0;
+          rect.y = rect.y + vertical_align +
+                   (int) (line_number++ * rect.h * style->line_height);
+          switch (style->align) {
+            default:
+            case left:
+              rect.x += (int) (w * style->margins_x);
+              break;
+            case center:
+              rect.x += w / 2 - rect.w / 2;
+              break;
+            case right:
+              rect.x = w - rect.w - (int) (w * style->margins_x);
+              break;
+          }
+          SDL_RenderCopy(renderer, shadow_text, 0, &rect);
+          rect.x -= SHADOW_DISTANCE;
+          rect.y -= SHADOW_DISTANCE;
+          SDL_RenderCopy(renderer, slide_text, 0, &rect);
+          SDL_DestroyTexture(shadow_text);
+          SDL_DestroyTexture(slide_text);
+        } else {
+          assert(!"needs a better font failure mechanism");
+        }
+        last_box = &box;
+        break;
+      }
     }
-    last_box = &box;
   }
 }
 
@@ -585,8 +657,6 @@ texturize_text(SDL_Renderer *renderer, TTF_Font *font, char *string,
 
   return words;
 }
-
-SDL_Texture *get_texture_from_image(SDL_Renderer *, char *);
 
 SDL_Texture *get_texture_from_image(SDL_Renderer *renderer, char *filename) {
   SDL_Surface *image_surface = 0;

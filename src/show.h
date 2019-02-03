@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <values.h>
 #include <assert.h>
+#include <dirent.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -162,9 +163,9 @@ typedef struct {
         text_t_item,
         image_t_item
     } type;
+    style_item *style;
     point *pos;
     union {
-        void *free_me;
         char *text;
         SDL_Texture *image;
     } item;
@@ -175,7 +176,6 @@ struct slide_item {
     char *title;
     SDL_Color bg_color;
     item_grocer **grocery_items;
-    style_item **styles;
     slide_item **using;
 };
 
@@ -186,10 +186,18 @@ typedef struct {
 } template_slide;
 
 typedef struct {
+    char *id;
+    SDL_Texture *image;
+    UT_hash_handle hh;
+} image_hash;
+
+typedef struct {
     int index;
     template_slide *template_slides;
     slide_item **slides;
     point **positions;
+    image_hash *images;
+    style_item **styles;
 } slide_show;
 
 static SDL_Color cf4(float fr, float fg, float fb, float fa) {
@@ -213,13 +221,16 @@ slide_show *default_show();
 void draw_slide_items(const SDL_Renderer *, int, int,
                       const font *, const slide_item *);
 
+SDL_Texture *get_texture_from_image(SDL_Renderer *, char *);
+
 /* fancy defines for robustly making a fuction pointer
  * whose parameter list can change at will */
 #define FUNCTION_FF(fun) font *fun(font *, char *)
 typedef FUNCTION_FF((*find_font_ptr));
 FUNCTION_FF(find_font);
 
-#define FUNCTION_IS(fun) slide_show *fun(int, style_item **, char *)
+#define FUNCTION_IS(fun) slide_show *fun(SDL_Renderer *, int,      \
+        style_item **, char *)
 typedef FUNCTION_IS((*init_slides_ptr));
 FUNCTION_IS(init_slides);
 
