@@ -63,12 +63,19 @@ static style_item DEFAULT_STYLE = {
     /* name        char        */  "default",
 };
 
+void free_styles(style_item **saved_styles) {
+  style_item *some_style, *temp;
+  HASH_ITER(hh, *saved_styles, some_style, temp) {
+    HASH_DEL(*saved_styles, some_style);
+    free(some_style);
+  }
+}
+
 int free_show(slide_show *show, style_item **saved_styles) {
   if (!show) return 0;
   for (int i = 0; i < count(show->slides); ++i) {
     slide_item *slide = show->slides[i];
     free(slide->title);
-
     // slide->grocery_items;
     // slide->using;
     // slide->title;
@@ -77,32 +84,16 @@ int free_show(slide_show *show, style_item **saved_styles) {
 //      free(slide->styles[j]->name);
 //      slide->styles[j]->name = 0;
 //      free(slide->styles[j]);
-
     }
-
     free(slide);
   }
-
-  style_item *current_user, *tmp;
-  HASH_ITER(hh, *saved_styles, current_user, tmp) {
-    HASH_DEL(*saved_styles, current_user);  /* delete it (users advances to next) */
-    free(current_user);                    /* free it */
-  }
-
+  free_styles(saved_styles);
   for (int j = 0; j < count(show->positions); ++j)
     free(show->positions[j]);
 
   stretch_free(show->positions);
   stretch_free(show->slides);
   free(show);
-}
-
-void free_styles(style_item **saved_styles) {
-  style_item *some_style, *temp;
-  HASH_ITER(hh, *saved_styles, some_style, temp) {
-    HASH_DEL(*saved_styles, some_style);
-    free(some_style);
-  }
 }
 
 slide_show *init_slides(int idx, style_item **saved_styles,
