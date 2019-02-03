@@ -89,6 +89,8 @@ typedef struct {
 
 /* slide show */
 
+#define SHADOW_DISTANCE 2
+
 typedef enum {
     normal,
     italic,
@@ -148,7 +150,7 @@ typedef struct {
     float margins_x;
     SDL_Color fg_color;
     char *name;
-    UT_hash_handle hh; /* makes this structure hashable */
+    UT_hash_handle hh;
 } style_item;
 
 typedef struct {
@@ -180,13 +182,14 @@ struct slide_item {
 typedef struct {
     char *id;
     slide_item *slide;
-    UT_hash_handle hh; /* makes this structure hashable */
+    UT_hash_handle hh;
 } template_slide;
 
 typedef struct {
     int index;
     template_slide *template_slides;
     slide_item **slides;
+    point **positions;
 } slide_show;
 
 static SDL_Color cf4(float fr, float fg, float fb, float fa) {
@@ -216,11 +219,11 @@ void draw_slide_items(const SDL_Renderer *, int, int,
 typedef FUNCTION_FF((*find_font_ptr));
 FUNCTION_FF(find_font);
 
-#define FUNCTION_IS(fun) slide_show *fun(slide_show *, style_item **, char *)
+#define FUNCTION_IS(fun) slide_show *fun(int, style_item **, char *)
 typedef FUNCTION_IS((*init_slides_ptr));
 FUNCTION_IS(init_slides);
 
-#define FUNCTION_FS(fun) int fun(slide_show *)
+#define FUNCTION_FS(fun) int fun(slide_show *, style_item **)
 typedef FUNCTION_FS((*free_show_ptr));
 FUNCTION_FS(free_show);
 
@@ -237,7 +240,7 @@ FUNCTION_TT(texturize_text);
 
 typedef struct {
     init_slides_ptr init_slides_func;
-    //free_show_ptr free_show_func;
+    free_show_ptr free_show_func;
     render_slide_ptr render_slide_func;
     texturize_text_ptr texturize_text_func;
     find_font_ptr find_font_func;

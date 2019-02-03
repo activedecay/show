@@ -146,27 +146,23 @@ main(int argc, char *argv[]) {
         frame_delay = 0;
         break;
       }
+      P(&global_state.show_sem);
       switch ((SDL_EventType) event.type) {
         case SDL_WINDOWEVENT: {
           do_window(&event, &frame_delay, &w, &h, &in_frame);
           break;
         }
         case SDL_KEYDOWN: {
-          P(&global_state.show_sem);
           quit = do_keydown(&event, global_state.show, &frame_delay);
-          V(&global_state.show_sem);
           break;
         }
         case SDL_MOUSEWHEEL: {
-          P(&global_state.show_sem);
           global_state.show->index += -event.wheel.y;
-          V(&global_state.show_sem);
           break;
         }
         default:
           break;
       }
-      P(&global_state.show_sem);
       global_state.show->index = global_state.show->index < 0 ? 0
           : min(global_state.show->index, count(global_state.show->slides) - 1);
       V(&global_state.show_sem);
@@ -321,6 +317,7 @@ void load_game_library(void *global_state) {
   lib->init_slides_func = dlsym(lib->it, "init_slides");
   lib->render_slide_func = dlsym(lib->it, "render_slide");
   lib->texturize_text_func = dlsym(lib->it, "texturize_text");
+  lib->free_show_func = dlsym(lib->it, "free_show");
   info("loaded new library! %p", lib->it);
   V(&state->game_sem);
 
@@ -355,15 +352,16 @@ void read_slideshow_file(void *ll) {
 
     P(&state->show_sem);
 
-//    if (free_show_func(show) != 0) {
-//      error("something terrible happened while freeing the show!");
-//    }
+    int idx = state->show ? state->show->index : -1;
 
-    if ((state->show =
-             state->game_library
-                 .init_slides_func(state->show,
-                                   &state->saved_styles,
-                                   content)) == 0) {
+    if (state->game_library
+            .free_show_func(state->show, &state->saved_styles) != 0) {
+      error("something terrible happened "
+            "while freeing the show!");
+    }
+
+    if ((state->show = state->game_library
+        .init_slides_func(idx, &state->saved_styles, content)) == 0) {
       die("this show file sucks!");
       exit(EXIT_FAILURE);
     }

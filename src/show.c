@@ -4,6 +4,10 @@
 
 #include "show.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
+#pragma ide diagnostic ignored "OCDFAInspection"
+
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STBI_ONLY_PNG
@@ -13,14 +17,6 @@
 
 #include "../src/lib/stb_image.h"
 
-#pragma clang diagnostic push
-/* clion, you're fucking retarded */
-#pragma clang diagnostic ignored "-Wunknown-pragmas"
-
-#pragma clang diagnostic push
-/* AGAIN, clion, you're fucking retarded */
-#pragma ide diagnostic ignored "OCDFAInspection"
-
 void set_fam(style_item *style, const char *token) {
   for (int i = 0; i < num_families; ++i)
     if (strcmp(family[i].name, token) == 0) {
@@ -28,8 +24,6 @@ void set_fam(style_item *style, const char *token) {
       break;
     }
 }
-
-#pragma clang diagnostic pop
 
 char *get_fam(style_item *style) {
   for (int i = 0; i < num_families; ++i)
@@ -69,29 +63,49 @@ static style_item DEFAULT_STYLE = {
     /* name        char        */  "default",
 };
 
-int free_show(slide_show *show) {
+int free_show(slide_show *show, style_item **saved_styles) {
+  if (!show) return 0;
   for (int i = 0; i < count(show->slides); ++i) {
-    // slide_item *slide = show->slides[i];
-    // slide->styles;
+    slide_item *slide = show->slides[i];
+    free(slide->title);
+
     // slide->grocery_items;
     // slide->using;
     // slide->title;
-    // slide->points;
+    for (int j = 0; j < count(slide->styles); ++j) {
+//      free(slide->styles[j]);
+//      free(slide->styles[j]->name);
+//      slide->styles[j]->name = 0;
+//      free(slide->styles[j]);
+
+    }
+
+    free(slide);
   }
+
+  style_item *current_user, *tmp;
+  HASH_ITER(hh, *saved_styles, current_user, tmp) {
+    HASH_DEL(*saved_styles, current_user);  /* delete it (users advances to next) */
+    free(current_user);                    /* free it */
+  }
+
+  for (int j = 0; j < count(show->positions); ++j)
+    free(show->positions[j]);
+
+  stretch_free(show->positions);
   stretch_free(show->slides);
   free(show);
 }
 
 void free_styles(style_item **saved_styles) {
   style_item *some_style, *temp;
-
   HASH_ITER(hh, *saved_styles, some_style, temp) {
     HASH_DEL(*saved_styles, some_style);
     free(some_style);
   }
 }
 
-slide_show *init_slides(slide_show *previous, style_item **saved_styles,
+slide_show *init_slides(int idx, style_item **saved_styles,
                         char *content) {
   slide_show *the_show = 0;
 
@@ -103,7 +117,7 @@ slide_show *init_slides(slide_show *previous, style_item **saved_styles,
   int comment_starter = ';';
 
   the_show = Calloc(1, sizeof(slide_show));
-  if (previous) the_show->index = previous->index;
+  if (idx > 0) the_show->index = idx;
 
   slide_item *slide = 0;
   style_item *style = 0;
@@ -125,14 +139,16 @@ slide_show *init_slides(slide_show *previous, style_item **saved_styles,
     } else if (line[0] == slide_starter) {
       /* # start of a slide */
 
-      reassign_y = true; // note boxes always start at the top on a new slide
+      // boxes always start at the top on a new slide
+      reassign_y = true;
       new_y = .0f;
 
       // eats a space before the actual title
       strtok_r(line, " ", &space_tokenizer);
       slide = Calloc(1, sizeof(slide_item));
-      slide->title = strtok_r(0, "\n", &space_tokenizer) ? :
-          strcpy(Malloc(5), "none");
+      char *title = strtok_r(0, "\n", &space_tokenizer);
+      slide->title = title ? strcpy(Malloc(strlen(title) + 1), title)
+          : strcpy(Malloc(5), "none");
       slide->bg_color = bg;
       push(the_show->slides, slide);
       info("reassigned slide pointer -> '%s'", slide->title);
@@ -140,10 +156,10 @@ slide_show *init_slides(slide_show *previous, style_item **saved_styles,
     } else if (line[0] == command_starter) {
       /* . [*]... start of command */
 
+      // Note: Warning!!! please always re-assign token!
+      //  this will avoid errors by always walking the data!
       char *token = strtok_r(line, " ", &space_tokenizer);
       while (token) {
-        // Note: Warning!!! please always re-assign token!
-        //  this will avoid errors, always walking the data!
 
         if (strcmp("font", token) == 0) {
           /* . font [float] [*]... */
@@ -356,11 +372,15 @@ slide_show *init_slides(slide_show *previous, style_item **saved_styles,
           // either we saw a . y command or
           // we are in a new slide. in either case
           // the new_y is set to the correct y coord
-          item->pos = grow_by(item->pos, 1);
+          item->pos = Calloc(1, sizeof(point));
+          push(the_show->positions, item->pos);
           item->pos->y = new_y;
           item->pos->x = 777;
           reassign_y = false;
         } else {
+          // interpret 0 as being the use case for continuing
+          // to the next line automatically changing y by
+          // the line-height
           item->pos = 0;
         }
 
@@ -486,9 +506,11 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
 
 void draw_slide_items(const SDL_Renderer *renderer, int w, int h,
                       const font *fonts, const slide_item *current_slide) {
-  int line_number = 0;
   point top_left = {0, 0};
+  int line_number = 0;
   point *last_box = 0;
+  SDL_Rect rect = {0};
+  point box;
 
   for (int i = 0; i < count(current_slide->grocery_items); ++i) {
     item_grocer *item = current_slide->grocery_items[i];
@@ -497,14 +519,14 @@ void draw_slide_items(const SDL_Renderer *renderer, int w, int h,
     // if item pos, initialize our box there
     // when no item pos, we should use the last box
     // when no last box, we should use the top left
-    point box = item->pos ? *item->pos : last_box ? *last_box : top_left;
-
+    box = item->pos ? *item->pos : last_box ? *last_box : top_left;
     // seeing a new pos resets the y-coordinate
     // and therefore our number line is also reset
     // so our text flows
     if (item->pos) line_number = 0;
 
-    SDL_Rect rect = {0, (int) (h * box.y), 0, 0};
+    rect.y = (int) (h * box.y);
+    rect.x = 0;
 
     char *fam = get_fam(style);
     char *sty = get_style(style);
@@ -542,8 +564,8 @@ void draw_slide_items(const SDL_Renderer *renderer, int w, int h,
           break;
       }
       SDL_RenderCopy(renderer, shadow_text, 0, &rect);
-      rect.x -= 2;
-      rect.y -= 2;
+      rect.x -= SHADOW_DISTANCE;
+      rect.y -= SHADOW_DISTANCE;
       SDL_RenderCopy(renderer, slide_text, 0, &rect);
       SDL_DestroyTexture(slide_text);
     } else {
@@ -606,6 +628,7 @@ SDL_Texture *get_texture_from_image(SDL_Renderer *renderer, char *filename) {
 }
 
 SDL_Cursor *get_cursor();
+
 SDL_Cursor *get_cursor() {
 
   SDL_Cursor *cursor = 0;

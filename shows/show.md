@@ -1,6 +1,7 @@
 . define-style default
 . save-style
 
+
 . define-style title
 . color 1 1 1
 . font .5 center bold
@@ -128,7 +129,7 @@ Yes       and         No
 than we realize.
 It's ok to say no
 
-# 
+# wtf tho
 . y .2
 Yes is commitment
 No is protection
@@ -166,12 +167,12 @@ by summarizing
 their situation
 from how they see it
 
-#
+# asdf
 . style title
 oh, you 
   get it
 
-# 
+# asdf
 . style body
 fight
 flight
@@ -179,7 +180,7 @@ flight
 make friends
 
 
-#
+# asdf
 . font .05 left
 . y .3
 . line-height 1.5
