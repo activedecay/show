@@ -37,24 +37,24 @@ void lol(void) {
 #include "lib/ino.h"
 #include "lib/csapp.h"
 
-bool do_keydown(SDL_Event *event, slide_show *show,
-                uint32_t *frame_delay);
+bool do_keydown(SDL_Event *, slide_show *,
+                uint32_t *);
 
 font *add_font(font **, char *, char *);
 
-int die(char *s);
+int die(char *);
 
 
-void do_window(SDL_Event *event, uint32_t *frame_delay,
-               int *w, int *h, bool *in_frame);
+void do_window(SDL_Event *, uint32_t *,
+               int *, int *, bool *);
 
 void quit(void);
 
-void read_slideshow_file(void *filename);
+void read_slideshow_file(void *);
 
-void *watch_library(void *global_state);
+void *watch_library(void *);
 
-void *watch_slideshow_file(void *ll);
+void *watch_slideshow_file(void *);
 
 typedef struct {
     char *library_file;
@@ -360,10 +360,9 @@ void read_slideshow_file(void *ll) {
     int idx = state->show ? state->show->index : -1;
 
     if (state->game_library
-            .free_show_func(state->show, &state->saved_styles) != 0) {
+            .free_show_func(state->show, &state->saved_styles) != 0)
       error("something terrible happened "
             "while freeing the show!");
-    }
 
     if ((state->show = state->game_library
         .init_slides_func(state->renderer,

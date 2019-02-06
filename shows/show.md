@@ -42,7 +42,7 @@ green!
 blue!
 
 # slide grey
-. color 1 1 1 .2
+. color 1 1 1 .5
 . using cars
 . image grey
 grey!
