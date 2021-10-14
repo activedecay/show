@@ -7,7 +7,7 @@ load-image lol pic.png
 image scale, crop, rotate
   - hot-load images! OMFG ? could just do the same
     thing as reading the image each time show.md changes
-in particular, (!"needs a better font failure mechanism");
+in particular, see the code assert (!"needs a better font failure mechanism");
 - way better error handling in general
 
 declare-font variables that import fonts from disk on the fly (eh)

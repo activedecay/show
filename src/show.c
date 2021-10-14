@@ -388,7 +388,7 @@ slide_show *init_slides(SDL_Renderer *renderer, int idx,
           }
 
         } else if (strcmp("color", token) == 0) {
-          /* text color [float_r] [float_g] [float_b] */
+          /* . color [float_r] [float_g] [float_b] */
 
           token = strtok_r(0, " ", &space_tokenizer);
           float r = !token ? : strtof(token, 0);
@@ -405,7 +405,7 @@ slide_show *init_slides(SDL_Renderer *renderer, int idx,
           style->fg_color = color;
 
         } else if (strcmp("line-height", token) == 0) {
-          /* line-height [float] */
+          /* . line-height [float] */
 
           token = strtok_r(0, " ", &space_tokenizer);
           style = style_declaration ? :

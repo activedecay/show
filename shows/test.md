@@ -42,7 +42,6 @@
 
 # neapolitan
 . bg 0.043 0.047 0.349 .9
-. y 0
 . style pink
 what nice
 cool thanks
@@ -164,7 +163,7 @@ right
 # cold
 . bg .1 0 .1 .8
 . color 1 0 .5
-. font .11 left serif italic
+. font .07 left serif mono
 * Any C struct can be stored in a hash 
 * table using uthash. Just add a 
 * UT_hash_handle to the structure and 
