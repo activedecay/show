@@ -161,7 +161,7 @@ typedef struct {
 typedef struct {
     enum grocer_types {
         text_t_item,
-        image_t_item
+        image_t_item,
     } type;
     style_item *style;
     point *pos;

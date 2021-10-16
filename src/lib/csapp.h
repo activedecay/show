@@ -52,16 +52,17 @@ typedef struct {
 /* $end rio_t */
 
 /* External variables */
-extern int h_errno;    /* Defined by BIND for DNS errors */
-extern char **environ; /* Defined by libc */
+extern int  h_errno;    /* Defined by BIND for DNS errors */
+extern char **environ;  /* Defined by libc */
 
 /* Misc constants */
-#define  MAXLINE   8192  /* Max text line length */
-#define MAXBUF   8192  /* Max I/O buffer size */
-#define LISTENQ  1024  /* Second argument to listen() */
+#define MAXLINE   8192  /* Max text line length */
+#define MAXBUF    8192  /* Max I/O buffer size */
+#define LISTENQ   1024  /* Second argument to listen() */
 
 /* Our own error-handling functions */
 void             unix_error(char *msg);
+void             unix_error_context(char *msg, char *context);
 
 void             posix_error(int code, char *msg);
 
@@ -97,7 +98,7 @@ pid_t            Getpgrp();
 /* Signal wrappers */
 typedef          void handler_t(int);
 
-handler_t        *Signal(int signum, handler_t *handler);
+handler_t *      Signal(int signum, handler_t *handler);
 
 void             Sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
 
@@ -109,7 +110,7 @@ void             Sigaddset(sigset_t *set, int signum);
 
 void             Sigdelset(sigset_t *set, int signum);
 
-int              Sigismember(const sigset_t *set, int signum);
+__attribute__((unused)) int              Sigismember(const sigset_t *set, int signum);
 
 int              Sigsuspend(const sigset_t *set);
 
@@ -148,9 +149,9 @@ void             Stat(const char *filename, struct stat *buf);
 void             Fstat(int fd, struct stat *buf);
 
 /* Directory wrappers */
-DIR  *           Opendir(const char *name);
+DIR *            Opendir(const char *name);
 
-struct dirent    *Readdir(DIR *dirp);
+struct dirent *  Readdir(DIR *dirp);
 
 int              Closedir(DIR *dirp);
 
@@ -166,7 +167,7 @@ FILE *           Fdopen(int fd, const char *type);
 
 char *           Fgets(char *ptr, int n, FILE *stream);
 
-FILE *           Fopen(const char *filename, const char *mode);
+FILE *           Fopen(const char *filename, const char *modes);
 
 void             Fputs(const char *ptr, FILE *stream);
 
@@ -210,9 +211,9 @@ void             Inet_ntop(int af, const void *src, char *dst, socklen_t size);
 void             Inet_pton(int af, const char *src, void *dst);
 
 /* DNS wrappers */
-struct hostent   *Gethostbyname(const char *name);
+struct hostent *  Gethostbyname(const char *name);
 
-struct hostent   *Gethostbyaddr(const char *addr, int len, int type);
+struct hostent *  Gethostbyaddr(const char *addr, int len, int type);
 
 /* Pthreads thread control wrappers */
 void             Pthread_create(pthread_t *tidp, pthread_attr_t *attrp,
@@ -268,7 +269,6 @@ int              open_listenfd(char *port);
 int              Open_clientfd(char *hostname, char *port);
 
 int              Open_listenfd(char *port);
-
 
 #endif /* __CSAPP_H__ */
 /* $end csapp.h */

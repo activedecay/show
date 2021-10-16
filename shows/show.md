@@ -1,7 +1,12 @@
-
+. define-image car neon
+. define-image x neon
 #
-. y -.1
-. font 1 script
-. color 1 .4 .1
-. bg .1 .01 .01
-Jf
+. bg 0 0 0 
+. color 1 1 1 
+. image car
+car 
+#
+. bg 0 0 0 
+. color 1 1 1 
+. image x
+x

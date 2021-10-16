@@ -1,4 +1,13 @@
 # do it
+stretchy was deprecated, consider std_ds
+consider -fno-strict-aliasing https://blog.regehr.org/archives/1307
+consider using sscanf instead of strtok_r
+break apart amdgpu valgrind errors by extracting showlib sans sdl
+  - and consider doing a cli-only slideshow implementation 
+  - goal: to narrow down memory leaks in our code
+  - unless, we can just tune valgrind output to ignore non-show.c-code errors
+use show.md file as pointer config: show mouse, offset-(x,y), word, font, color (see mouse_follow_word)
+use show.md file as window size config: fullscreen, x, y, w, h
 
 draw on slides with laser pointer
 use voice commands to launch a missle and blow up the text

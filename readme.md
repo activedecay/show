@@ -21,17 +21,20 @@ inotify will poll the files that you're editing and reload the libslider.so/show
     (family)      sans serif mono script
     (alignment)   left center right
 . define-image    [unique-alias] [path]
-    path          a file name in /res/ without extension, ie "lambo.png" would be `lambo`
+    path          a file name in `/res/` dir without extension
+                  , ie "lambo.png" would be `lambo`
+                  , subtle note, two images must not have the same substring match (strstr)
 . image           [alias-recall]
-    alias-recall  a callback to the unique alias created in `define-image`
+    alias-recall  recall the alias created in `define-image`
     todo          x, y, w, h
 . #               [unique-alias]
+                  creates a template slide (font, color, y, [Q: does it do line-height?])
 . using           [alias-recall]
-    alias-recall  a callback to the unique alias created in `#`
+    alias-recall  recall the alias created in `#`
 . define-style    [unique-alias]
 . save-style
 . style           [alias-recall]
-    alias-recall  a callback to the unique alias created in `define-style`
+    alias-recall  recall the alias created in `define-style`
 . y               [float_h]
     float_h       a percentage of y screen real estate, .5 = 50%
 . bg              [float_r] [float_g] [float_b] [? float_alpha]
@@ -39,8 +42,15 @@ inotify will poll the files that you're editing and reload the libslider.so/show
     float_r       text; red percentage
 . line-height     [float]
 
+# stretchy buffers
+stretchy_buffer.h: a tidy little C implementation
+of stretchy buffers / dynamic arrays / aka C++
+vectors - declare an empty buffer with something
+like 'mytype *myarray = NULL', and then use the
+sb_*() functions to manipulate; read/write
+individual elements by indexing as usual
 
-# debug
+# debug inotify events
 inspect the show markdown file's events on your
 operating system and IDE environment by executing
 the inotify executable built with cmake in this
@@ -65,7 +75,8 @@ the right events.
 there's a bunch of macros in show.h to help with logging
 https://www.cplusplus.com/reference/cstdio/printf/
 
-    info(), etc.
+    error(), info(), debug() : contain a line ending
+    err(),   id(),   dbg()   : do not contain a line ending
 
 Specifier    Output                                                                         Example
 d or i       Signed decimal integer                                                         392

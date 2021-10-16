@@ -239,7 +239,7 @@ slide_show *init_slides(SDL_Renderer *renderer, int idx,
 
           token = strtok_r(0, " ", &space_tokenizer);
           info(YELLOW
-                   "todo using image '%s'"
+                   "using image '%s'"
                    RESET, token);
           image_hash *found;
           HASH_FIND_STR(the_show->images, token, found);
@@ -363,7 +363,7 @@ slide_show *init_slides(SDL_Renderer *renderer, int idx,
           /* . y [float] */
 
           token = strtok_r(0, " ", &space_tokenizer);
-          new_y = !token ? 0 : strtof(token, 0);
+          new_y = !token ? 0 : strtof(token, 0); // todo overflow, underflow, non-parsed
           reassign_y = true;
 
         } else if (strcmp("bg", token) == 0) {

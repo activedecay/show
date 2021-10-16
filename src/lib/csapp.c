@@ -11,6 +11,11 @@ void unix_error(char *msg) /* Unix-style error */
   fprintf(stderr, "%s: %s\n", msg, strerror(errno));
   exit(0);
 }
+void unix_error_context(char *msg, char *context) /* Unix-style error */
+{
+  fprintf(stderr, "%s (%s): %s\n", msg, context, strerror(errno));
+  exit(0);
+}
 
 /* $end unixerror */
 
@@ -45,7 +50,6 @@ void dns_error(char *msg) /* Obsolete gethostbyname error */
  * Wrappers for Unix process control functions
  ********************************************/
 
-/* $begin forkwrapper */
 pid_t Fork(void) {
   pid_t pid;
 
@@ -54,14 +58,11 @@ pid_t Fork(void) {
   return pid;
 }
 
-/* $end forkwrapper */
-
 void Execve(const char *filename, char *const argv[], char *const envp[]) {
   if (execve(filename, argv, envp) < 0)
     unix_error("Execve error");
 }
 
-/* $begin wait */
 pid_t Wait(int *status) {
   pid_t pid;
 
@@ -69,8 +70,6 @@ pid_t Wait(int *status) {
     unix_error("Wait error");
   return pid;
 }
-
-/* $end wait */
 
 pid_t Waitpid(pid_t pid, int *iptr, int options) {
   pid_t retpid;
@@ -80,7 +79,6 @@ pid_t Waitpid(pid_t pid, int *iptr, int options) {
   return (retpid);
 }
 
-/* $begin kill */
 void Kill(pid_t pid, int signum) {
   int rc;
 
@@ -88,11 +86,8 @@ void Kill(pid_t pid, int signum) {
     unix_error("Kill error");
 }
 
-/* $end kill */
-
 void Pause() {
-  (void) pause();
-  return;
+  (void) pause(); // returns -1, and errno is set to EINTR
 }
 
 unsigned int Sleep(unsigned int secs) {
@@ -125,7 +120,6 @@ void Setpgid(pid_t pid, pid_t pgid) {
 
   if ((rc = setpgid(pid, pgid)) < 0)
     unix_error("Setpgid error");
-  return;
 }
 
 pid_t Getpgrp(void) {
@@ -154,31 +148,26 @@ handler_t *Signal(int signum, handler_t *handler) {
 void Sigprocmask(int how, const sigset_t *set, sigset_t *oldset) {
   if (sigprocmask(how, set, oldset) < 0)
     unix_error("Sigprocmask error");
-  return;
 }
 
 void Sigemptyset(sigset_t *set) {
   if (sigemptyset(set) < 0)
     unix_error("Sigemptyset error");
-  return;
 }
 
 void Sigfillset(sigset_t *set) {
   if (sigfillset(set) < 0)
     unix_error("Sigfillset error");
-  return;
 }
 
 void Sigaddset(sigset_t *set, int signum) {
   if (sigaddset(set, signum) < 0)
     unix_error("Sigaddset error");
-  return;
 }
 
 void Sigdelset(sigset_t *set, int signum) {
   if (sigdelset(set, signum) < 0)
     unix_error("Sigdelset error");
-  return;
 }
 
 int Sigismember(const sigset_t *set, int signum) {
@@ -455,11 +444,11 @@ char *Fgets(char *ptr, int n, FILE *stream) {
   return rptr;
 }
 
-FILE *Fopen(const char *filename, const char *mode) {
+FILE *Fopen(const char *filename, const char *modes) {
   FILE *fp;
 
-  if ((fp = fopen(filename, mode)) == NULL)
-    unix_error("Fopen error");
+  if ((fp = fopen(filename, modes)) == NULL)
+    unix_error_context("Fopen error", filename);
 
   return fp;
 }

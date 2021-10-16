@@ -24,7 +24,10 @@ target_link_libraries(show SDL2 SDL2_ttf pthread m dl)
 
 #[[ cmake is retarded. why the fuck did you reserve the "test" keyword?
  jesus christ. and the developers want me to rename my output. so dumb. ]]
-add_executable(test_ test/test.c)
-target_link_libraries(test_ SDL2 m)
+add_executable(image-scratch scratch/image-scratch.c)
+target_link_libraries(image-scratch SDL2 m)
 
 add_executable(inotify scratch/inotify-man-page-example.c)
+add_executable(str-to-double scratch/str-to-double.c
+        src/lib/csapp.c)
+target_link_libraries(str-to-double pthread)

@@ -1,9 +1,10 @@
 //
 // Created by justin on Sat Jan 26 08:30:09 MST 2019
+// code review Sat Oct 16 09:33:24 MDT 2021
 //
 
 #pragma clang diagnostic push
-/* fuck you const! fuck you! */
+/* consider discarding const qualifiers */
 #pragma clang diagnostic ignored \
   "-Wincompatible-pointer-types-discards-qualifiers"
 #pragma ide diagnostic ignored "cert-msc30-c" // rand is weak
@@ -27,18 +28,16 @@
 
 #include "show.h"
 
-void lol(void) {
-  error("lol you ran out of memory!");
+void stretchy_oom(void) {
+  error("stretchy buffers ran out of memory!");
 }
-
-#define STRETCHY_BUFFER_OUT_OF_MEMORY lol;
+#define STRETCHY_BUFFER_OUT_OF_MEMORY stretchy_oom;
 
 #include "lib/stretchy.h"
 #include "lib/ino.h"
 #include "lib/csapp.h"
 
-bool do_keydown(SDL_Event *, slide_show *,
-                uint32_t *);
+bool on_keydown(SDL_Event *event, slide_show *show, uint32_t *frame_delay);
 
 font *add_font(font **, char *, char *);
 
@@ -57,9 +56,9 @@ void *watch_library(void *);
 void *watch_slideshow_file(void *);
 
 typedef struct {
-    char *library_file;
-    char *show_file;
-    sem_t game_sem;
+    char *library_file; /* string path to the library */
+    char *show_file; /* string path to the show.markdown file */
+    sem_t game_sem; /* the library mutex to protect the game_lib reassignments */
     sem_t show_sem;
     game_lib game_library;
     font *fonts;  /* = 0; important */
@@ -78,9 +77,7 @@ main(int argc, char *argv[]) {
   game_state global_state = {
       "lib/libslider.so",
       argc < 2 ? 0 : argv[1],
-      // mutual exclusion specifically for game lib thread and main
       {0},
-      // mutual exclusion specifically for slide file thread and main
       {0},
       0,
       0,
@@ -92,7 +89,7 @@ main(int argc, char *argv[]) {
 
   SDL_Window *window = 0;
   SDL_Renderer *renderer = 0;
-  TTF_Font *font = 0;
+  TTF_Font *mouse_font = 0;
   SDL_Texture *mouse_follow_word = 0;
   SDL_Event event;
   int w = 960;
@@ -118,13 +115,13 @@ main(int argc, char *argv[]) {
   Pthread_create(&tidp, 0, watch_library, &global_state);
 
 
-  if (!(font = TTF_OpenFont("./res/FreeSans.ttf", 72)))
-    return die("can't load the font");
+  if (!(mouse_font = TTF_OpenFont("./res/FreeSans.ttf", 72)))
+    return die("can't load the mouse mouse_font");
   SDL_Rect mouse_follow_rect = {10, 10};
   mouse_follow_word = global_state.game_library.texturize_text_func(
-      renderer, font, "*", (SDL_Color) {255, 255, 255, 255},
+      renderer, mouse_font, ":*", (SDL_Color) {255, 255, 255, 255},
       &mouse_follow_rect, SDL_BLENDMODE_BLEND);
-  TTF_CloseFont(font);
+  TTF_CloseFont(mouse_font);
 
   /* note @Evict from main */
   add_font(&global_state.fonts, "sansnormal", "./res/FreeSans.ttf");
@@ -159,7 +156,7 @@ main(int argc, char *argv[]) {
           break;
         }
         case SDL_KEYDOWN: {
-          quit = do_keydown(&event, global_state.show, &frame_delay);
+          quit = on_keydown(&event, global_state.show, &frame_delay);
           break;
         }
         case SDL_MOUSEWHEEL: {
@@ -173,10 +170,6 @@ main(int argc, char *argv[]) {
           : min(global_state.show->index, count(global_state.show->slides) - 1);
       V(&global_state.show_sem);
     }
-
-//    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
-//    SDL_RenderClear(renderer);
-//    SDL_RenderCopy(renderer, babe, 0, 0);
 
     P(&global_state.show_sem);
     if (global_state.show->slides)
@@ -218,7 +211,7 @@ font *add_font(font **fonts, char *name, char *filepath) {
   HASH_ADD_STR(*fonts, id, found);
 }
 
-bool do_keydown(SDL_Event *event, slide_show *show,
+bool on_keydown(SDL_Event *event, slide_show *show,
                 uint32_t *frame_delay) {
   bool quit = false;
 
@@ -270,7 +263,7 @@ void do_window(SDL_Event *event, uint32_t *frame_delay,
       (*frame_delay) = 0;
       break;
     }
-    case SDL_WINDOWEVENT_SIZE_CHANGED: {
+    case SDL_WINDOWEVENT_SIZE_CHANGED: { // aka resize resizable
       *w = event->window.data1;
       *h = event->window.data2;
       break;
@@ -341,7 +334,7 @@ void read_slideshow_file(void *ll) {
   static size_t read_len = 1024 * 4;
 
   if (state->show_file) {
-    FILE *f = fopen(state->show_file, "r");
+    FILE *f = Fopen(state->show_file, "r");
     char *content = 0;
     size_t total = 0;
     char *next;
@@ -374,6 +367,8 @@ void read_slideshow_file(void *ll) {
     }
     stretch_free(content);
     V(&state->show_sem);
+  } else {
+    error("how did we get here?");
   }
 }
 
