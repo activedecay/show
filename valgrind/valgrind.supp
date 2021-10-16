@@ -1,0 +1,61 @@
+##----------------------------------------------------------------------##
+# Errors to suppress
+# Format of this file is:
+# {
+#     name_of_suppression
+#     tool_name:supp_kind
+#     (optional extra info for some suppression types)
+#     caller0 name, or /name/of/so/file.so
+#     caller1 name, or ditto
+#     (optionally: caller2 name)
+#     (optionally: caller3 name)
+#  }
+#
+# For Memcheck, the `supp_kind`s are:
+#
+#     Param Value1 Value2 Value4 Value8 Value16 Jump
+#     Free Addr1 Addr2 Addr4 Addr8 Addr16
+#     Cond (previously known as Value0)
+#
+# and the `optional extra` info is:
+#     if Param: name of system call param
+
+##----------------------------------------------------------------------##
+
+# {
+#    <insert_a_suppression_name_here>
+#    Memcheck:Leak
+#    match-leak-kinds: definite
+#    fun:calloc
+#    obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+#    obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+#    obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+#    obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+#    obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82
+#    fun:call_init
+#    fun:_dl_init
+#    fun:dl_open_worker
+#    fun:_dl_catch_exception
+#    fun:_dl_open
+#    fun:dlopen_doit
+#    fun:_dl_catch_exception
+# }
+#
+# {
+#    <insert_a_suppression_name_here>
+#    Memcheck:Leak
+#    match-leak-kinds: definite
+#    fun:realloc
+#    obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+#    obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+#    obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+#    obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+#    obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+#    obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82
+#    fun:call_init
+#    fun:_dl_init
+#    fun:dl_open_worker
+#    fun:_dl_catch_exception
+#    fun:_dl_open
+#    fun:dlopen_doit
+# }

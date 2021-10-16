@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="valgrindoutput" type="valgrindoutputType"/>
+  <xs:complexType name="preambleType">
+    <xs:sequence>
+      <xs:element name="line" maxOccurs="unbounded" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Memcheck, a memory error detector"/>
+            <xs:enumeration value="Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al."/>
+            <xs:enumeration value="Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info"/>
+            <xs:enumeration value="Command: /home/jfaust/hack/show/cmake-build-debug/window"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="vargvType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="exe"/>
+      <xs:element name="arg" maxOccurs="unbounded" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="--tool=memcheck"/>
+            <xs:enumeration value="--xml=yes"/>
+            <xs:enumeration value="--xml-file=/tmp/tmp.PkIG9t2L7D"/>
+            <xs:enumeration value="--gen-suppressions=all"/>
+            <xs:enumeration value="--leak-check=full"/>
+            <xs:enumeration value="--leak-resolution=med"/>
+            <xs:enumeration value="--track-origins=yes"/>
+            <xs:enumeration value="--vgdb=no"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="argvType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="exe"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="argsType">
+    <xs:sequence>
+      <xs:element type="vargvType" name="vargv"/>
+      <xs:element type="argvType" name="argv"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="statusType">
+    <xs:sequence>
+      <xs:element name="state">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="RUNNING"/>
+            <xs:enumeration value="FINISHED"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="time">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="00:00:00:00.082 "/>
+            <xs:enumeration value="00:00:00:05.921 "/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="xwhatType">
+    <xs:sequence>
+      <xs:element name="text">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="128 bytes in 1 blocks are definitely lost in loss record 400 of 553"/>
+            <xs:enumeration value="192 (16 direct, 176 indirect) bytes in 1 blocks are definitely lost in loss record 423 of 553"/>
+            <xs:enumeration value="589 (128 direct, 461 indirect) bytes in 1 blocks are definitely lost in loss record 475 of 553"/>
+            <xs:enumeration value="19,815 (6,024 direct, 13,791 indirect) bytes in 1 blocks are definitely lost in loss record 543 of 553"/>
+            <xs:enumeration value="72,355 (512 direct, 71,843 indirect) bytes in 1 blocks are definitely lost in loss record 550 of 553"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="leakedbytes">
+        <xs:simpleType>
+          <xs:restriction base="xs:int">
+            <xs:enumeration value="128"/>
+            <xs:enumeration value="192"/>
+            <xs:enumeration value="589"/>
+            <xs:enumeration value="19815"/>
+            <xs:enumeration value="72355"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element type="xs:byte" name="leakedblocks"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="frameType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="ip"/>
+      <xs:element name="obj">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so"/>
+            <xs:enumeration value="/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82"/>
+            <xs:enumeration value="/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82"/>
+            <xs:enumeration value="/lib/x86_64-linux-gnu/ld-2.27.so"/>
+            <xs:enumeration value="/lib/x86_64-linux-gnu/libc-2.27.so"/>
+            <xs:enumeration value="/lib/x86_64-linux-gnu/libdl-2.27.so"/>
+            <xs:enumeration value="/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0"/>
+            <xs:enumeration value="/usr/local/lib/libSDL2-2.0.so.0.9.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element type="xs:string" name="fn" minOccurs="0"/>
+      <xs:element name="dir" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="/build/glibc-2ORdQG/glibc-2.27/elf"/>
+            <xs:enumeration value="/build/glibc-2ORdQG/glibc-2.27/dlfcn"/>
+            <xs:enumeration value="/home/jfaust/hack/sdl/SDL-2.0.9-12581/src/video/x11"/>
+            <xs:enumeration value="/home/jfaust/hack/sdl/SDL-2.0.9-12581/src/video"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="file" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="dl-init.c"/>
+            <xs:enumeration value="dl-open.c"/>
+            <xs:enumeration value="dl-error-skeleton.c"/>
+            <xs:enumeration value="dlopen.c"/>
+            <xs:enumeration value="SDL_x11keyboard.c"/>
+            <xs:enumeration value="SDL_x11video.c"/>
+            <xs:enumeration value="SDL_video.c"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="line" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:short">
+            <xs:enumeration value="58"/>
+            <xs:enumeration value="119"/>
+            <xs:enumeration value="522"/>
+            <xs:enumeration value="196"/>
+            <xs:enumeration value="605"/>
+            <xs:enumeration value="66"/>
+            <xs:enumeration value="293"/>
+            <xs:enumeration value="447"/>
+            <xs:enumeration value="529"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="stackType">
+    <xs:sequence>
+      <xs:element type="frameType" name="frame" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="sframeType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="fun" minOccurs="0"/>
+      <xs:element name="obj" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82"/>
+            <xs:enumeration value="/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82"/>
+            <xs:enumeration value="/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="suppressionType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="sname" minOccurs="0"/>
+      <xs:element type="xs:string" name="skind" minOccurs="0"/>
+      <xs:element type="xs:string" name="skaux" minOccurs="0"/>
+      <xs:element type="sframeType" name="sframe" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element name="rawtext" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="
+
+{
+   &lt;insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82
+   fun:call_init
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_exception
+}
+
+    "/>
+            <xs:enumeration value="
+
+{
+   &lt;insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+   fun:_XlcCurrentLC
+   fun:XSetLocaleModifiers
+   fun:X11_InitKeyboard
+   fun:X11_VideoInit
+   fun:SDL_VideoInit_REAL
+}
+
+    "/>
+            <xs:enumeration value="
+
+{
+   &lt;insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82
+   fun:call_init
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:dlopen_doit
+}
+
+    "/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="unique" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="0x196"/>
+            <xs:enumeration value="0x1ad"/>
+            <xs:enumeration value="0x1e1"/>
+            <xs:enumeration value="0x225"/>
+            <xs:enumeration value="0x22c"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element type="xs:byte" name="tid" minOccurs="0"/>
+      <xs:element type="xs:string" name="kind" minOccurs="0"/>
+      <xs:element type="xwhatType" name="xwhat" minOccurs="0"/>
+      <xs:element type="stackType" name="stack" minOccurs="0"/>
+      <xs:element type="suppressionType" name="suppression" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="errorType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="sname" minOccurs="0"/>
+      <xs:element type="xs:string" name="skind" minOccurs="0"/>
+      <xs:element type="xs:string" name="skaux" minOccurs="0"/>
+      <xs:element type="sframeType" name="sframe" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element name="rawtext" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="
+
+{
+   &lt;insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82
+   fun:call_init
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_exception
+}
+
+    "/>
+            <xs:enumeration value="
+
+{
+   &lt;insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+   fun:_XlcCurrentLC
+   fun:XSetLocaleModifiers
+   fun:X11_InitKeyboard
+   fun:X11_VideoInit
+   fun:SDL_VideoInit_REAL
+}
+
+    "/>
+            <xs:enumeration value="
+
+{
+   &lt;insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82
+   fun:call_init
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:dlopen_doit
+}
+
+    "/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="unique" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="0x196"/>
+            <xs:enumeration value="0x1ad"/>
+            <xs:enumeration value="0x1e1"/>
+            <xs:enumeration value="0x225"/>
+            <xs:enumeration value="0x22c"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element type="xs:byte" name="tid" minOccurs="0"/>
+      <xs:element type="xs:string" name="kind" minOccurs="0"/>
+      <xs:element type="xwhatType" name="xwhat" minOccurs="0"/>
+      <xs:element type="stackType" name="stack" minOccurs="0"/>
+      <xs:element type="suppressionType" name="suppression" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="pairType">
+    <xs:sequence>
+      <xs:element type="xs:byte" name="count"/>
+      <xs:element type="xs:string" name="name"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="suppcountsType">
+    <xs:sequence>
+      <xs:element type="pairType" name="pair"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="valgrindoutputType">
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="xs:byte" name="protocolversion"/>
+      <xs:element type="xs:string" name="protocoltool"/>
+      <xs:element type="preambleType" name="preamble"/>
+      <xs:element type="xs:short" name="pid"/>
+      <xs:element type="xs:short" name="ppid"/>
+      <xs:element type="xs:string" name="tool"/>
+      <xs:element type="argsType" name="args"/>
+      <xs:element type="statusType" name="status" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="errorType" name="error"/>
+      <xs:element type="suppressionType" name="suppression"/>
+      <xs:element type="xs:string" name="errorcounts"/>
+      <xs:element type="suppcountsType" name="suppcounts"/>
+    </xs:choice>
+  </xs:complexType>
+</xs:schema>

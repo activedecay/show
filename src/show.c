@@ -95,7 +95,7 @@ int free_show(slide_show *show, style_item **saved_styles) {
     free(slide);
   }
   free_styles(saved_styles);
-  free_images(show->images);
+  //free_images(show->images);
   for (int j = 0; j < count(show->positions); ++j)
     free(show->positions[j]);
 

@@ -1,0 +1,1567 @@
+PTHREAD_CREATE(3)          Linux Programmer's Manual         PTHREAD_CREATE(3)
+
+NAME
+       pthread_create - create a new thread
+
+SYNOPSIS
+       #include <pthread.h>
+
+       int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+                          void *(*start_routine) (void *), void *arg);
+
+       Compile and link with -pthread.
+
+DESCRIPTION
+       The  pthread_create()  function  starts  a  new  thread  in the calling
+       process.  The new thread starts execution by invoking  start_routine();
+       arg is passed as the sole argument of start_routine().
+
+       The new thread terminates in one of the following ways:
+
+       * It  calls  pthread_exit(3),  specifying  an exit status value that is
+         available  to  another  thread  in  the  same  process   that   calls
+         pthread_join(3).
+
+       * It  returns  from  start_routine().   This  is  equivalent to calling
+         pthread_exit(3) with the value supplied in the return statement.
+
+       * It is canceled (see pthread_cancel(3)).
+
+       * Any of the threads in the process calls exit(3), or the  main  thread
+         performs  a  return  from main().  This causes the termination of all
+         threads in the process.
+
+       The attr argument points to a pthread_attr_t structure  whose  contents
+       are  used  at  thread creation time to determine attributes for the new
+       thread; this structure is initialized  using  pthread_attr_init(3)  and
+       related  functions.   If  attr is NULL, then the thread is created with
+       default attributes.
+
+       Before returning, a successful call to pthread_create() stores  the  ID
+       of  the  new thread in the buffer pointed to by thread; this identifier
+       is used to refer to the thread in subsequent calls  to  other  pthreads
+       functions.
+
+       The  new  thread  inherits  a copy of the creating thread's signal mask
+       (pthread_sigmask(3)).  The set of pending signals for the new thread is
+       empty  (sigpending(2)).   The  new thread does not inherit the creating
+       thread's alternate signal stack (sigaltstack(2)).
+
+       The new thread inherits the calling thread's floating-point environment
+       (fenv(3)).
+
+       The  initial  value  of  the  new  thread's  CPU-time  clock  is 0 (see
+       pthread_getcpuclockid(3)).
+
+   Linux-specific details
+       The new thread inherits copies of the calling thread's capability  sets
+       (see capabilities(7)) and CPU affinity mask (see sched_setaffinity(2)).
+
+RETURN VALUE
+       On  success,  pthread_create() returns 0; on error, it returns an error
+       number, and the contents of *thread are undefined.
+
+ERRORS
+       EAGAIN Insufficient resources to create another thread.
+
+       EAGAIN A system-imposed limit on the number of threads was encountered.
+              There  are  a  number of limits that may trigger this error: the
+              RLIMIT_NPROC soft resource limit (set via  setrlimit(2)),  which
+              limits  the  number of processes and threads for a real user ID,
+              was reached; the kernel's system-wide limit  on  the  number  of
+              processes and threads, /proc/sys/kernel/threads-max, was reached
+              (see proc(5)); or the maximum  number  of  PIDs,  /proc/sys/ker‐
+              nel/pid_max, was reached (see proc(5)).
+
+       EINVAL Invalid settings in attr.
+
+       EPERM  No permission to set the scheduling policy and parameters speci‐
+              fied in attr.
+
+ATTRIBUTES
+       For  an  explanation  of  the  terms  used   in   this   section,   see
+       attributes(7).
+
+       ┌─────────────────┬───────────────┬─────────┐
+       │Interface        │ Attribute     │ Value   │
+       ├─────────────────┼───────────────┼─────────┤
+       │pthread_create() │ Thread safety │ MT-Safe │
+       └─────────────────┴───────────────┴─────────┘
+
+CONFORMING TO
+       POSIX.1-2001, POSIX.1-2008.
+
+NOTES
+       See  pthread_self(3)  for further information on the thread ID returned
+       in *thread by pthread_create().  Unless real-time  scheduling  policies
+       are  being employed, after a call to pthread_create(), it is indetermi‐
+       nate which thread—the caller or the new thread—will next execute.
+
+       A thread may either be joinable or detached.  If a thread is  joinable,
+       then  another thread can call pthread_join(3) to wait for the thread to
+       terminate and fetch its exit status.  Only when a  terminated  joinable
+       thread  has  been joined are the last of its resources released back to
+       the system.  When a detached thread terminates, its resources are auto‐
+       matically  released back to the system: it is not possible to join with
+       the thread in order  to  obtain  its  exit  status.   Making  a  thread
+       detached  is  useful for some types of daemon threads whose exit status
+       the application does not need to care about.  By default, a new  thread
+       is  created  in  a  joinable  state,  unless attr was set to create the
+       thread in a detached state (using pthread_attr_setdetachstate(3)).
+
+       On Linux/x86-32,  the  default  stack  size  for  a  new  thread  is  2
+       megabytes.    Under   the   NPTL   threading   implementation,  if  the
+       RLIMIT_STACK soft resource limit at the time the  program  started  has
+       any  value other than "unlimited", then it determines the default stack
+       size of new threads.   Using  pthread_attr_setstacksize(3),  the  stack
+       size  attribute can be explicitly set in the attr argument used to cre‐
+       ate a thread, in order to obtain a stack size other than the default.
+
+BUGS
+       In the obsolete LinuxThreads implementation, each of the threads  in  a
+       process  has a different process ID.  This is in violation of the POSIX
+       threads specification, and is the source of many other  nonconformances
+       to the standard; see pthreads(7).
+
+EXAMPLE
+       The  program below demonstrates the use of pthread_create(), as well as
+       a number of other functions in the pthreads API.
+
+       In the following run, on a system providing the NPTL  threading  imple‐
+       mentation,  the  stack  size  defaults to the value given by the "stack
+       size" resource limit:
+
+           $ ulimit -s
+           8192            # The stack size limit is 8 MB (0x800000 bytes)
+           $ ./a.out hola salut servus
+           Thread 1: top of stack near 0xb7dd03b8; argv_string=hola
+           Thread 2: top of stack near 0xb75cf3b8; argv_string=salut
+           Thread 3: top of stack near 0xb6dce3b8; argv_string=servus
+           Joined with thread 1; returned value was HOLA
+           Joined with thread 2; returned value was SALUT
+           Joined with thread 3; returned value was SERVUS
+
+       In the next run, the program explicitly  sets  a  stack  size  of  1 MB
+       (using pthread_attr_setstacksize(3)) for the created threads:
+
+           $ ./a.out -s 0x100000 hola salut servus
+           Thread 1: top of stack near 0xb7d723b8; argv_string=hola
+           Thread 2: top of stack near 0xb7c713b8; argv_string=salut
+           Thread 3: top of stack near 0xb7b703b8; argv_string=servus
+           Joined with thread 1; returned value was HOLA
+           Joined with thread 2; returned value was SALUT
+           Joined with thread 3; returned value was SERVUS
+
+   Program source
+
+       #include <pthread.h>
+       #include <string.h>
+       #include <stdio.h>
+       #include <stdlib.h>
+       #include <unistd.h>
+       #include <errno.h>
+       #include <ctype.h>
+
+       #define handle_error_en(en, msg) \
+               do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+
+       #define handle_error(msg) \
+               do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+       struct thread_info {    /* Used as argument to thread_start() */
+           pthread_t thread_id;        /* ID returned by pthread_create() */
+           int       thread_num;       /* Application-defined thread # */
+           char     *argv_string;      /* From command-line argument */
+       };
+
+       /* Thread start function: display address near top of our stack,
+          and return upper-cased copy of argv_string */
+
+       static void *
+       thread_start(void *arg)
+       {
+           struct thread_info *tinfo = arg;
+           char *uargv, *p;
+
+           printf("Thread %d: top of stack near %p; argv_string=%s\n",
+                   tinfo->thread_num, &p, tinfo->argv_string);
+
+           uargv = strdup(tinfo->argv_string);
+           if (uargv == NULL)
+               handle_error("strdup");
+
+           for (p = uargv; *p != '\0'; p++)
+               *p = toupper(*p);
+
+           return uargv;
+       }
+
+       int
+       main(int argc, char *argv[])
+       {
+           int s, tnum, opt, num_threads;
+           struct thread_info *tinfo;
+           pthread_attr_t attr;
+           int stack_size;
+           void *res;
+
+           /* The "-s" option specifies a stack size for our threads */
+
+           stack_size = -1;
+           while ((opt = getopt(argc, argv, "s:")) != -1) {
+               switch (opt) {
+               case 's':
+                   stack_size = strtoul(optarg, NULL, 0);
+                   break;
+
+               default:
+                   fprintf(stderr, "Usage: %s [-s stack-size] arg...\n",
+                           argv[0]);
+                   exit(EXIT_FAILURE);
+               }
+           }
+
+           num_threads = argc - optind;
+
+           /* Initialize thread creation attributes */
+
+           s = pthread_attr_init(&attr);
+           if (s != 0)
+               handle_error_en(s, "pthread_attr_init");
+
+           if (stack_size > 0) {
+               s = pthread_attr_setstacksize(&attr, stack_size);
+               if (s != 0)
+                   handle_error_en(s, "pthread_attr_setstacksize");
+           }
+
+           /* Allocate memory for pthread_create() arguments */
+
+           tinfo = calloc(num_threads, sizeof(struct thread_info));
+           if (tinfo == NULL)
+               handle_error("calloc");
+
+           /* Create one thread for each command-line argument */
+
+           for (tnum = 0; tnum < num_threads; tnum++) {
+               tinfo[tnum].thread_num = tnum + 1;
+               tinfo[tnum].argv_string = argv[optind + tnum];
+
+               /* The pthread_create() call stores the thread ID into
+                  corresponding element of tinfo[] */
+
+               s = pthread_create(&tinfo[tnum].thread_id, &attr,
+                                  &thread_start, &tinfo[tnum]);
+               if (s != 0)
+                   handle_error_en(s, "pthread_create");
+           }
+
+           /* Destroy the thread attributes object, since it is no
+              longer needed */
+
+           s = pthread_attr_destroy(&attr);
+           if (s != 0)
+               handle_error_en(s, "pthread_attr_destroy");
+
+           /* Now join with each thread, and display its returned value */
+
+           for (tnum = 0; tnum < num_threads; tnum++) {
+               s = pthread_join(tinfo[tnum].thread_id, &res);
+               if (s != 0)
+                   handle_error_en(s, "pthread_join");
+
+               printf("Joined with thread %d; returned value was %s\n",
+                       tinfo[tnum].thread_num, (char *) res);
+               free(res);      /* Free memory allocated by thread */
+           }
+
+           free(tinfo);
+           exit(EXIT_SUCCESS);
+       }
+
+SEE ALSO
+       getrlimit(2), pthread_attr_init(3), pthread_cancel(3),
+       pthread_detach(3), pthread_equal(3), pthread_exit(3),
+       pthread_getattr_np(3), pthread_join(3), pthread_self(3),
+       pthread_setattr_default_np(3), pthreads(7)
+
+COLOPHON
+       This page is part of release 4.15 of the Linux man-pages project.  A
+       description of the project, information about reporting bugs, and the
+       latest version of this page, can be found at
+       https://www.kernel.org/doc/man-pages/.
+
+Linux                             2017-09-15                 PTHREAD_CREATE(3)
+
+
+PTHREAD_SETNAME_NP(3)      Linux Programmer's Manual     PTHREAD_SETNAME_NP(3)
+
+NAME
+       pthread_setname_np, pthread_getname_np - set/get the name of a thread
+
+SYNOPSIS
+       #define _GNU_SOURCE             /* See feature_test_macros(7) */
+       #include <pthread.h>
+       int pthread_setname_np(pthread_t thread, const char *name);
+       int pthread_getname_np(pthread_t thread,
+                              char *name, size_t len);
+
+       Compile and link with -pthread.
+
+DESCRIPTION
+       By  default, all the threads created using pthread_create() inherit the
+       program name.  The pthread_setname_np() function can be used to  set  a
+       unique  name  for  a  thread,  which can be useful for debugging multi‐
+       threaded applications.  The thread name  is  a  meaningful  C  language
+       string, whose length is restricted to 16 characters, including the ter‐
+       minating null byte ('\0').  The thread argument  specifies  the  thread
+       whose name is to be changed; name specifies the new name.
+
+       The  pthread_getname_np()  function can be used to retrieve the name of
+       the thread.  The thread argument specifies the thread whose name is  to
+       be  retrieved.   The buffer name is used to return the thread name; len
+       specifies the number of bytes available in name.  The buffer  specified
+       by  name  should  be  at  least  16 characters in length.  The returned
+       thread name in the output buffer will be null terminated.
+
+RETURN VALUE
+       On success, these functions return 0; on error, they return  a  nonzero
+       error number.
+
+ERRORS
+       The pthread_setname_np() function can fail with the following error:
+
+       ERANGE The  length  of  the string specified pointed to by name exceeds
+              the allowed limit.
+
+       The pthread_getname_np() function can fail with the following error:
+
+       ERANGE The buffer specified by name and len is too small  to  hold  the
+              thread name.
+
+       If  either of these functions fails to open /proc/self/task/[tid]/comm,
+       then the call may fail with one of the errors described in open(2).
+
+VERSIONS
+       These functions first appeared in glibc in version 2.12.
+
+ATTRIBUTES
+       For  an  explanation  of  the  terms  used   in   this   section,   see
+       attributes(7).
+
+       ┌──────────────────────┬───────────────┬─────────┐
+       │Interface             │ Attribute     │ Value   │
+       ├──────────────────────┼───────────────┼─────────┤
+       │pthread_setname_np(), │ Thread safety │ MT-Safe │
+       │pthread_getname_np()  │               │         │
+       └──────────────────────┴───────────────┴─────────┘
+
+CONFORMING TO
+       These functions are nonstandard GNU extensions.
+
+NOTES
+       pthread_setname_np() internally writes to the thread-specific comm file
+       under  the  /proc filesystem: /proc/self/task/[tid]/comm.  pthread_get‐
+       name_np() retrieves it from the same location.
+
+EXAMPLE
+       The program below demonstrates  the  use  of  pthread_setname_np()  and
+       pthread_getname_np().
+
+       The following shell session shows a sample run of the program:
+
+           $ ./a.out
+           Created a thread. Default name is: a.out
+           The thread name after setting it is THREADFOO.
+           ^Z                           # Suspend the program
+           [1]+  Stopped           ./a.out
+           $ ps H -C a.out -o 'pid tid cmd comm'
+             PID   TID CMD                         COMMAND
+            5990  5990 ./a.out                     a.out
+            5990  5991 ./a.out                     THREADFOO
+           $ cat /proc/5990/task/5990/comm
+           a.out
+           $ cat /proc/5990/task/5991/comm
+           THREADFOO
+
+   Program source
+
+       #define _GNU_SOURCE
+       #include <pthread.h>
+       #include <stdio.h>
+       #include <string.h>
+       #include <unistd.h>
+       #include <errno.h>
+       #include <stdlib.h>
+
+       #define NAMELEN 16
+
+       #define errExitEN(en, msg) \
+                   do { errno = en; perror(msg); exit(EXIT_FAILURE); \
+               } while (0)
+
+       static void *
+       threadfunc(void *parm)
+       {
+           sleep(5);          // allow main program to set the thread name
+           return NULL;
+       }
+
+       int
+       main(int argc, char **argv)
+       {
+           pthread_t thread;
+           int rc;
+           char thread_name[NAMELEN];
+
+           rc = pthread_create(&thread, NULL, threadfunc, NULL);
+           if (rc != 0)
+               errExitEN(rc, "pthread_create");
+
+           rc = pthread_getname_np(thread, thread_name, NAMELEN);
+           if (rc != 0)
+               errExitEN(rc, "pthread_getname_np");
+
+           printf("Created a thread. Default name is: %s\n", thread_name);
+           rc = pthread_setname_np(thread, (argc > 1) ? argv[1] : "THREADFOO");
+           if (rc != 0)
+               errExitEN(rc, "pthread_setname_np");
+
+           sleep(2);
+
+           rc = pthread_getname_np(thread, thread_name,
+                                   (argc > 2) ? atoi(argv[1]) : NAMELEN);
+           if (rc != 0)
+               errExitEN(rc, "pthread_getname_np");
+           printf("The thread name after setting it is %s.\n", thread_name);
+
+           rc = pthread_join(thread, NULL);
+           if (rc != 0)
+               errExitEN(rc, "pthread_join");
+
+           printf("Done\n");
+           exit(EXIT_SUCCESS);
+       }
+
+SEE ALSO
+       prctl(2), pthread_create(3), pthreads(7)
+
+COLOPHON
+       This page is part of release 4.15 of the Linux man-pages project.  A
+       description of the project, information about reporting bugs, and the
+       latest version of this page, can be found at
+       https://www.kernel.org/doc/man-pages/.
+
+Linux                             2017-09-15             PTHREAD_SETNAME_NP(3)
+
+
+FEATURE_TEST_MACROS(7)     Linux Programmer's Manual    FEATURE_TEST_MACROS(7)
+
+NAME
+       feature_test_macros - feature test macros
+
+DESCRIPTION
+       Feature  test  macros  allow  the programmer to control the definitions
+       that are exposed by system header files when a program is compiled.
+
+      NOTE: In order to be effective, a feature test macro  must  be  defined
+       before including any header files.  This can be done either in the com‐
+       pilation command (cc -DMACRO=value) or by defining the macro within the
+       source code before including any headers.
+
+       Some feature test macros are useful for creating portable applications,
+       by preventing nonstandard definitions from being exposed.  Other macros
+       can  be  used to expose nonstandard definitions that are not exposed by
+       default.
+
+       The precise effects of each of the feature test macros described  below
+       can  be  ascertained by inspecting the <features.h> header file.  Note:
+       applications do not need  to  directly  include  <features.h>;  indeed,
+       doing so is actively discouraged.  See NOTES.
+
+   Specification of feature test macro requirements in manual pages
+       When a function requires that a feature test macro is defined, the man‐
+       ual page SYNOPSIS typically includes a
+      note of the following form (this example from the acct(2) manual page):
+
+               #include <unistd.h>
+
+               int acct(const char *filename);
+
+           Feature Test Macro Requirements for glibc (see
+           feature_test_macros(7)):
+
+               acct(): _BSD_SOURCE || (_XOPEN_SOURCE && _XOPEN_SOURCE < 500)
+
+       The  ||  means  that in order to obtain the declaration of acct(2) from
+       <unistd.h>, either of the following  macro  definitions  must  be  made
+       before including any header files:
+
+           #define _BSD_SOURCE
+           #define _XOPEN_SOURCE        /* or any value < 500 */
+
+       Alternatively,  equivalent  definitions can be included in the compila‐
+       tion command:
+
+           cc -D_BSD_SOURCE
+           cc -D_XOPEN_SOURCE           # Or any value < 500
+
+      Note that, as described below, some feature test macros are defined  by
+       default,  so  that it may not always be necessary to explicitly specify
+       the feature test macro(s) shown in the SYNOPSIS.
+
+       In a few cases, manual pages use a shorthand for expressing the feature
+       test macro requirements (this example from readahead(2)):
+
+           #define _GNU_SOURCE
+           #include <fcntl.h>
+
+       ssize_t readahead(int fd, off64_t *offset, size_t count);
+
+       This format is employed in cases where only a single feature test macro
+       can be used to expose the function declaration, and that macro  is  not
+       defined by default.
+
+   Feature test macros understood by glibc
+       The  paragraphs  below  explain  how feature test macros are handled in
+       Linux glibc 2.x, x > 0.
+
+       First, though a summary of a few details for the impatient:
+
+       *  The macros that you most likely need to use in  modern  source  code
+          are  _POSIX_C_SOURCE  (for  definitions  from  various  versions  of
+          POSIX.1), _XOPEN_SOURCE (for definitions from  various  versions  of
+          SUS),  _GNU_SOURCE  (for  GNU  and/or  Linux  specific  stuff),  and
+          _DEFAULT_SOURCE (to get definitions that would normally be  provided
+          by default).
+
+       *  Certain  macros are defined with default values.  Thus, although one
+          or more macros may be indicated as being required in the SYNOPSIS of
+          a man page, it may not be necessary to define them explicitly.  Full
+          details of the defaults are given later in this man page.
+
+       *  Defining _XOPEN_SOURCE with a value of 600 or greater  produces  the
+          same  effects as defining _POSIX_C_SOURCE with a value of 200112L or
+          greater.  Where one sees
+
+              _POSIX_C_SOURCE >= 200112L
+
+          in the feature test macro requirements in  the  SYNOPSIS  of  a  man
+          page, it is implicit that the following has the same effect:
+
+              _XOPEN_SOURCE >= 600
+
+       *  Defining  _XOPEN_SOURCE  with a value of 700 or greater produces the
+          same effects as defining _POSIX_C_SOURCE with a value of 200809L  or
+          greater.  Where one sees
+
+              _POSIX_C_SOURCE >= 200809L
+
+          in  the  feature  test  macro  requirements in the SYNOPSIS of a man
+          page, it is implicit that the following has the same effect:
+
+              _XOPEN_SOURCE >= 700
+
+       Linux glibc understands the following feature test macros:
+
+       __STRICT_ANSI__
+               ISO Standard C.  This macro is  implicitly  defined  by  gcc(1)
+               when invoked with, for example, the -std=c99 or -ansi flag.
+
+       _POSIX_C_SOURCE
+               Defining  this  macro causes header files to expose definitions
+               as follows:
+
+               ·  The value 1 exposes definitions conforming  to  POSIX.1-1990
+                  and ISO C (1990).
+
+               ·  The  value 2 or greater additionally exposes definitions for
+                  POSIX.2-1992.
+
+               ·  The value 199309L or greater  additionally  exposes  defini‐
+                  tions for POSIX.1b (real-time extensions).
+
+               ·  The  value  199506L  or greater additionally exposes defini‐
+                  tions for POSIX.1c (threads).
+
+               ·  (Since glibc 2.3.3) The value 200112L or  greater  addition‐
+                  ally  exposes  definitions corresponding to the POSIX.1-2001
+                  base specification  (excluding  the  XSI  extension).   This
+                  value  also  causes  C95  (since  glibc 2.12) and C99 (since
+                  glibc 2.10) features to be  exposed  (in  other  words,  the
+                  equivalent of defining _ISOC99_SOURCE).
+
+               ·  (Since glibc 2.10) The value 200809L or greater additionally
+                  exposes definitions corresponding to the  POSIX.1-2008  base
+                  specification (excluding the XSI extension).
+
+       _POSIX_SOURCE
+               Defining  this  obsolete  macro with any value is equivalent to
+               defining _POSIX_C_SOURCE with the value 1.
+
+               Since this macro is obsolete, its usage is generally not  docu‐
+               mented  when  discussing feature test macro requirements in the
+               man pages.
+
+       _XOPEN_SOURCE
+               Defining this macro causes header files to  expose  definitions
+               as follows:
+
+               ·  Defining  with  any  value exposes definitions conforming to
+                  POSIX.1, POSIX.2, and XPG4.
+
+               ·  The value 500 or greater  additionally  exposes  definitions
+                  for SUSv2 (UNIX 98).
+
+               ·  (Since  glibc  2.2)  The  value  600 or greater additionally
+                  exposes  definitions  for  SUSv3   (UNIX   03;   i.e.,   the
+                  POSIX.1-2001  base specification plus the XSI extension) and
+                  C99 definitions.
+
+               ·  (Since glibc 2.10) The value  700  or  greater  additionally
+                  exposes  definitions  for SUSv4 (i.e., the POSIX.1-2008 base
+                  specification plus the XSI extension).
+
+               If __STRICT_ANSI__ is not defined, or _XOPEN_SOURCE is  defined
+               with  a  value  greater  than  or  equal  to  500  and  neither
+               _POSIX_SOURCE nor _POSIX_C_SOURCE is explicitly  defined,  then
+               the following macros are implicitly defined:
+
+               ·  _POSIX_SOURCE is defined with the value 1.
+
+               ·  _POSIX_C_SOURCE  is  defined,  according  to  the  value  of
+                  _XOPEN_SOURCE:
+
+                  _XOPEN_SOURCE < 500
+                         _POSIX_C_SOURCE is defined with the value 2.
+
+                  500 <= _XOPEN_SOURCE < 600
+                         _POSIX_C_SOURCE is defined with the value 199506L.
+
+                  600 <= _XOPEN_SOURCE < 700
+                         _POSIX_C_SOURCE is defined with the value 200112L.
+
+                  700 <= _XOPEN_SOURCE (since glibc 2.10)
+                         _POSIX_C_SOURCE is defined with the value 200809L.
+
+               In addition, defining _XOPEN_SOURCE with  a  value  of  500  or
+               greater    produces    the    same    effects    as    defining
+               _XOPEN_SOURCE_EXTENDED.
+
+       _XOPEN_SOURCE_EXTENDED
+               If this macro is defined, and _XOPEN_SOURCE  is  defined,  then
+               expose  definitions  corresponding  to  the XPG4v2 (SUSv1) UNIX
+               extensions (UNIX 95).  Defining _XOPEN_SOURCE with a  value  of
+               500   or  more  also  produces  the  same  effect  as  defining
+               _XOPEN_SOURCE_EXTENDED.  Use of _XOPEN_SOURCE_EXTENDED  in  new
+               source code should be avoided.
+
+               Since  defining  _XOPEN_SOURCE  with a value of 500 or more has
+               the same effect as defining _XOPEN_SOURCE_EXTENDED, the  latter
+               (obsolete) feature test macro is generally not described in the
+               SYNOPSIS in man pages.
+
+       _ISOC99_SOURCE (since glibc 2.1.3)
+               Exposes declarations consistent with the ISO C99 standard.
+
+               Earlier glibc 2.1.x versions  recognized  an  equivalent  macro
+               named  _ISOC9X_SOURCE  (because  the  C99 standard had not then
+               been finalized).  Although the use of this macro  is  obsolete,
+               glibc continues to recognize it for backward compatibility.
+
+               Defining  _ISOC99_SOURCE  also exposes ISO C (1990) Amendment 1
+               ("C95") definitions.  (The primary change in  C95  was  support
+               for international character sets.)
+
+               Invoking  the  C compiler with the option -std=c99 produces the
+               same effects as defining this macro.
+
+       _ISOC11_SOURCE (since glibc 2.16)
+               Exposes declarations consistent  with  the  ISO  C11  standard.
+               Defining  this  macro  also  enables C99 and C95 features (like
+               _ISOC99_SOURCE).
+
+               Invoking the C compiler with the option -std=c11  produces  the
+               same effects as defining this macro.
+
+       _LARGEFILE64_SOURCE
+               Expose definitions for the alternative API specified by the LFS
+               (Large File Summit) as a "transitional extension" to the Single
+               UNIX    Specification.    (See   ⟨http://opengroup.org/platform
+               /lfs.html⟩.)  The alternative API consists  of  a  set  of  new
+               objects  (i.e.,  functions  and types) whose names are suffixed
+               with  "64"  (e.g.,  off64_t  versus  off_t,  lseek64()   versus
+               lseek(),  etc.).   New  programs  should not employ this macro;
+               instead _FILE_OFFSET_BITS=64 should be employed.
+
+       _LARGEFILE_SOURCE
+               This macro was historically used to  expose  certain  functions
+               (specifically fseeko(3) and ftello(3)) that address limitations
+               of earlier APIs (fseek(3) and ftell(3)) that use long  int  for
+               file   offsets.    This   macro   is   implicitly   defined  if
+               _XOPEN_SOURCE is defined with a value greater than or equal  to
+               500.   New  programs  should  not  employ  this macro; defining
+               _XOPEN_SOURCE as just described or  defining  _FILE_OFFSET_BITS
+               with  the  value  64  is the preferred mechanism to achieve the
+               same result.
+
+       _FILE_OFFSET_BITS
+               Defining this macro with the value  64  automatically  converts
+               references  to  32-bit functions and data types related to file
+               I/O and filesystem operations into references to  their  64-bit
+               counterparts.  This is useful for performing I/O on large files
+               (> 2 Gigabytes) on 32-bit systems.  (Defining this  macro  per‐
+               mits  correctly written programs to use large files with only a
+               recompilation being required.)
+
+               64-bit systems naturally permit file sizes greater than 2 Giga‐
+               bytes, and on those systems this macro has no effect.
+
+       _BSD_SOURCE (deprecated since glibc 2.20)
+               Defining  this  macro  with  any  value  causes header files to
+               expose BSD-derived definitions.
+
+               In glibc versions up to and including 2.18, defining this macro
+               also  causes BSD definitions to be preferred in some situations
+               where standards conflict, unless one or more  of  _SVID_SOURCE,
+               _POSIX_SOURCE,          _POSIX_C_SOURCE,         _XOPEN_SOURCE,
+               _XOPEN_SOURCE_EXTENDED, or _GNU_SOURCE  is  defined,  in  which
+               case   BSD  definitions  are  disfavored.   Since  glibc  2.19,
+               _BSD_SOURCE no longer causes BSD definitions to be preferred in
+               case of conflicts.
+
+               Since  glibc  2.20,  this  macro is deprecated.  It now has the
+               same effect as defining _DEFAULT_SOURCE, but generates  a  com‐
+               pile-time  warning  (unless  _DEFAULT_SOURCE  is also defined).
+               Use _DEFAULT_SOURCE  instead.   To  allow  code  that  requires
+               _BSD_SOURCE  in  glibc  2.19 and earlier and _DEFAULT_SOURCE in
+               glibc 2.20 and later to compile without warnings,  define  both
+               _BSD_SOURCE and _DEFAULT_SOURCE.
+
+       _SVID_SOURCE (deprecated since glibc 2.20)
+               Defining  this  macro  with  any  value  causes header files to
+               expose System V-derived definitions.  (SVID == System V  Inter‐
+               face Definition; see standards(7).)
+
+               Since  glibc 2.20, this macro is deprecated in the same fashion
+               as _BSD_SOURCE.
+
+       _DEFAULT_SOURCE (since glibc 2.19)
+               This macro can be defined to ensure that the "default"  defini‐
+               tions  are  provided  even when the defaults would otherwise be
+               disabled, as happens  when  individual  macros  are  explicitly
+               defined,  or  the  compiler is invoked in one of its "standard"
+               modes (e.g., cc -std=c99).   Defining  _DEFAULT_SOURCE  without
+               defining  other  individual  macros or invoking the compiler in
+               one of its "standard" modes has no effect.
+
+               The  "default"   definitions   comprise   those   required   by
+               POSIX.1-2008 and ISO C99, as well as various definitions origi‐
+               nally derived from BSD and System V.  On glibc  2.19  and  ear‐
+               lier,  these  defaults were approximately equivalent to explic‐
+               itly defining the following:
+
+                   cc -D_BSD_SOURCE -D_SVID_SOURCE -D_POSIX_C_SOURCE=200809
+
+       _ATFILE_SOURCE (since glibc 2.4)
+               Defining this macro with  any  value  causes  header  files  to
+               expose  declarations  of  a  range of functions with the suffix
+               "at"; see openat(2).  Since glibc  2.10,  this  macro  is  also
+               implicitly  defined  if _POSIX_C_SOURCE is defined with a value
+               greater than or equal to 200809L.
+
+       _GNU_SOURCE
+               Defining  this  macro  (with  any  value)  implicitly   defines
+               _ATFILE_SOURCE,       _LARGEFILE64_SOURCE,      _ISOC99_SOURCE,
+               _XOPEN_SOURCE_EXTENDED, _POSIX_SOURCE, _POSIX_C_SOURCE with the
+               value  200809L  (200112L in glibc versions before 2.10; 199506L
+               in glibc versions before 2.5; 199309L in glibc versions  before
+               2.1)  and  _XOPEN_SOURCE  with the value 700 (600 in glibc ver‐
+               sions before 2.10; 500 in glibc versions before 2.2).  In addi‐
+               tion, various GNU-specific extensions are also exposed.
+
+               Since  glibc  2.19, defining _GNU_SOURCE also has the effect of
+               implicitly defining _DEFAULT_SOURCE.  In glibc versions  before
+               2.20,  defining  _GNU_SOURCE  also had the effect of implicitly
+               defining _BSD_SOURCE and _SVID_SOURCE.
+
+       _REENTRANT
+               Historically, on various C libraries it was necessary to define
+               this  macro  in  all multithreaded code.  (Some C libraries may
+               still require this.)  In glibc, this macro also exposed defini‐
+               tions of certain reentrant functions.
+
+               However,  glibc has been thread-safe by default for many years;
+               since glibc 2.3, the only effect  of  defining  _REENTRANT  has
+               been  to  enable  one  or two of the same declarations that are
+               also enabled  by  defining  _POSIX_C_SOURCE  with  a  value  of
+               199606L or greater.
+
+               _REENTRANT  is now obsolete.  In glibc 2.25 and later, defining
+               _REENTRANT is equivalent to defining _POSIX_C_SOURCE  with  the
+               value 199606L.  If a higher POSIX conformance level is selected
+               by  any  other   means   (such   as   _POSIX_C_SOURCE   itself,
+               _XOPEN_SOURCE,  _DEFAULT_SOURCE, or _GNU_SOURCE), then defining
+               _REENTRANT has no effect.
+
+               This macro  is  automatically  defined  if  one  compiles  with
+               cc -pthread.
+
+       _THREAD_SAFE
+               Synonym  for the (deprecated) _REENTRANT, provided for compati‐
+               bility with some other implementations.
+
+       _FORTIFY_SOURCE (since glibc 2.3.4)
+               Defining this macro causes some lightweight checks to  be  per‐
+               formed  to  detect  some  buffer overflow errors when employing
+               various string and memory manipulation functions (for  example,
+               memcpy(3),  memset(3),  stpcpy(3),  strcpy(3), strncpy(3), str‐
+               cat(3),  strncat(3),  sprintf(3),   snprintf(3),   vsprintf(3),
+               vsnprintf(3),  gets(3),  and  wide character variants thereof).
+               For some functions, argument consistency is checked; for  exam‐
+               ple, a check is made that open(2) has been supplied with a mode
+               argument when the specified flags  include  O_CREAT.   Not  all
+               problems are detected, just some common cases.
+
+               If  _FORTIFY_SOURCE  is  set  to  1, with compiler optimization
+               level 1 (gcc -O1) and above, checks that shouldn't  change  the
+               behavior  of  conforming  programs  are  performed.  With _FOR‐
+               TIFY_SOURCE set to 2, some more checking  is  added,  but  some
+               conforming programs might fail.
+
+               Some of the checks can be performed at compile time (via macros
+               logic implemented in header  files),  and  result  in  compiler
+               warnings;  other checks take place at run time, and result in a
+               run-time error if the check fails.
+
+               Use of this macro requires  compiler  support,  available  with
+               gcc(1) since version 4.0.
+
+   Default definitions, implicit definitions, and combining definitions
+       If  no  feature  test macros are explicitly defined, then the following
+       feature test macros are defined by default: _BSD_SOURCE (in glibc  2.19
+       and earlier), _SVID_SOURCE (in glibc 2.19 and earlier), _DEFAULT_SOURCE
+       (since glibc 2.19), _POSIX_SOURCE, and _POSIX_C_SOURCE=200809L (200112L
+       in  glibc  versions  before 2.10; 199506L in glibc versions before 2.4;
+       199309L in glibc versions before 2.1).
+
+       If   any    of    __STRICT_ANSI__,    _ISOC99_SOURCE,    _POSIX_SOURCE,
+       _POSIX_C_SOURCE, _XOPEN_SOURCE, _XOPEN_SOURCE_EXTENDED, _BSD_SOURCE (in
+       glibc 2.19 and earlier), or _SVID_SOURCE (in glibc 2.19 and earlier) is
+       explicitly defined, then _BSD_SOURCE, _SVID_SOURCE, and _DEFAULT_SOURCE
+       are not defined by default.
+
+       If _POSIX_SOURCE and _POSIX_C_SOURCE are not  explicitly  defined,  and
+       either  __STRICT_ANSI__ is not defined or _XOPEN_SOURCE is defined with
+       a value of 500 or more, then
+
+       *  _POSIX_SOURCE is defined with the value 1; and
+
+       *  _POSIX_C_SOURCE is defined with one of the following values:
+
+          ·  2, if _XOPEN_SOURCE is defined with a value less than 500;
+
+          ·  199506L, if _XOPEN_SOURCE is defined with a value greater than or
+             equal to 500 and less than 600; or
+
+          ·  (since  glibc  2.4)  200112L,  if _XOPEN_SOURCE is defined with a
+             value greater than or equal to 600 and less than 700.
+
+          ·  (Since glibc 2.10) 200809L, if _XOPEN_SOURCE is  defined  with  a
+             value greater than or equal to 700.
+
+          ·  Older  versions of glibc do not know about the values 200112L and
+             200809L for _POSIX_C_SOURCE, and the setting of this  macro  will
+             depend on the glibc version.
+
+          ·  If    _XOPEN_SOURCE   is   undefined,   then   the   setting   of
+             _POSIX_C_SOURCE depends on the glibc version: 199506L,  in  glibc
+             versions  before  2.4; 200112L, in glibc 2.4 to 2.9; and 200809L,
+             since glibc 2.10.
+
+       Multiple macros can be defined; the results are additive.
+
+CONFORMING TO
+       POSIX.1 specifies _POSIX_C_SOURCE, _POSIX_SOURCE, and _XOPEN_SOURCE.
+
+       _XOPEN_SOURCE_EXTENDED was specified by XPG4v2 (aka SUSv1), but is  not
+       present  in SUSv2 and later.  _FILE_OFFSET_BITS is not specified by any
+       standard, but is employed on some other implementations.
+
+       _BSD_SOURCE,     _SVID_SOURCE,     _DEFAULT_SOURCE,     _ATFILE_SOURCE,
+       _GNU_SOURCE, _FORTIFY_SOURCE, _REENTRANT, and _THREAD_SAFE are specific
+       to Linux (glibc).
+
+NOTES
+       <features.h> is a Linux/glibc-specific header file.  Other systems have
+       an  analogous  file,  but typically with a different name.  This header
+       file is automatically included by other header files as required: it is
+       not  necessary to explicitly include it in order to employ feature test
+       macros.
+
+       According to which of the above feature test macros are defined,  <fea‐
+       tures.h>  internally  defines  various other macros that are checked by
+       other glibc header files.  These macros  have  names  prefixed  by  two
+       underscores  (e.g.,  __USE_MISC).   Programs  should never define these
+       macros directly: instead, the appropriate feature  test  macro(s)  from
+       the list above should be employed.
+
+EXAMPLE
+       The  program  below can be used to explore how the various feature test
+       macros are set depending on the glibc version  and  what  feature  test
+       macros  are  explicitly  set.  The following shell session, on a system
+       with glibc 2.10, shows some examples of what we would see:
+
+           $ cc ftm.c
+           $ ./a.out
+           _POSIX_SOURCE defined
+           _POSIX_C_SOURCE defined: 200809L
+           _BSD_SOURCE defined
+           _SVID_SOURCE defined
+           _ATFILE_SOURCE defined
+           $ cc -D_XOPEN_SOURCE=500 ftm.c
+           $ ./a.out
+           _POSIX_SOURCE defined
+           _POSIX_C_SOURCE defined: 199506L
+           _XOPEN_SOURCE defined: 500
+           $ cc -D_GNU_SOURCE ftm.c
+           $ ./a.out
+           _POSIX_SOURCE defined
+           _POSIX_C_SOURCE defined: 200809L
+           _ISOC99_SOURCE defined
+           _XOPEN_SOURCE defined: 700
+           _XOPEN_SOURCE_EXTENDED defined
+           _LARGEFILE64_SOURCE defined
+           _BSD_SOURCE defined
+           _SVID_SOURCE defined
+           _ATFILE_SOURCE defined
+           _GNU_SOURCE defined
+
+   Program source
+
+       /* ftm.c */
+
+       #include <stdio.h>
+       #include <unistd.h>
+       #include <stdlib.h>
+
+       int
+       main(int argc, char *argv[])
+       {
+       #ifdef _POSIX_SOURCE
+           printf("_POSIX_SOURCE defined\n");
+       #endif
+
+       #ifdef _POSIX_C_SOURCE
+           printf("_POSIX_C_SOURCE defined: %ldL\n", (long) _POSIX_C_SOURCE);
+       #endif
+
+       #ifdef _ISOC99_SOURCE
+           printf("_ISOC99_SOURCE defined\n");
+       #endif
+
+       #ifdef _ISOC11_SOURCE
+           printf("_ISOC11_SOURCE defined\n");
+       #endif
+
+       #ifdef _XOPEN_SOURCE
+           printf("_XOPEN_SOURCE defined: %d\n", _XOPEN_SOURCE);
+       #endif
+
+       #ifdef _XOPEN_SOURCE_EXTENDED
+           printf("_XOPEN_SOURCE_EXTENDED defined\n");
+       #endif
+
+       #ifdef _LARGEFILE64_SOURCE
+           printf("_LARGEFILE64_SOURCE defined\n");
+       #endif
+
+       #ifdef _FILE_OFFSET_BITS
+           printf("_FILE_OFFSET_BITS defined: %d\n", _FILE_OFFSET_BITS);
+       #endif
+
+       #ifdef _BSD_SOURCE
+           printf("_BSD_SOURCE defined\n");
+       #endif
+
+       #ifdef _SVID_SOURCE
+           printf("_SVID_SOURCE defined\n");
+       #endif
+
+       #ifdef _DEFAULT_SOURCE
+           printf("_DEFAULT_SOURCE defined\n");
+       #endif
+
+       #ifdef _ATFILE_SOURCE
+           printf("_ATFILE_SOURCE defined\n");
+       #endif
+
+       #ifdef _GNU_SOURCE
+           printf("_GNU_SOURCE defined\n");
+       #endif
+
+       #ifdef _REENTRANT
+           printf("_REENTRANT defined\n");
+       #endif
+
+       #ifdef _THREAD_SAFE
+           printf("_THREAD_SAFE defined\n");
+       #endif
+
+       #ifdef _FORTIFY_SOURCE
+           printf("_FORTIFY_SOURCE defined\n");
+       #endif
+
+           exit(EXIT_SUCCESS);
+       }
+
+SEE ALSO
+       libc(7), standards(7)
+
+       The section "Feature Test Macros" under info libc.
+
+       /usr/include/features.h
+
+COLOPHON
+       This page is part of release 4.15 of the Linux  man-pages  project.   A
+       description  of  the project, information about reporting bugs, and the
+       latest    version    of    this    page,    can     be     found     at
+       https://www.kernel.org/doc/man-pages/.
+
+Linux                             2017-09-15            FEATURE_TEST_MACROS(7)
+
+
+STRERROR(3)                Linux Programmer's Manual               STRERROR(3)
+
+NAME
+       strerror,  strerror_r, strerror_l - return string describing error num‐
+       ber
+
+SYNOPSIS
+       #include <string.h>
+
+       char *strerror(int errnum);
+
+       int strerror_r(int errnum, char *buf, size_t buflen);
+                   /* XSI-compliant */
+
+       char *strerror_r(int errnum, char *buf, size_t buflen);
+                   /* GNU-specific */
+
+       char *strerror_l(int errnum, locale_t locale);
+
+   Feature Test Macro Requirements for glibc (see feature_test_macros(7)):
+
+       strerror_r():
+           The XSI-compliant version is provided if:
+           (_POSIX_C_SOURCE >= 200112L) && !  _GNU_SOURCE
+           Otherwise, the GNU-specific version is provided.
+
+DESCRIPTION
+       The strerror() function returns a pointer to a  string  that  describes
+       the  error  code  passed  in  the  argument  errnum, possibly using the
+       LC_MESSAGES part of the current locale to select the  appropriate  lan‐
+       guage.   (For  example,  if  errnum is EINVAL, the returned description
+       will be "Invalid argument".)  This string must not be modified  by  the
+       application,  but may be modified by a subsequent call to strerror() or
+       strerror_l().  No other library  function,  including  perror(3),  will
+       modify this string.
+
+   strerror_r()
+       The strerror_r() function is similar to strerror(), but is thread safe.
+       This function is available in two versions:  an  XSI-compliant  version
+       specified  in POSIX.1-2001 (available since glibc 2.3.4, but not POSIX-
+       compliant until glibc 2.13),  and  a  GNU-specific  version  (available
+       since  glibc 2.0).  The XSI-compliant version is provided with the fea‐
+       ture test macros settings shown in the SYNOPSIS; otherwise the GNU-spe‐
+       cific  version  is  provided.  If no feature test macros are explicitly
+       defined, then (since glibc 2.4) _POSIX_C_SOURCE is defined  by  default
+       with  the  value  200112L,  so  that  the XSI-compliant version of str‐
+       error_r() is provided by default.
+
+       The XSI-compliant strerror_r() is preferred for portable  applications.
+       It  returns  the error string in the user-supplied buffer buf of length
+       buflen.
+
+       The GNU-specific strerror_r() returns a pointer to a string  containing
+       the  error  message.  This may be either a pointer to a string that the
+       function stores in buf, or a pointer to some (immutable) static  string
+       (in which case buf is unused).  If the function stores a string in buf,
+       then at most buflen bytes are stored (the string may  be  truncated  if
+       buflen is too small and errnum is unknown).  The string always includes
+       a terminating null byte ('\0').
+
+   strerror_l()
+       strerror_l() is like strerror(), but maps errnum to a  locale-dependent
+       error  message in the locale specified by locale.  The behavior of str‐
+       error_l()  is  undefined  if  locale  is  the  special  locale   object
+       LC_GLOBAL_LOCALE or is not a valid locale object handle.
+
+RETURN VALUE
+       The  strerror(),  strerror_l(), and the GNU-specific strerror_r() func‐
+       tions return the appropriate error description string, or  an  "Unknown
+       error nnn" message if the error number is unknown.
+
+       The  XSI-compliant  strerror_r()  function  returns  0  on success.  On
+       error, a (positive) error number is returned (since glibc 2.13), or  -1
+       is  returned  and  errno  is  set to indicate the error (glibc versions
+       before 2.13).
+
+       POSIX.1-2001 and POSIX.1-2008 require that a successful  call  to  str‐
+       error()  or  strerror_l()  shall  leave errno unchanged, and note that,
+       since no function return value is reserved to  indicate  an  error,  an
+       application  that wishes to check for errors should initialize errno to
+       zero before the call, and then check errno after the call.
+
+ERRORS
+       EINVAL The value of errnum is not a valid error number.
+
+       ERANGE Insufficient storage was supplied to contain the error  descrip‐
+              tion string.
+
+VERSIONS
+       The strerror_l() function first appeared in glibc 2.6.
+
+ATTRIBUTES
+       For   an   explanation   of   the  terms  used  in  this  section,  see
+       attributes(7).
+
+       ┌───────────────┬───────────────┬─────────────────────────┐
+       │Interface      │ Attribute     │ Value                   │
+       ├───────────────┼───────────────┼─────────────────────────┤
+       │strerror()     │ Thread safety │ MT-Unsafe race:strerror │
+       ├───────────────┼───────────────┼─────────────────────────┤
+       │strerror_r(),  │ Thread safety │ MT-Safe                 │
+       │strerror_l()   │               │                         │
+       └───────────────┴───────────────┴─────────────────────────┘
+CONFORMING TO
+       strerror() is specified by POSIX.1-2001, POSIX.1-2008,  C89,  and  C99.
+       strerror_r() is specified by POSIX.1-2001 and POSIX.1-2008.
+
+       strerror_l() is specified in POSIX.1-2008.
+
+       The GNU-specific strerror_r() function is a nonstandard extension.
+
+       POSIX.1-2001  permits strerror() to set errno if the call encounters an
+       error, but does not specify what value should be returned as the  func‐
+       tion  result  in  the  event  of an error.  On some systems, strerror()
+       returns NULL if the error number is unknown.  On  other  systems,  str‐
+       error()  returns  a string something like "Error nnn occurred" and sets
+       errno to EINVAL if the error number is unknown.  C99  and  POSIX.1-2008
+       require the return value to be non-NULL.
+
+NOTES
+       The  GNU  C  Library  uses  a buffer of 1024 characters for strerror().
+       This buffer size therefore should be  sufficient  to  avoid  an  ERANGE
+       error when calling strerror_r() and strerror_l().
+
+SEE ALSO
+       err(3), errno(3), error(3), perror(3), strsignal(3), locale(7)
+
+COLOPHON
+       This  page  is  part of release 4.15 of the Linux man-pages project.  A
+       description of the project, information about reporting bugs,  and  the
+       latest     version     of     this    page,    can    be    found    at
+       https://www.kernel.org/doc/man-pages/.
+
+                                  2017-09-15                       STRERROR(3)
+
+
+ERRNO(3)                   Linux Programmer's Manual                  ERRNO(3)
+
+NAME
+       errno - number of last error
+
+SYNOPSIS
+       #include <errno.h>
+
+DESCRIPTION
+       The  <errno.h> header file defines the integer variable errno, which is
+       set by system calls and some library functions in the event of an error
+       to indicate what went wrong.
+
+   errno
+       The  value  in  errno  is significant only when the return value of the
+       call indicated an error (i.e., -1 from most system calls;  -1  or  NULL
+       from  most  library  functions); a function that succeeds is allowed to
+       change errno.  The value of errno is never set to zero  by  any  system
+       call or library function.
+
+       For  some system calls and library functions (e.g., getpriority(2)), -1
+       is a valid return on success.  In such cases, a successful  return  can
+       be  distinguished  from an error return by setting errno to zero before
+       the call, and then, if the call returns a status that indicates that an
+       error may have occurred, checking to see if errno has a nonzero value.
+
+       errno  is  defined  by  the ISO C standard to be a modifiable lvalue of
+       type int, and must not be explicitly declared; errno may  be  a  macro.
+       errno  is  thread-local;  setting  it in one thread does not affect its
+       value in any other thread.
+
+   Error numbers and names
+       Valid error numbers are all positive  numbers.   The  <errno.h>  header
+       file defines symbolic names for each of the possible error numbers that
+       may appear in errno.
+
+       All the error names specified by POSIX.1  must  have  distinct  values,
+       with the exception of EAGAIN and EWOULDBLOCK, which may be the same.
+
+       The  error  numbers  that  correspond to each symbolic name vary across
+       UNIX systems, and even across different architectures on Linux.  There‐
+       fore,  numeric  values  are  not  included as part of the list of error
+       names below.  The perror(3) and strerror(3) functions can  be  used  to
+       convert these names to corresponding textual error messages.
+
+       On  any  particular Linux system, one can obtain a list of all symbolic
+       error names and the corresponding error numbers using the errno(1) com‐
+       mand:
+
+           $ errno -l
+           EPERM 1 Operation not permitted
+           ENOENT 2 No such file or directory
+           ESRCH 3 No such process
+           EINTR 4 Interrupted system call
+           EIO 5 Input/output error
+           ...
+
+       The  errno(1) command can also be used to look up individual error num‐
+       bers and names, and to search for errors using strings from  the  error
+       description, as in the following examples:
+
+           $ errno 2
+           ENOENT 2 No such file or directory
+           $ errno ESRCH
+           ESRCH 3 No such process
+           $ errno -s permission
+           EACCES 13 Permission denied
+
+   List of error names
+       In the list of the symbolic error names below, various names are marked
+       as follows:
+
+       *  POSIX.1-2001: The name is defined by POSIX.1-2001, and is defined in
+          later POSIX.1 versions, unless otherwise indicated.
+
+       *  POSIX.1-2008:  The  name  is  defined  in  POSIX.1-2008, but was not
+          present in earlier POSIX.1 standards.
+
+       *  C99: The name is defined by C99.  Below is a list  of  the  symbolic
+          error names that are defined on Linux:
+
+       E2BIG           Argument list too long (POSIX.1-2001).
+
+       EACCES          Permission denied (POSIX.1-2001).
+
+       EADDRINUSE      Address already in use (POSIX.1-2001).
+
+       EADDRNOTAVAIL   Address not available (POSIX.1-2001).
+
+       EAFNOSUPPORT    Address family not supported (POSIX.1-2001).
+
+       EAGAIN          Resource temporarily unavailable (may be the same value
+                       as EWOULDBLOCK) (POSIX.1-2001).
+
+       EALREADY        Connection already in progress (POSIX.1-2001).
+
+       EBADE           Invalid exchange.
+
+       EBADF           Bad file descriptor (POSIX.1-2001).
+
+       EBADFD          File descriptor in bad state.
+
+       EBADMSG         Bad message (POSIX.1-2001).
+
+       EBADR           Invalid request descriptor.
+
+       EBADRQC         Invalid request code.
+
+       EBADSLT         Invalid slot.
+
+       EBUSY           Device or resource busy (POSIX.1-2001).
+
+       ECANCELED       Operation canceled (POSIX.1-2001).
+
+       ECHILD          No child processes (POSIX.1-2001).
+
+       ECHRNG          Channel number out of range.
+
+       ECOMM           Communication error on send.
+
+       ECONNABORTED    Connection aborted (POSIX.1-2001).
+
+       ECONNREFUSED    Connection refused (POSIX.1-2001).
+
+       ECONNRESET      Connection reset (POSIX.1-2001).
+
+       EDEADLK         Resource deadlock avoided (POSIX.1-2001).
+
+       EDEADLOCK       Synonym for EDEADLK.
+
+       EDESTADDRREQ    Destination address required (POSIX.1-2001).
+
+       EDOM            Mathematics  argument  out  of   domain   of   function
+                       (POSIX.1, C99).
+
+       EDQUOT          Disk quota exceeded (POSIX.1-2001).
+
+       EEXIST          File exists (POSIX.1-2001).
+
+       EFAULT          Bad address (POSIX.1-2001).
+
+       EFBIG           File too large (POSIX.1-2001).
+
+       EHOSTDOWN       Host is down.
+
+       EHOSTUNREACH    Host is unreachable (POSIX.1-2001).
+
+       EHWPOISON       Memory page has hardware error.
+
+       EIDRM           Identifier removed (POSIX.1-2001).
+
+       EILSEQ          Invalid  or  incomplete  multibyte  or  wide  character
+                       (POSIX.1, C99).
+
+                       The text shown here is the glibc error description;  in
+                       POSIX.1,  this  error  is  described  as  "Illegal byte
+                       sequence".
+
+       EINPROGRESS     Operation in progress (POSIX.1-2001).
+
+       EINTR           Interrupted  function  call  (POSIX.1-2001);  see  sig‐
+                       nal(7).
+
+       EINVAL          Invalid argument (POSIX.1-2001).
+
+       EIO             Input/output error (POSIX.1-2001).
+
+       EISCONN         Socket is connected (POSIX.1-2001).
+
+       EISDIR          Is a directory (POSIX.1-2001).
+
+       EISNAM          Is a named type file.
+
+       EKEYEXPIRED     Key has expired.
+
+       EKEYREJECTED    Key was rejected by service.
+
+       EKEYREVOKED     Key has been revoked.
+
+       EL2HLT          Level 2 halted.
+
+       EL2NSYNC        Level 2 not synchronized.
+
+       EL3HLT          Level 3 halted.
+
+       EL3RST          Level 3 reset.
+
+       ELIBACC         Cannot access a needed shared library.
+
+       ELIBBAD         Accessing a corrupted shared library.
+
+       ELIBMAX         Attempting to link in too many shared libraries.
+
+       ELIBSCN         .lib section in a.out corrupted
+
+       ELIBEXEC        Cannot exec a shared library directly.
+
+       ELNRANGE        Link number out of range.
+
+       ELOOP           Too many levels of symbolic links (POSIX.1-2001).
+
+       EMEDIUMTYPE     Wrong medium type.
+
+       EMFILE          Too many open files (POSIX.1-2001).  Commonly caused by
+                       exceeding the RLIMIT_NOFILE resource limit described in
+                       getrlimit(2).
+
+       EMLINK          Too many links (POSIX.1-2001).
+
+       EMSGSIZE        Message too long (POSIX.1-2001).
+
+       EMULTIHOP       Multihop attempted (POSIX.1-2001).
+
+       ENAMETOOLONG    Filename too long (POSIX.1-2001).
+
+       ENETDOWN        Network is down (POSIX.1-2001).
+
+       ENETRESET       Connection aborted by network (POSIX.1-2001).
+
+       ENETUNREACH     Network unreachable (POSIX.1-2001).
+
+       ENFILE          Too  many  open  files  in  system  (POSIX.1-2001).  On
+                       Linux, this is probably a result  of  encountering  the
+                       /proc/sys/fs/file-max limit (see proc(5)).
+
+       ENOANO          No anode.
+
+       ENOBUFS         No   buffer   space  available  (POSIX.1  (XSI  STREAMS
+                       option)).
+
+       ENODATA         No message is available on the STREAM head  read  queue
+                       (POSIX.1-2001).
+
+       ENODEV          No such device (POSIX.1-2001).
+
+       ENOENT          No such file or directory (POSIX.1-2001).
+
+                       Typically, this error results when a specified pathname
+                       does not exist, or one of the components in the  direc‐
+                       tory prefix of a pathname does not exist, or the speci‐
+                       fied pathname is a dangling symbolic link.
+
+       ENOEXEC         Exec format error (POSIX.1-2001).
+
+       ENOKEY          Required key not available.
+
+       ENOLCK          No locks available (POSIX.1-2001).
+
+       ENOLINK         Link has been severed (POSIX.1-2001).
+
+       ENOMEDIUM       No medium found.
+
+       ENOMEM          Not enough space/cannot allocate memory (POSIX.1-2001).
+
+       ENOMSG          No message of the desired type (POSIX.1-2001).
+
+       ENONET          Machine is not on the network.
+
+       ENOPKG          Package not installed.
+
+       ENOPROTOOPT     Protocol not available (POSIX.1-2001).
+
+       ENOSPC          No space left on device (POSIX.1-2001).
+
+       ENOSR           No STREAM resources (POSIX.1 (XSI STREAMS option)).
+
+       ENOSTR          Not a STREAM (POSIX.1 (XSI STREAMS option)).
+
+       ENOSYS          Function not implemented (POSIX.1-2001).
+
+       ENOTBLK         Block device required.
+
+       ENOTCONN        The socket is not connected (POSIX.1-2001).
+
+       ENOTDIR         Not a directory (POSIX.1-2001).
+
+       ENOTEMPTY       Directory not empty (POSIX.1-2001).
+
+       ENOTRECOVERABLE State not recoverable (POSIX.1-2008).
+
+       ENOTSOCK        Not a socket (POSIX.1-2001).
+
+       ENOTSUP         Operation not supported (POSIX.1-2001).
+
+       ENOTTY          Inappropriate I/O control operation (POSIX.1-2001).
+
+       ENOTUNIQ        Name not unique on network.
+
+       ENXIO           No such device or address (POSIX.1-2001).
+
+       EOPNOTSUPP      Operation not supported on socket (POSIX.1-2001).
+
+                       (ENOTSUP and EOPNOTSUPP have the same value  on  Linux,
+                       but  according  to POSIX.1 these error values should be
+                       distinct.)
+
+       EOVERFLOW       Value  too  large   to   be   stored   in   data   type
+                       (POSIX.1-2001).
+
+       EOWNERDEAD      Owner died (POSIX.1-2008).
+
+       EPERM           Operation not permitted (POSIX.1-2001).
+
+       EPFNOSUPPORT    Protocol family not supported.
+
+       EPIPE           Broken pipe (POSIX.1-2001).
+
+       EPROTO          Protocol error (POSIX.1-2001).
+
+       EPROTONOSUPPORT Protocol not supported (POSIX.1-2001).
+
+       EPROTOTYPE      Protocol wrong type for socket (POSIX.1-2001).
+
+       ERANGE          Result too large (POSIX.1, C99).
+
+       EREMCHG         Remote address changed.
+
+       EREMOTE         Object is remote.
+
+       EREMOTEIO       Remote I/O error.
+
+       ERESTART        Interrupted system call should be restarted.
+
+       ERFKILL         Operation not possible due to RF-kill.
+
+       EROFS           Read-only filesystem (POSIX.1-2001).
+
+       ESHUTDOWN       Cannot send after transport endpoint shutdown.
+
+       ESPIPE          Invalid seek (POSIX.1-2001).
+
+       ESOCKTNOSUPPORT Socket type not supported.
+
+       ESRCH           No such process (POSIX.1-2001).
+
+       ESTALE          Stale file handle (POSIX.1-2001).
+
+                       This error can occur for NFS and for other filesystems.
+
+       ESTRPIPE        Streams pipe error.
+
+       ETIME           Timer expired (POSIX.1 (XSI STREAMS option)).
+
+                       (POSIX.1 says "STREAM ioctl(2) timeout".)
+
+       ETIMEDOUT       Connection timed out (POSIX.1-2001).
+
+       ETOOMANYREFS    Too many references: cannot splice.
+
+       ETXTBSY         Text file busy (POSIX.1-2001).
+
+       EUCLEAN         Structure needs cleaning.
+
+       EUNATCH         Protocol driver not attached.
+
+       EUSERS          Too many users.
+
+       EWOULDBLOCK     Operation  would  block  (may  be same value as EAGAIN)
+                       (POSIX.1-2001).
+
+       EXDEV           Improper link (POSIX.1-2001).
+
+       EXFULL          Exchange full.
+
+NOTES
+       A common mistake is to do
+
+           if (somecall() == -1) {
+               printf("somecall() failed\n");
+               if (errno == ...) { ... }
+           }
+
+       where errno no longer needs to have the value it had upon  return  from
+       somecall()  (i.e.,  it may have been changed by the printf(3)).  If the
+       value of errno should be preserved across a library call,  it  must  be
+       saved:
+
+           if (somecall() == -1) {
+               int errsv = errno;
+               printf("somecall() failed\n");
+               if (errsv == ...) { ... }
+           }
+
+       On  some  ancient systems, <errno.h> was not present or did not declare
+       errno, so that it was necessary to declare errno manually (i.e., extern
+       int  errno).   Do not do this.  It long ago ceased to be necessary, and
+       it will cause problems with modern versions of the C library.
+
+SEE ALSO
+       errno(1), err(3), error(3), perror(3), strerror(3)
+
+COLOPHON
+       This page is part of release 4.15 of the Linux  man-pages  project.   A
+       description  of  the project, information about reporting bugs, and the
+       latest    version    of    this    page,    can     be     found     at
+       https://www.kernel.org/doc/man-pages/.
+
+                                  2018-02-02                          ERRNO(3)

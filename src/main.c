@@ -25,6 +25,8 @@
 #include <signal.h>
 #include <wait.h>
 #include <fcntl.h>
+#include <X11/X.h> // can probably remove -lX11 from cmake, too
+#include <X11/Xlib.h> // can probably remove -lX11 from cmake, too
 
 #include "show.h"
 
@@ -69,12 +71,40 @@ typedef struct {
 
 void load_game_library(void *);
 
+void sdl_hack_logger(void *userdata, int category, SDL_LogPriority priority, const char *message) {
+  // a nice place to set breakpoints
+  // but it leads to more debugging questions
+  // about how to set up the xseterrorhandler
+  fprintf(stderr, "lmao"); // set breakpoints here to make your live easier.
+}
+
+/*
+int x_error_handler(Display *a, XErrorEvent *b) {
+  error("wtf though"); // this doesn't even work. can't break here.
+  return 0;
+}
+*/
+
+#define errExitErrno(en, msg) \
+    do { errno = en; perror(msg); exit(EXIT_FAILURE); \
+  } while (0)
+
+
 int
 main(int argc, char *argv[]) {
   if (argc < 2) return die("usage: path/to/show-markdown");
   atexit(quit);
 
+  /* more epic logging stuffe note: works well with SetOutputFunction below */
+  // SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
+  /* epic logging thing to help solve issues! */
+  //SDL_LogSetOutputFunction(sdl_hack_logger, 0);
+  // todo figure out how this is supposed to work
+  // because i can't break in the x_error_handler
+  // XSetErrorHandler(x_error_handler);
+
   game_state global_state = {
+      // note, you need -L./lib when compiling to make this work
       "lib/libslider.so",
       argc < 2 ? 0 : argv[1],
       {0},
@@ -110,10 +140,14 @@ main(int argc, char *argv[]) {
   if (!global_state.show->slides)
     return die("Error: no slides! create a slide with '# Title'");
 
-  pthread_t tidp;
-  Pthread_create(&tidp, 0, watch_slideshow_file, &global_state);
-  Pthread_create(&tidp, 0, watch_library, &global_state);
-
+  pthread_t threadId;
+  Pthread_create(&threadId, 0, watch_slideshow_file, &global_state);
+  #define pthread_name_len 16
+  char thread_name[pthread_name_len] = "show watch";
+  Pthread_setname_np(threadId, thread_name);
+  Pthread_create(&threadId, 0, watch_library, &global_state);
+  strncpy(thread_name, "lib watch", pthread_name_len);
+  Pthread_setname_np(threadId, thread_name);
 
   if (!(mouse_font = TTF_OpenFont("./res/FreeSans.ttf", 72)))
     return die("can't load the mouse mouse_font");

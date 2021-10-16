@@ -1,5 +1,7 @@
 # show
 slideshow thing and stuff
+requirements: a show.markdown file
+              ./lib/libslider.so
 
 ## features
 - markdown source to slideshow rendering
@@ -7,7 +9,7 @@ slideshow thing and stuff
 - shared library code refresh
 
 ## building
-cmake --build cmake-build-debug --target slider install
+    cmake --build cmake-build-debug --target all install
 
 ## developing
 inotify will poll the files that you're editing and reload the libslider.so/show.md

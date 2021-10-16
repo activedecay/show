@@ -68,7 +68,7 @@ void             posix_error(int code, char *msg);
 
 void             dns_error(char *msg);
 
-void             gai_error(int code, char *msg);
+void             getaddrinfo_error(int code, char *msg);
 
 void             app_error(char *msg);
 
@@ -230,6 +230,8 @@ void             Pthread_exit(void *retval);
 pthread_t        Pthread_self(void);
 
 void             Pthread_once(pthread_once_t *once_control, void (*init_function)());
+
+void             Pthread_setname_np(pthread_t target_thread, const char *name); // gnu only
 
 /* POSIX semaphore wrappers */
 void             Sem_init(sem_t *sem, int pshared, unsigned int value);

@@ -1,0 +1,950 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE valgrindoutput [
+        <!ELEMENT valgrindoutput (protocolversion|protocoltool|preamble|pid|ppid|tool|args|status|error|suppression|errorcounts|suppcounts)*>
+        <!ELEMENT protocolversion (#PCDATA)>
+        <!ELEMENT protocoltool (#PCDATA)>
+        <!ELEMENT preamble (line)*>
+        <!ELEMENT line (#PCDATA)>
+        <!ELEMENT pid (#PCDATA)>
+        <!ELEMENT ppid (#PCDATA)>
+        <!ELEMENT tool (#PCDATA)>
+        <!ELEMENT args (vargv|argv)*>
+        <!ELEMENT vargv (exe|arg)*>
+        <!ELEMENT exe (#PCDATA)>
+        <!ELEMENT arg (#PCDATA)>
+        <!ELEMENT argv (exe)*>
+        <!ELEMENT status (state|time)*>
+        <!ELEMENT state (#PCDATA)>
+        <!ELEMENT time (#PCDATA)>
+        <!ELEMENT error (unique|tid|kind|xwhat|stack|suppression)*>
+        <!ELEMENT unique (#PCDATA)>
+        <!ELEMENT tid (#PCDATA)>
+        <!ELEMENT kind (#PCDATA)>
+        <!ELEMENT xwhat (text|leakedbytes|leakedblocks)*>
+        <!ELEMENT text (#PCDATA)>
+        <!ELEMENT leakedbytes (#PCDATA)>
+        <!ELEMENT leakedblocks (#PCDATA)>
+        <!ELEMENT stack (frame)*>
+        <!ELEMENT frame (ip|obj|fn|dir|file|line)*>
+        <!ELEMENT ip (#PCDATA)>
+        <!ELEMENT obj (#PCDATA)>
+        <!ELEMENT fn (#PCDATA)>
+        <!ELEMENT dir (#PCDATA)>
+        <!ELEMENT file (#PCDATA)>
+        <!ELEMENT suppression (sname|skind|skaux|sframe|rawtext)*>
+        <!ELEMENT sname (#PCDATA)>
+        <!ELEMENT skind (#PCDATA)>
+        <!ELEMENT skaux (#PCDATA)>
+        <!ELEMENT sframe (fun|obj)*>
+        <!ELEMENT fun (#PCDATA)>
+        <!ELEMENT rawtext (#PCDATA)>
+        <!ELEMENT errorcounts (#PCDATA)>
+        <!ELEMENT suppcounts (pair)*>
+        <!ELEMENT pair (count|name)*>
+        <!ELEMENT count (#PCDATA)>
+        <!ELEMENT name (#PCDATA)>
+        ]>
+<valgrindoutput>
+
+<protocolversion>4</protocolversion>
+<protocoltool>memcheck</protocoltool>
+
+<preamble>
+  <line>Memcheck, a memory error detector</line>
+  <line>Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.</line>
+  <line>Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info</line>
+  <line>Command: /home/jfaust/hack/show/cmake-build-debug/window</line>
+</preamble>
+
+<pid>12851</pid>
+<ppid>27951</ppid>
+<tool>memcheck</tool>
+
+<args>
+  <vargv>
+    <exe>/usr/bin/valgrind.bin</exe>
+    <arg>--tool=memcheck</arg>
+    <arg>--xml=yes</arg>
+    <arg>--xml-file=/tmp/tmp.PkIG9t2L7D</arg>
+    <arg>--gen-suppressions=all</arg>
+    <arg>--leak-check=full</arg>
+    <arg>--leak-resolution=med</arg>
+    <arg>--track-origins=yes</arg>
+    <arg>--vgdb=no</arg>
+  </vargv>
+  <argv>
+    <exe>/home/jfaust/hack/show/cmake-build-debug/window</exe>
+  </argv>
+</args>
+
+<status>
+  <state>RUNNING</state>
+  <time>00:00:00:00.082 </time>
+</status>
+
+
+<status>
+  <state>FINISHED</state>
+  <time>00:00:00:05.921 </time>
+</status>
+
+<error>
+  <unique>0x196</unique>
+  <tid>1</tid>
+  <kind>Leak_DefinitelyLost</kind>
+  <xwhat>
+    <text>128 bytes in 1 blocks are definitely lost in loss record 400 of 553</text>
+    <leakedbytes>128</leakedbytes>
+    <leakedblocks>1</leakedblocks>
+  </xwhat>
+  <stack>
+    <frame>
+      <ip>0x4C31B25</ip>
+      <obj>/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so</obj>
+      <fn>calloc</fn>
+    </frame>
+    <frame>
+      <ip>0xB656105</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xB64A348</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xB649CD1</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xB659BA7</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xA333425</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0x401073B</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>call_init</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-init.c</file>
+      <line>58</line>
+    </frame>
+    <frame>
+      <ip>0x401073B</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>_dl_init</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-init.c</file>
+      <line>119</line>
+    </frame>
+    <frame>
+      <ip>0x401524E</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>dl_open_worker</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-open.c</file>
+      <line>522</line>
+    </frame>
+    <frame>
+      <ip>0x531651E</ip>
+      <obj>/lib/x86_64-linux-gnu/libc-2.27.so</obj>
+      <fn>_dl_catch_exception</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-error-skeleton.c</file>
+      <line>196</line>
+    </frame>
+    <frame>
+      <ip>0x4014819</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>_dl_open</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-open.c</file>
+      <line>605</line>
+    </frame>
+    <frame>
+      <ip>0x593EF95</ip>
+      <obj>/lib/x86_64-linux-gnu/libdl-2.27.so</obj>
+      <fn>dlopen_doit</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/dlfcn</dir>
+      <file>dlopen.c</file>
+      <line>66</line>
+    </frame>
+    <frame>
+      <ip>0x531651E</ip>
+      <obj>/lib/x86_64-linux-gnu/libc-2.27.so</obj>
+      <fn>_dl_catch_exception</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-error-skeleton.c</file>
+      <line>196</line>
+    </frame>
+  </stack>
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>calloc</fun> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82</obj> </sframe>
+    <sframe> <fun>call_init</fun> </sframe>
+    <sframe> <fun>_dl_init</fun> </sframe>
+    <sframe> <fun>dl_open_worker</fun> </sframe>
+    <sframe> <fun>_dl_catch_exception</fun> </sframe>
+    <sframe> <fun>_dl_open</fun> </sframe>
+    <sframe> <fun>dlopen_doit</fun> </sframe>
+    <sframe> <fun>_dl_catch_exception</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82
+   fun:call_init
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_exception
+}
+]]>
+    </rawtext>
+  </suppression>
+</error>
+
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>calloc</fun> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82</obj> </sframe>
+    <sframe> <fun>call_init</fun> </sframe>
+    <sframe> <fun>_dl_init</fun> </sframe>
+    <sframe> <fun>dl_open_worker</fun> </sframe>
+    <sframe> <fun>_dl_catch_exception</fun> </sframe>
+    <sframe> <fun>_dl_open</fun> </sframe>
+    <sframe> <fun>dlopen_doit</fun> </sframe>
+    <sframe> <fun>_dl_catch_exception</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82
+   fun:call_init
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_exception
+}
+]]>
+    </rawtext>
+  </suppression>
+<error>
+  <unique>0x1ad</unique>
+  <tid>1</tid>
+  <kind>Leak_DefinitelyLost</kind>
+  <xwhat>
+    <text>192 (16 direct, 176 indirect) bytes in 1 blocks are definitely lost in loss record 423 of 553</text>
+    <leakedbytes>192</leakedbytes>
+    <leakedblocks>1</leakedblocks>
+  </xwhat>
+  <stack>
+    <frame>
+      <ip>0x4C31D2F</ip>
+      <obj>/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so</obj>
+      <fn>realloc</fn>
+    </frame>
+    <frame>
+      <ip>0x6AE619C</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0</obj>
+    </frame>
+    <frame>
+      <ip>0x6AE6681</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0</obj>
+    </frame>
+    <frame>
+      <ip>0x6AE7FEE</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0</obj>
+    </frame>
+    <frame>
+      <ip>0x6AE8827</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0</obj>
+      <fn>_XlcCreateLC</fn>
+    </frame>
+    <frame>
+      <ip>0x6B0466F</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0</obj>
+      <fn>_XlcDefaultLoader</fn>
+    </frame>
+    <frame>
+      <ip>0x6AEFC5D</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0</obj>
+      <fn>_XOpenLC</fn>
+    </frame>
+    <frame>
+      <ip>0x6AEFDAA</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0</obj>
+      <fn>_XlcCurrentLC</fn>
+    </frame>
+    <frame>
+      <ip>0x6AEFDED</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0</obj>
+      <fn>XSetLocaleModifiers</fn>
+    </frame>
+    <frame>
+      <ip>0x4F41FDA</ip>
+      <obj>/usr/local/lib/libSDL2-2.0.so.0.9.0</obj>
+      <fn>X11_InitKeyboard</fn>
+      <dir>/home/jfaust/hack/sdl/SDL-2.0.9-12581/src/video/x11</dir>
+      <file>SDL_x11keyboard.c</file>
+      <line>293</line>
+    </frame>
+    <frame>
+      <ip>0x4F48E5D</ip>
+      <obj>/usr/local/lib/libSDL2-2.0.so.0.9.0</obj>
+      <fn>X11_VideoInit</fn>
+      <dir>/home/jfaust/hack/sdl/SDL-2.0.9-12581/src/video/x11</dir>
+      <file>SDL_x11video.c</file>
+      <line>447</line>
+    </frame>
+    <frame>
+      <ip>0x4EC63A5</ip>
+      <obj>/usr/local/lib/libSDL2-2.0.so.0.9.0</obj>
+      <fn>SDL_VideoInit_REAL</fn>
+      <dir>/home/jfaust/hack/sdl/SDL-2.0.9-12581/src/video</dir>
+      <file>SDL_video.c</file>
+      <line>529</line>
+    </frame>
+  </stack>
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>realloc</fun> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0</obj> </sframe>
+    <sframe> <fun>_XlcCreateLC</fun> </sframe>
+    <sframe> <fun>_XlcDefaultLoader</fun> </sframe>
+    <sframe> <fun>_XOpenLC</fun> </sframe>
+    <sframe> <fun>_XlcCurrentLC</fun> </sframe>
+    <sframe> <fun>XSetLocaleModifiers</fun> </sframe>
+    <sframe> <fun>X11_InitKeyboard</fun> </sframe>
+    <sframe> <fun>X11_VideoInit</fun> </sframe>
+    <sframe> <fun>SDL_VideoInit_REAL</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+   fun:_XlcCurrentLC
+   fun:XSetLocaleModifiers
+   fun:X11_InitKeyboard
+   fun:X11_VideoInit
+   fun:SDL_VideoInit_REAL
+}
+]]>
+    </rawtext>
+  </suppression>
+</error>
+
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>realloc</fun> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0</obj> </sframe>
+    <sframe> <fun>_XlcCreateLC</fun> </sframe>
+    <sframe> <fun>_XlcDefaultLoader</fun> </sframe>
+    <sframe> <fun>_XOpenLC</fun> </sframe>
+    <sframe> <fun>_XlcCurrentLC</fun> </sframe>
+    <sframe> <fun>XSetLocaleModifiers</fun> </sframe>
+    <sframe> <fun>X11_InitKeyboard</fun> </sframe>
+    <sframe> <fun>X11_VideoInit</fun> </sframe>
+    <sframe> <fun>SDL_VideoInit_REAL</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+   fun:_XlcCurrentLC
+   fun:XSetLocaleModifiers
+   fun:X11_InitKeyboard
+   fun:X11_VideoInit
+   fun:SDL_VideoInit_REAL
+}
+]]>
+    </rawtext>
+  </suppression>
+<error>
+  <unique>0x1e1</unique>
+  <tid>1</tid>
+  <kind>Leak_DefinitelyLost</kind>
+  <xwhat>
+    <text>589 (128 direct, 461 indirect) bytes in 1 blocks are definitely lost in loss record 475 of 553</text>
+    <leakedbytes>589</leakedbytes>
+    <leakedblocks>1</leakedblocks>
+  </xwhat>
+  <stack>
+    <frame>
+      <ip>0x4C31B25</ip>
+      <obj>/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so</obj>
+      <fn>calloc</fn>
+    </frame>
+    <frame>
+      <ip>0xB656105</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xB64A348</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xB6498DE</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xB659B6A</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xA333425</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0x401073B</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>call_init</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-init.c</file>
+      <line>58</line>
+    </frame>
+    <frame>
+      <ip>0x401073B</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>_dl_init</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-init.c</file>
+      <line>119</line>
+    </frame>
+    <frame>
+      <ip>0x401524E</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>dl_open_worker</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-open.c</file>
+      <line>522</line>
+    </frame>
+    <frame>
+      <ip>0x531651E</ip>
+      <obj>/lib/x86_64-linux-gnu/libc-2.27.so</obj>
+      <fn>_dl_catch_exception</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-error-skeleton.c</file>
+      <line>196</line>
+    </frame>
+    <frame>
+      <ip>0x4014819</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>_dl_open</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-open.c</file>
+      <line>605</line>
+    </frame>
+    <frame>
+      <ip>0x593EF95</ip>
+      <obj>/lib/x86_64-linux-gnu/libdl-2.27.so</obj>
+      <fn>dlopen_doit</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/dlfcn</dir>
+      <file>dlopen.c</file>
+      <line>66</line>
+    </frame>
+    <frame>
+      <ip>0x531651E</ip>
+      <obj>/lib/x86_64-linux-gnu/libc-2.27.so</obj>
+      <fn>_dl_catch_exception</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-error-skeleton.c</file>
+      <line>196</line>
+    </frame>
+  </stack>
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>calloc</fun> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82</obj> </sframe>
+    <sframe> <fun>call_init</fun> </sframe>
+    <sframe> <fun>_dl_init</fun> </sframe>
+    <sframe> <fun>dl_open_worker</fun> </sframe>
+    <sframe> <fun>_dl_catch_exception</fun> </sframe>
+    <sframe> <fun>_dl_open</fun> </sframe>
+    <sframe> <fun>dlopen_doit</fun> </sframe>
+    <sframe> <fun>_dl_catch_exception</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82
+   fun:call_init
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_exception
+}
+]]>
+    </rawtext>
+  </suppression>
+</error>
+
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>calloc</fun> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82</obj> </sframe>
+    <sframe> <fun>call_init</fun> </sframe>
+    <sframe> <fun>_dl_init</fun> </sframe>
+    <sframe> <fun>dl_open_worker</fun> </sframe>
+    <sframe> <fun>_dl_catch_exception</fun> </sframe>
+    <sframe> <fun>_dl_open</fun> </sframe>
+    <sframe> <fun>dlopen_doit</fun> </sframe>
+    <sframe> <fun>_dl_catch_exception</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82
+   fun:call_init
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_exception
+}
+]]>
+    </rawtext>
+  </suppression>
+<error>
+  <unique>0x225</unique>
+  <tid>1</tid>
+  <kind>Leak_DefinitelyLost</kind>
+  <xwhat>
+    <text>19,815 (6,024 direct, 13,791 indirect) bytes in 1 blocks are definitely lost in loss record 543 of 553</text>
+    <leakedbytes>19815</leakedbytes>
+    <leakedblocks>1</leakedblocks>
+  </xwhat>
+  <stack>
+    <frame>
+      <ip>0x4C31B25</ip>
+      <obj>/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so</obj>
+      <fn>calloc</fn>
+    </frame>
+    <frame>
+      <ip>0xB656105</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xB64C0D2</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xB6498C7</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xB659B6A</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xA333425</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0x401073B</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>call_init</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-init.c</file>
+      <line>58</line>
+    </frame>
+    <frame>
+      <ip>0x401073B</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>_dl_init</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-init.c</file>
+      <line>119</line>
+    </frame>
+    <frame>
+      <ip>0x401524E</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>dl_open_worker</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-open.c</file>
+      <line>522</line>
+    </frame>
+    <frame>
+      <ip>0x531651E</ip>
+      <obj>/lib/x86_64-linux-gnu/libc-2.27.so</obj>
+      <fn>_dl_catch_exception</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-error-skeleton.c</file>
+      <line>196</line>
+    </frame>
+    <frame>
+      <ip>0x4014819</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>_dl_open</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-open.c</file>
+      <line>605</line>
+    </frame>
+    <frame>
+      <ip>0x593EF95</ip>
+      <obj>/lib/x86_64-linux-gnu/libdl-2.27.so</obj>
+      <fn>dlopen_doit</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/dlfcn</dir>
+      <file>dlopen.c</file>
+      <line>66</line>
+    </frame>
+    <frame>
+      <ip>0x531651E</ip>
+      <obj>/lib/x86_64-linux-gnu/libc-2.27.so</obj>
+      <fn>_dl_catch_exception</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-error-skeleton.c</file>
+      <line>196</line>
+    </frame>
+  </stack>
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>calloc</fun> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82</obj> </sframe>
+    <sframe> <fun>call_init</fun> </sframe>
+    <sframe> <fun>_dl_init</fun> </sframe>
+    <sframe> <fun>dl_open_worker</fun> </sframe>
+    <sframe> <fun>_dl_catch_exception</fun> </sframe>
+    <sframe> <fun>_dl_open</fun> </sframe>
+    <sframe> <fun>dlopen_doit</fun> </sframe>
+    <sframe> <fun>_dl_catch_exception</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82
+   fun:call_init
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_exception
+}
+]]>
+    </rawtext>
+  </suppression>
+</error>
+
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>calloc</fun> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82</obj> </sframe>
+    <sframe> <fun>call_init</fun> </sframe>
+    <sframe> <fun>_dl_init</fun> </sframe>
+    <sframe> <fun>dl_open_worker</fun> </sframe>
+    <sframe> <fun>_dl_catch_exception</fun> </sframe>
+    <sframe> <fun>_dl_open</fun> </sframe>
+    <sframe> <fun>dlopen_doit</fun> </sframe>
+    <sframe> <fun>_dl_catch_exception</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82
+   fun:call_init
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_exception
+}
+]]>
+    </rawtext>
+  </suppression>
+<error>
+  <unique>0x22c</unique>
+  <tid>1</tid>
+  <kind>Leak_DefinitelyLost</kind>
+  <xwhat>
+    <text>72,355 (512 direct, 71,843 indirect) bytes in 1 blocks are definitely lost in loss record 550 of 553</text>
+    <leakedbytes>72355</leakedbytes>
+    <leakedblocks>1</leakedblocks>
+  </xwhat>
+  <stack>
+    <frame>
+      <ip>0x4C31D2F</ip>
+      <obj>/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so</obj>
+      <fn>realloc</fn>
+    </frame>
+    <frame>
+      <ip>0xB656B2F</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xB64A4E2</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xB648E6B</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xB649FDD</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xB659BA7</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0xA333425</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82</obj>
+    </frame>
+    <frame>
+      <ip>0x401073B</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>call_init</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-init.c</file>
+      <line>58</line>
+    </frame>
+    <frame>
+      <ip>0x401073B</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>_dl_init</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-init.c</file>
+      <line>119</line>
+    </frame>
+    <frame>
+      <ip>0x401524E</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>dl_open_worker</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-open.c</file>
+      <line>522</line>
+    </frame>
+    <frame>
+      <ip>0x531651E</ip>
+      <obj>/lib/x86_64-linux-gnu/libc-2.27.so</obj>
+      <fn>_dl_catch_exception</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-error-skeleton.c</file>
+      <line>196</line>
+    </frame>
+    <frame>
+      <ip>0x4014819</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>_dl_open</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/elf</dir>
+      <file>dl-open.c</file>
+      <line>605</line>
+    </frame>
+    <frame>
+      <ip>0x593EF95</ip>
+      <obj>/lib/x86_64-linux-gnu/libdl-2.27.so</obj>
+      <fn>dlopen_doit</fn>
+      <dir>/build/glibc-2ORdQG/glibc-2.27/dlfcn</dir>
+      <file>dlopen.c</file>
+      <line>66</line>
+    </frame>
+  </stack>
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>realloc</fun> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82</obj> </sframe>
+    <sframe> <fun>call_init</fun> </sframe>
+    <sframe> <fun>_dl_init</fun> </sframe>
+    <sframe> <fun>dl_open_worker</fun> </sframe>
+    <sframe> <fun>_dl_catch_exception</fun> </sframe>
+    <sframe> <fun>_dl_open</fun> </sframe>
+    <sframe> <fun>dlopen_doit</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82
+   fun:call_init
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:dlopen_doit
+}
+]]>
+    </rawtext>
+  </suppression>
+</error>
+
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>realloc</fun> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82</obj> </sframe>
+    <sframe> <obj>/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82</obj> </sframe>
+    <sframe> <fun>call_init</fun> </sframe>
+    <sframe> <fun>_dl_init</fun> </sframe>
+    <sframe> <fun>dl_open_worker</fun> </sframe>
+    <sframe> <fun>_dl_catch_exception</fun> </sframe>
+    <sframe> <fun>_dl_open</fun> </sframe>
+    <sframe> <fun>dlopen_doit</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-glcore.so.440.82
+   obj:/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.440.82
+   fun:call_init
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:dlopen_doit
+}
+]]>
+    </rawtext>
+  </suppression>
+<errorcounts>
+</errorcounts>
+
+<suppcounts>
+  <pair>
+    <count>7</count>
+    <name>X on SUSE11 writev uninit padding</name>
+  </pair>
+</suppcounts>
+
+</valgrindoutput>
+

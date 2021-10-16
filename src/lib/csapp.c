@@ -25,7 +25,7 @@ void posix_error(int code, char *msg) /* Posix-style error */
   exit(0);
 }
 
-void gai_error(int code, char *msg) /* Getaddrinfo-style error */
+void getaddrinfo_error(int code, char *msg) /* Getaddrinfo-style error */
 {
   fprintf(stderr, "%s: %s\n", msg, gai_strerror(code));
   exit(0);
@@ -529,7 +529,7 @@ void Getaddrinfo(const char *node, const char *service,
   int rc;
 
   if ((rc = getaddrinfo(node, service, hints, res)) != 0)
-    gai_error(rc, "Getaddrinfo error");
+    getaddrinfo_error(rc, "Getaddrinfo error");
 }
 
 /* $end getaddrinfo */
@@ -540,7 +540,7 @@ void Getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
 
   if ((rc = getnameinfo(sa, salen, host, hostlen, serv,
                         servlen, flags)) != 0)
-    gai_error(rc, "Getnameinfo error");
+    getaddrinfo_error(rc, "Getnameinfo error");
 }
 
 void Freeaddrinfo(struct addrinfo *res) {
@@ -634,6 +634,14 @@ pthread_t Pthread_self(void) {
 
 void Pthread_once(pthread_once_t *once_control, void (*init_function)()) {
   pthread_once(once_control, init_function);
+}
+
+void Pthread_setname_np(pthread_t target_thread, const char *name) {
+  int rc;
+
+  if ((rc = pthread_setname_np(target_thread, name)) != 0) {
+    posix_error(rc, "pthread_setname_np");
+  }
 }
 
 /*******************************
