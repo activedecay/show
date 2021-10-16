@@ -77,9 +77,11 @@ void free_images(image_hash *images) {
   image_hash *img, *temp;
   HASH_ITER(hh, images, img, temp) {
     HASH_DEL(images, img);
-    SDL_DestroyTexture(img->image);
-    info(GREEN"freeing image '%s'"RESET, img->id);
+    // note NEVER DO THIS ON ANY THREAD OTHER THAN MAIN
+    //SDL_DestroyTexture(img->image); // you royally screwed up
+    info(GREEN"freeing image '%s'@'%s'"RESET, img->id, img->image_res_name);
     free(img->id);
+    free(img->image_res_name);
     free(img);
   }
 }
@@ -95,7 +97,7 @@ int free_show(slide_show *show, style_item **saved_styles) {
     free(slide);
   }
   free_styles(saved_styles);
-  //free_images(show->images);
+  free_images(show->images);
   for (int j = 0; j < count(show->positions); ++j)
     free(show->positions[j]);
 
@@ -138,8 +140,7 @@ find_resource(char *resource_name) {
   return retval;
 }
 
-slide_show *init_slides(SDL_Renderer *renderer, int idx,
-                        style_item **saved_styles, char *content) {
+slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
   slide_show *the_show = 0;
 
   if (!content) return default_show();
@@ -212,28 +213,28 @@ slide_show *init_slides(SDL_Renderer *renderer, int idx,
         } else if (strcmp("define-image", token) == 0) {
 
           token = strtok_r(0, " ", &space_tokenizer);
-          char *variable_name = token;
+          char *image_alias = token;
           token = strtok_r(0, "\n", &space_tokenizer);
           char *filename = token;
           char *res_name = find_resource(filename);
           image_hash *found;
-          HASH_FIND_STR(the_show->images, variable_name, found);
+          HASH_FIND_STR(the_show->images, image_alias, found);
           if (found) {
             info(RED
                      "there's already an image named '%s'"
-                     RESET, variable_name);
+                     RESET, image_alias);
           } else {
             image_hash *ihash = Calloc(1, sizeof(image_hash));
-            ihash->image = get_texture_from_image(renderer, res_name);
-            size_t len = strlen(variable_name);
+            ihash->image_res_name = res_name;
+            size_t len = strlen(image_alias);
             ihash->id = strcpy(Malloc(len * sizeof(char) + 1),
-                               variable_name);
+                               image_alias);
             HASH_ADD_STR(the_show->images, id, ihash);
             info("defined image '%s' from shortname '%s'"
                  " in folder '%s' full path was '%s'",
-                 variable_name, filename, RES_DIR, res_name);
+                 image_alias, filename, RES_DIR, res_name);
           }
-          free(res_name);
+          //free(res_name);
 
         } else if (strcmp("image", token) == 0) {
 
@@ -246,7 +247,7 @@ slide_show *init_slides(SDL_Renderer *renderer, int idx,
           if (found) {
             item_grocer *item = Calloc(1, sizeof(item_grocer));
             item->type = image_t_item;
-            item->item.image = found->image;
+            item->item.text = found->image_res_name;
             push(slide->grocery_items, item);
           } else {
             info(RED
@@ -535,7 +536,7 @@ slide_show *default_show() {
 }
 
 void render_slide(SDL_Renderer *renderer, int w, int h,
-                  slide_show *show, font *fonts) {
+                  slide_show *show, font *fonts, linkedlist *images) {
   SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
   slide_item *current_slide = show->slides[show->index];
   SDL_Color slide_bg = current_slide->bg_color;
@@ -549,13 +550,14 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
 
   for (int i = 0; i < count(current_slide->using); ++i) {
     slide_item *using = current_slide->using[i];
-    if (using) draw_slide_items(renderer, w, h, fonts, using);
+    if (using) draw_slide_items(renderer, w, h, fonts, using, images);
   }
-  draw_slide_items(renderer, w, h, fonts, current_slide);
+  draw_slide_items(renderer, w, h, fonts, current_slide, images);
 }
 
-void draw_slide_items(const SDL_Renderer *renderer, int w, int h,
-                      const font *fonts, const slide_item *current_slide) {
+void draw_slide_items(SDL_Renderer *renderer, int w, int h,
+                      const font *fonts, const slide_item *current_slide,
+                      linkedlist *images) {
   point top_left = {0, 0};
   int line_number = 0;
   point *last_box = 0;
@@ -566,6 +568,35 @@ void draw_slide_items(const SDL_Renderer *renderer, int w, int h,
     item_grocer *item = current_slide->grocery_items[i];
     switch (item->type) {
       case image_t_item: {
+        if (!item->image_texture) {
+
+          bool found = false;
+          image_item *ii;
+          while (!found || images == 0) {
+            ii = (image_item *) images->data;
+            if (!ii) break;
+            if (strcmp(ii->text, item->item.text) == 0) {
+              found = true;
+              item->item.image = ii->image;
+            }
+            images = images->next;
+          }
+
+          if (!found) {
+            ii = Calloc(1, sizeof(image_item));
+            images->data = ii;
+            ii->text = Malloc(strlen(item->item.text) + 1);
+            strcpy(ii->text, item->item.text);
+            item->item.image = get_texture_from_image(renderer, item->item.text);
+            ii->image = item->item.image;
+            images->next = Calloc(1, sizeof(linkedlist));
+          } else {
+            debug("renderer found an image: %s", ii->text);
+          }
+
+          item->image_texture = true;
+        }
+
         SDL_RenderCopy(renderer, item->item.image, 0, 0);
         break;
       }

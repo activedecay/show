@@ -414,8 +414,9 @@ void *Calloc(size_t nmemb, size_t size) {
   return p;
 }
 
-void Free(void *ptr) { // why?
-  free(ptr);
+void Free(void **ptr) {
+  if (*ptr) free(*ptr);
+  *ptr = 0;
 }
 
 /******************************************

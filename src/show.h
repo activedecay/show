@@ -52,7 +52,7 @@
 #define info(format, ...) ({ \
     fprintf (stdout, format, ## __VA_ARGS__); \
     fprintf (stdout, "\n"); })
-//#define DEBUG_ENABLED
+#define DEBUG_ENABLED
 #ifdef DEBUG_ENABLED
 #define dbg(format, ...) ({ \
     fprintf (stdout, format, ## __VA_ARGS__); })
@@ -83,10 +83,17 @@
 #define GRAY    "\e[37m"
 #define RESET   "\e[39m"
 
-typedef struct {
+typedef struct linkedlist linkedlist;
+struct linkedlist {
     struct linkedlist *next;
-    void *val;
-} linkedlist;
+    void *data;
+};
+
+typedef struct image_item image_item;
+struct image_item {
+  char *text;
+  SDL_Texture *image;
+};
 
 /* slide show */
 
@@ -165,6 +172,7 @@ typedef struct {
     } type;
     style_item *style;
     point *pos;
+    bool image_texture;
     union {
         char *text;
         SDL_Texture *image;
@@ -186,8 +194,8 @@ typedef struct {
 } template_slide;
 
 typedef struct {
-    char *id;
-    SDL_Texture *image;
+    char *id; /* image_alias - the image's alias in `. define-image [alias] [res_name]` */
+    char *image_res_name; /* res_name - the image's /res/ filename in `. define-image [alias] [res_name]` */
     UT_hash_handle hh;
 } image_hash;
 
@@ -218,8 +226,8 @@ typedef struct {
 
 slide_show *default_show();
 
-void draw_slide_items(const SDL_Renderer *, int, int,
-                      const font *, const slide_item *);
+void draw_slide_items(SDL_Renderer *, int, int,
+                      const font *, const slide_item *, linkedlist *images);
 
 SDL_Texture *get_texture_from_image(SDL_Renderer *, char *);
 
@@ -229,8 +237,7 @@ SDL_Texture *get_texture_from_image(SDL_Renderer *, char *);
 typedef FUNCTION_FF((*find_font_ptr));
 FUNCTION_FF(find_font);
 
-#define FUNCTION_IS(fun) slide_show *fun(SDL_Renderer *, int,      \
-        style_item **, char *)
+#define FUNCTION_IS(fun) slide_show *fun(int, style_item **, char *)
 typedef FUNCTION_IS((*init_slides_ptr));
 FUNCTION_IS(init_slides);
 
@@ -239,7 +246,7 @@ typedef FUNCTION_FS((*free_show_ptr));
 FUNCTION_FS(free_show);
 
 #define FUNCTION_RS(fun) void fun(SDL_Renderer *, int, int,        \
-        slide_show *, font *)
+        slide_show *, font *, linkedlist *)
 typedef FUNCTION_RS((*render_slide_ptr));
 FUNCTION_RS(render_slide);
 

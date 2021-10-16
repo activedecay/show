@@ -182,7 +182,7 @@ void *           Realloc(void *ptr, size_t size);
 
 void *           Calloc(size_t nmemb, size_t size);
 
-void             Free(void *ptr);
+void             Free(void **ptr);
 
 /* Sockets interface wrappers */
 int              Socket(int domain, int type, int protocol);

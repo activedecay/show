@@ -67,6 +67,7 @@ typedef struct {
     slide_show *show;
     style_item *saved_styles;  /* = 0; important */
     SDL_Renderer *renderer;
+    linkedlist *images;
 } game_state;
 
 void load_game_library(void *);
@@ -103,16 +104,25 @@ main(int argc, char *argv[]) {
   // because i can't break in the x_error_handler
   // XSetErrorHandler(x_error_handler);
 
+  linkedlist images = {0};
   game_state game_state = {
       // note, you need -L./lib when compiling to make this work
       "lib/libslider.so",
       argc < 2 ? 0 : argv[1],
       {0},
       {0},
+      {
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,},
       0,
       0,
       0,
-      0
+      0,
+      &images,
   };
   Sem_init(&game_state.game_sem, 0, 1);
   Sem_init(&game_state.show_sem, 0, 1);
@@ -209,7 +219,7 @@ main(int argc, char *argv[]) {
     P(&game_state.show_sem);
     if (game_state.show->slides)
       game_state.game_library.render_slide_func(
-          renderer, w, h, game_state.show, game_state.fonts);
+          renderer, w, h, game_state.show, game_state.fonts, game_state.images);
     V(&game_state.show_sem);
 
     SDL_GetMouseState(&mouse_x, &mouse_y);
@@ -391,8 +401,7 @@ void read_slideshow_file(void *ll) {
             "while freeing the show!");
 
     if ((state->show = state->game_library
-        .init_slides_func(state->renderer,
-                          idx,
+        .init_slides_func(idx,
                           &state->saved_styles,
                           content)) == 0) {
       die("this show file sucks!");
