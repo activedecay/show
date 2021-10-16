@@ -103,7 +103,7 @@ main(int argc, char *argv[]) {
   // because i can't break in the x_error_handler
   // XSetErrorHandler(x_error_handler);
 
-  game_state global_state = {
+  game_state game_state = {
       // note, you need -L./lib when compiling to make this work
       "lib/libslider.so",
       argc < 2 ? 0 : argv[1],
@@ -114,8 +114,8 @@ main(int argc, char *argv[]) {
       0,
       0
   };
-  Sem_init(&global_state.game_sem, 0, 1);
-  Sem_init(&global_state.show_sem, 0, 1);
+  Sem_init(&game_state.game_sem, 0, 1);
+  Sem_init(&game_state.show_sem, 0, 1);
 
   SDL_Window *window = 0;
   SDL_Renderer *renderer = 0;
@@ -132,44 +132,45 @@ main(int argc, char *argv[]) {
   SDL_CreateWindowAndRenderer(
       w, h, SDL_WINDOW_RESIZABLE, &window, &renderer);
 
-  global_state.renderer = renderer;
+  game_state.renderer = renderer;
 
   // make sure we have a game library before forking a thread
-  load_game_library(&global_state);
+  load_game_library(&game_state);
+  read_slideshow_file(&game_state);
 
-  if (!global_state.show->slides)
+  if (!game_state.show->slides)
     return die("Error: no slides! create a slide with '# Title'");
 
   pthread_t threadId;
-  Pthread_create(&threadId, 0, watch_slideshow_file, &global_state);
+  Pthread_create(&threadId, 0, watch_slideshow_file, &game_state);
   #define pthread_name_len 16
   char thread_name[pthread_name_len] = "show watch";
   Pthread_setname_np(threadId, thread_name);
-  Pthread_create(&threadId, 0, watch_library, &global_state);
+  Pthread_create(&threadId, 0, watch_library, &game_state);
   strncpy(thread_name, "lib watch", pthread_name_len);
   Pthread_setname_np(threadId, thread_name);
 
   if (!(mouse_font = TTF_OpenFont("./res/FreeSans.ttf", 72)))
     return die("can't load the mouse mouse_font");
   SDL_Rect mouse_follow_rect = {10, 10};
-  mouse_follow_word = global_state.game_library.texturize_text_func(
+  mouse_follow_word = game_state.game_library.texturize_text_func(
       renderer, mouse_font, ":*", (SDL_Color) {255, 255, 255, 255},
       &mouse_follow_rect, SDL_BLENDMODE_BLEND);
   TTF_CloseFont(mouse_font);
 
   /* note @Evict from main */
-  add_font(&global_state.fonts, "sansnormal", "./res/FreeSans.ttf");
-  add_font(&global_state.fonts, "sansbold", "./res/FreeSansBold.ttf");
-  add_font(&global_state.fonts, "sansitalic", "./res/FreeSansOblique.ttf");
-  add_font(&global_state.fonts, "serifnormal", "./res/FreeSerif.ttf");
-  add_font(&global_state.fonts, "serifbold", "./res/FreeSerifBold.ttf");
-  add_font(&global_state.fonts, "serifitalic", "./res/FreeSerifItalic.ttf");
-  add_font(&global_state.fonts, "mononormal", "./res/FreeMono.ttf");
-  add_font(&global_state.fonts, "monobold", "./res/FreeMonoBold.ttf");
-  add_font(&global_state.fonts, "monoitalic", "./res/FreeMonoOblique.ttf");
-  add_font(&global_state.fonts, "scriptnormal", "./res/AlexBrush-Regular.ttf");
-  add_font(&global_state.fonts, "scriptitalic", "./res/AlexBrush-Regular.ttf");
-  add_font(&global_state.fonts, "scriptbold", "./res/AlexBrush-Regular.ttf");
+  add_font(&game_state.fonts, "sansnormal", "./res/FreeSans.ttf");
+  add_font(&game_state.fonts, "sansbold", "./res/FreeSansBold.ttf");
+  add_font(&game_state.fonts, "sansitalic", "./res/FreeSansOblique.ttf");
+  add_font(&game_state.fonts, "serifnormal", "./res/FreeSerif.ttf");
+  add_font(&game_state.fonts, "serifbold", "./res/FreeSerifBold.ttf");
+  add_font(&game_state.fonts, "serifitalic", "./res/FreeSerifItalic.ttf");
+  add_font(&game_state.fonts, "mononormal", "./res/FreeMono.ttf");
+  add_font(&game_state.fonts, "monobold", "./res/FreeMonoBold.ttf");
+  add_font(&game_state.fonts, "monoitalic", "./res/FreeMonoOblique.ttf");
+  add_font(&game_state.fonts, "scriptnormal", "./res/AlexBrush-Regular.ttf");
+  add_font(&game_state.fonts, "scriptitalic", "./res/AlexBrush-Regular.ttf");
+  add_font(&game_state.fonts, "scriptbold", "./res/AlexBrush-Regular.ttf");
 
   bool in_frame = false;
   bool quit = false;
@@ -183,33 +184,33 @@ main(int argc, char *argv[]) {
         frame_delay = 0;
         break;
       }
-      P(&global_state.show_sem);
+      P(&game_state.show_sem);
       switch ((SDL_EventType) event.type) {
         case SDL_WINDOWEVENT: {
           do_window(&event, &frame_delay, &w, &h, &in_frame);
           break;
         }
         case SDL_KEYDOWN: {
-          quit = on_keydown(&event, global_state.show, &frame_delay);
+          quit = on_keydown(&event, game_state.show, &frame_delay);
           break;
         }
         case SDL_MOUSEWHEEL: {
-          global_state.show->index += -event.wheel.y;
+          game_state.show->index += -event.wheel.y;
           break;
         }
         default:
           break;
       }
-      global_state.show->index = global_state.show->index < 0 ? 0
-          : min(global_state.show->index, count(global_state.show->slides) - 1);
-      V(&global_state.show_sem);
+      game_state.show->index = game_state.show->index < 0 ? 0
+          : min(game_state.show->index, count(game_state.show->slides) - 1);
+      V(&game_state.show_sem);
     }
 
-    P(&global_state.show_sem);
-    if (global_state.show->slides)
-      global_state.game_library.render_slide_func(
-          renderer, w, h, global_state.show, global_state.fonts);
-    V(&global_state.show_sem);
+    P(&game_state.show_sem);
+    if (game_state.show->slides)
+      game_state.game_library.render_slide_func(
+          renderer, w, h, game_state.show, game_state.fonts);
+    V(&game_state.show_sem);
 
     SDL_GetMouseState(&mouse_x, &mouse_y);
     mouse_follow_rect.x = mouse_x + 20;
@@ -358,8 +359,6 @@ void load_game_library(void *global_state) {
     fprintf(stderr, "todo lasagna %s\n", error);
     exit(EXIT_FAILURE);
   }
-
-  read_slideshow_file(global_state);
 }
 
 void read_slideshow_file(void *ll) {

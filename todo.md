@@ -1,4 +1,5 @@
 # do it
+remove threaded manipulation of textures (allowed on the main thread only!)
 stretchy was deprecated, consider std_ds
 consider -fno-strict-aliasing https://blog.regehr.org/archives/1307
 consider using sscanf instead of strtok_r
