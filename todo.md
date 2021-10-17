@@ -1,6 +1,7 @@
 # do it
-shadow color
-vertical align
+text shadow color
+text vertical align
+text x offset
 normal, italic, and bold versions of script text
 move the initialization of font families out of main? @Evict
 remove threaded manipulation of textures (allowed on the main thread only!)

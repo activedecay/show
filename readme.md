@@ -17,7 +17,7 @@ inotify will poll the files that you're editing and reload the libslider.so/show
 - `cmake --build cmake-build-debug --target slider install`
 
 # commands
-. [*]             start of command
+. [*]             the dot-space sequence '. ' is start of command
 . font            [float_size] [family?] [style?] [alignment?]
     size          1/100th of a window height, `.2` = font size 20% window height
     (family)      sans serif mono script
@@ -42,9 +42,12 @@ inotify will poll the files that you're editing and reload the libslider.so/show
 . y               [float_h]
     float_h       a percentage of y screen real estate, .5 = 50%
 . bg              [float_r] [float_g] [float_b] [? float_alpha]
+    float r g b   a percentage of color; .5 = 50% red, etc.
+    float_alpha   slide transition fade with values < 1 (default 1)
 . color           [float_r] [float_g] [float_b]
-    float_r       text; red percentage
+    float r g b   text; .5 = 50% red, etc.
 . line-height     [float]
+    height        squish text together set values < 1; (default 1)
 
 # stretchy buffers
 stretchy_buffer.h: a tidy little C implementation

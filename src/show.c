@@ -569,15 +569,66 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
 void draw_slide_items(SDL_Renderer *renderer, int width, int height,
                       const font *fonts, const slide_item *current_slide,
                       linkedlist *images) {
-  point top_left = {0, 0};
-  int line_number = 0;
-  point *last_box = 0;
-  SDL_Rect rect = {0};
-  point box;
+  SDL_Rect rect = {0}; /* origin's locations mapped to screen pixels (integers) */
 
   for (int i = 0; i < count(current_slide->grocery_items); ++i) {
     item_grocer *item = current_slide->grocery_items[i];
     switch (item->type) {
+      case text_t_item: {
+
+        style_item *style = item->style;
+        int font_size = (int) (style->size * (float) height);
+
+        if (item->pos) {
+          rect.y = (int) (item->pos->y * (float) height);
+        } // otherwise, don't update rect.y to keep the loop value increments
+        rect.x = 0; // todo text x offset
+        // draw text at rect
+        // update rect.y += rect.h * style->line_height
+
+        char *fam = get_fam(style);
+        char *sty = get_style(style);
+        char font_idx[strlen(fam) + strlen(sty) + 1];
+        strcpy(font_idx, fam);
+        strcat(font_idx, sty);
+
+        TTF_Font *font;
+        if ((font = TTF_OpenFont(find_font(fonts, font_idx)->filename, font_size))) {
+          SDL_Texture *shadow_text =
+              texturize_text(renderer, font, item->item.text,
+                             cf4(0, 0, 0, .4f), // todo text shadow color
+                             &rect, SDL_BLENDMODE_BLEND);
+          SDL_Texture *slide_text =
+              texturize_text(renderer, font, item->item.text,
+                             style->fg_color,
+                             &rect, SDL_BLENDMODE_BLEND);
+          TTF_CloseFont(font);
+          // todo text vertical align
+          int vertical_align = 0;
+          switch (style->align) {
+            default:
+            case left:
+              rect.x += (int) ((float) width * style->margins_x);
+              break;
+            case center:
+              rect.x += width / 2 - rect.w / 2;
+              break;
+            case right:
+              rect.x = width - rect.w - (int) ((float) width * style->margins_x);
+              break;
+          }
+          SDL_RenderCopy(renderer, shadow_text, 0, &rect);
+          rect.x -= SHADOW_DISTANCE;
+          rect.y -= SHADOW_DISTANCE;
+          SDL_RenderCopy(renderer, slide_text, 0, &rect);
+          SDL_DestroyTexture(shadow_text);
+          SDL_DestroyTexture(slide_text);
+          rect.y = rect.y + vertical_align + (int) ((float) rect.h * style->line_height);
+        } else {
+          assert(!"needs a better font failure mechanism");
+        }
+        break;
+      }
       case image_t_item: {
         if (!item->image_texture) {
 
@@ -609,79 +660,6 @@ void draw_slide_items(SDL_Renderer *renderer, int width, int height,
         }
 
         SDL_RenderCopy(renderer, item->item.image, 0, 0);
-        break;
-      }
-      case text_t_item: {
-
-        style_item *style = item->style;
-        int font_size = (int) (style->size * (float) height);
-
-        // todo
-        // if item pos, init box (text block) there
-        // if last_box, init box from the last known location
-        // else top_left is box
-        box = item->pos ? *item->pos : last_box ? *last_box : top_left;
-        // update box.y += rect.h * style->line_height
-        // draw text at box
-        // last_box = box
-        // get rid of rect, and line_number
-        // todo
-
-        // if item pos, initialize our box there
-        // when no item pos, we should use the last box
-        // when no last box, we should use the top left
-        // seeing a new pos resets the y-coordinate
-        // and therefore our number line is also reset
-        // so our text flows
-        if (item->pos) line_number = 0;
-
-        rect.y = (int) ((float) height * box.y);
-        rect.x = 0;
-
-        char *fam = get_fam(style);
-        char *sty = get_style(style);
-        char font_idx[strlen(fam) + strlen(sty) + 1];
-        strcpy(font_idx, fam);
-        strcat(font_idx, sty);
-
-        TTF_Font *font;
-        if ((font = TTF_OpenFont(find_font(fonts, font_idx)->filename, font_size))) {
-          SDL_Texture *shadow_text =
-              texturize_text(renderer, font, item->item.text,
-                             cf4(0, 0, 0, .4f), // todo shadow color
-                             &rect, SDL_BLENDMODE_BLEND);
-          SDL_Texture *slide_text =
-              texturize_text(renderer, font, item->item.text,
-                             style->fg_color,
-                             &rect, SDL_BLENDMODE_BLEND);
-          TTF_CloseFont(font);
-          // todo wouldn't it be nice if we had vertical alignment!
-          int vertical_align = 0;
-          rect.y = rect.y + vertical_align +
-              (int) ((float) line_number * (float) rect.h * style->line_height);
-          line_number++;
-          switch (style->align) {
-            default:
-            case left:
-              rect.x += (int) ((float) width * style->margins_x);
-              break;
-            case center:
-              rect.x += width / 2 - rect.w / 2;
-              break;
-            case right:
-              rect.x = width - rect.w - (int) ((float) width * style->margins_x);
-              break;
-          }
-          SDL_RenderCopy(renderer, shadow_text, 0, &rect);
-          rect.x -= SHADOW_DISTANCE;
-          rect.y -= SHADOW_DISTANCE;
-          SDL_RenderCopy(renderer, slide_text, 0, &rect);
-          SDL_DestroyTexture(shadow_text);
-          SDL_DestroyTexture(slide_text);
-        } else {
-          assert(!"needs a better font failure mechanism");
-        }
-        last_box = &box;
         break;
       }
     }
