@@ -18,21 +18,23 @@ inotify will poll the files that you're editing and reload the libslider.so/show
 
 # commands
 . [*]             start of command
-. font            [float] [family?] [style?] [alignment?]
-    (style)       normal italic bold
+. font            [float_size] [family?] [style?] [alignment?]
+    size          1/100th of a window height, `.2` = font size 20% window height
     (family)      sans serif mono script
+    (style)       normal italic bold
     (alignment)   left center right
 . define-image    [unique-alias] [path]
-    path          a file name in `/res/` dir without extension
+    alias         used in the `image` command to recall an image
+    path          a file name substring existing in `/res/` dir
                   , ie "lambo.png" would be `lambo`
                   , subtle note, two images must not have the same substring match (strstr)
 . image           [alias-recall]
-    alias-recall  recall the alias created in `define-image`
+    alias-recall  recall the alias created in `define-image` [Q: does image templating work?]
     todo          x, y, w, h
 . #               [unique-alias]
-                  creates a template slide (font, color, y, [Q: does it do line-height?])
+    alias         creates a template slide (font, color, y, [Q: does it do line-height?])
 . using           [alias-recall]
-    alias-recall  recall the alias created in `#`
+    alias-recall  recall the alias created in `#` [Q: what is recalled?] [Q: what happens to the text?]
 . define-style    [unique-alias]
 . save-style
 . style           [alias-recall]

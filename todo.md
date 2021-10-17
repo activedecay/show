@@ -1,4 +1,8 @@
 # do it
+shadow color
+vertical align
+normal, italic, and bold versions of script text
+move the initialization of font families out of main? @Evict
 remove threaded manipulation of textures (allowed on the main thread only!)
 stretchy was deprecated, consider std_ds
 consider -fno-strict-aliasing https://blog.regehr.org/archives/1307
@@ -13,7 +17,7 @@ use show.md file as window size config: fullscreen, x, y, w, h
 draw on slides with laser pointer
 use voice commands to launch a missle and blow up the text
 
-load-image lol pic.png
+
 image scale, crop, rotate
   - hot-load images! OMFG ? could just do the same
     thing as reading the image each time show.md changes
@@ -68,10 +72,10 @@ poly lines
 
 
 # features
+define-image lol pic.png
 packaged with free fonts
 initialize a new rect y for each y encountered. draw a box
 allow all style variables to change independently
-shadowed text!
 many image types (png, jpg, bmp, gif)
 shadowed text!
 
@@ -95,12 +99,12 @@ Example usage:
     - `. margin [float]`
     - `. color [float-red] [float-green] [float-blue] [float-alpha]`
 . finally save with: `. save-style`
-- use with: `style trolol`
+- use with: `. style Title Text`
 
 Text position flows from the most recent `. y [float-height]`.
 Text position starts at the top for every new slide.
 
-font size is 1/100th of a screen height
+font size is 1/100th of a window height
 
 # notes
 

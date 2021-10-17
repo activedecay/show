@@ -453,7 +453,7 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           item->pos = Calloc(1, sizeof(point));
           push(the_show->positions, item->pos);
           item->pos->y = new_y;
-          item->pos->x = 777;
+          item->pos->x = 77777; // todo unused 77777
           reassign_y = false;
         } else {
           // interpret 0 as being the use case for continuing
@@ -544,18 +544,29 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
       renderer, slide_bg.r, slide_bg.g, slide_bg.b, slide_bg.a);
   SDL_RenderFillRect(renderer, 0);
 
-  SDL_Rect x = {100, 100, 100, 100};
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 1);
-  SDL_RenderFillRect(renderer, &x);
-
+  // recall as many `. using` template slides as you want on a slide
   for (int i = 0; i < count(current_slide->using); ++i) {
     slide_item *using = current_slide->using[i];
     if (using) draw_slide_items(renderer, w, h, fonts, using, images);
   }
+
+  // then draw our stuff on the current slide
   draw_slide_items(renderer, w, h, fonts, current_slide, images);
 }
 
-void draw_slide_items(SDL_Renderer *renderer, int w, int h,
+
+// todo (draw_slide_items)
+//  using sdl and sdl_ttf source would allow us
+//  to call the SetFontSize() instead of reading the
+//  thing every frame. that way we can keep the pointers
+//  and don't have to store all the sizes. we can just
+//  keep the pointers and set the size in the render call.
+//  implementing this feature would remove the OpenFont calls
+//  (i guess) but my feeling is that you're full of shit
+// historical justin made bolder statements than the today justin
+
+/* iterate over the grocery list and draw each item on the renderer */
+void draw_slide_items(SDL_Renderer *renderer, int width, int height,
                       const font *fonts, const slide_item *current_slide,
                       linkedlist *images) {
   point top_left = {0, 0};
@@ -603,17 +614,28 @@ void draw_slide_items(SDL_Renderer *renderer, int w, int h,
       case text_t_item: {
 
         style_item *style = item->style;
+        int font_size = (int) (style->size * (float) height);
+
+        // todo
+        // if item pos, init box (text block) there
+        // if last_box, init box from the last known location
+        // else top_left is box
+        box = item->pos ? *item->pos : last_box ? *last_box : top_left;
+        // update box.y += rect.h * style->line_height
+        // draw text at box
+        // last_box = box
+        // get rid of rect, and line_number
+        // todo
 
         // if item pos, initialize our box there
         // when no item pos, we should use the last box
         // when no last box, we should use the top left
-        box = item->pos ? *item->pos : last_box ? *last_box : top_left;
         // seeing a new pos resets the y-coordinate
         // and therefore our number line is also reset
         // so our text flows
         if (item->pos) line_number = 0;
 
-        rect.y = (int) (h * box.y);
+        rect.y = (int) ((float) height * box.y);
         rect.x = 0;
 
         char *fam = get_fam(style);
@@ -621,40 +643,33 @@ void draw_slide_items(SDL_Renderer *renderer, int w, int h,
         char font_idx[strlen(fam) + strlen(sty) + 1];
         strcpy(font_idx, fam);
         strcat(font_idx, sty);
-        // todo using sdl and sdl_ttf source would allow us
-        //  to call the SetFontSize() instead of reading the
-        //  thing every frame. that way we can keep the pointers
-        //  and don't have to store all the sizes. we can just
-        //  keep the pointers and set the size in the render call
-        TTF_Font *f;
-        if ((f = TTF_OpenFont(
-            find_font(fonts, font_idx)->filename,
-            (int) (style->size * h)))) {
+
+        TTF_Font *font;
+        if ((font = TTF_OpenFont(find_font(fonts, font_idx)->filename, font_size))) {
           SDL_Texture *shadow_text =
-              texturize_text(renderer, f,
-                             item->item.text,
-                             cf4(0, 0, 0, .4),
+              texturize_text(renderer, font, item->item.text,
+                             cf4(0, 0, 0, .4f), // todo shadow color
                              &rect, SDL_BLENDMODE_BLEND);
           SDL_Texture *slide_text =
-              texturize_text(renderer, f,
-                             item->item.text,
+              texturize_text(renderer, font, item->item.text,
                              style->fg_color,
                              &rect, SDL_BLENDMODE_BLEND);
-          TTF_CloseFont(f);
+          TTF_CloseFont(font);
           // todo wouldn't it be nice if we had vertical alignment!
           int vertical_align = 0;
           rect.y = rect.y + vertical_align +
-                   (int) (line_number++ * rect.h * style->line_height);
+              (int) ((float) line_number * (float) rect.h * style->line_height);
+          line_number++;
           switch (style->align) {
             default:
             case left:
-              rect.x += (int) (w * style->margins_x);
+              rect.x += (int) ((float) width * style->margins_x);
               break;
             case center:
-              rect.x += w / 2 - rect.w / 2;
+              rect.x += width / 2 - rect.w / 2;
               break;
             case right:
-              rect.x = w - rect.w - (int) (w * style->margins_x);
+              rect.x = width - rect.w - (int) ((float) width * style->margins_x);
               break;
           }
           SDL_RenderCopy(renderer, shadow_text, 0, &rect);
@@ -673,15 +688,20 @@ void draw_slide_items(SDL_Renderer *renderer, int w, int h,
   }
 }
 
+/* creates a texture using the ttf font, rendered in high definition.
+ * queries the texture's width and height and stores the result in rect */
 SDL_Texture *
 texturize_text(SDL_Renderer *renderer, TTF_Font *font, char *string,
-               SDL_Color fg, SDL_Rect *r, SDL_BlendMode mode) {
+               SDL_Color fg, SDL_Rect *rect, SDL_BlendMode mode) {
   SDL_Surface *t;
+//  char tmp[4096];
+//  sprintf(tmp, "%s %d, %d", string, r->w, r->h);
+//  if (!(t = TTF_RenderText_Blended(font, tmp, fg))) return 0;
   if (!(t = TTF_RenderText_Blended(font, string, fg))) return 0;
   assert(!SDL_SetSurfaceBlendMode(t, mode));
   SDL_Texture *words = SDL_CreateTextureFromSurface(renderer, t);
   SDL_FreeSurface(t);
-  SDL_QueryTexture(words, 0, 0, &r->w, &r->h);
+  SDL_QueryTexture(words, 0, 0, &rect->w, &rect->h);
   assert(!SDL_SetTextureBlendMode(words, mode));
 
   SDL_SetTextureAlphaMod(words, fg.a);
@@ -753,7 +773,7 @@ SDL_Cursor *get_cursor() {
   return cursor;
 }
 
-font *find_font(font *fonts, char *name) {
+font *find_font(const font *fonts, char *name) {
   font *s;
   HASH_FIND_STR(fonts, name, s);
   return s;

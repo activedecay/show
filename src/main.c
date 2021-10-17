@@ -168,16 +168,19 @@ main(int argc, char *argv[]) {
       &mouse_follow_rect, SDL_BLENDMODE_BLEND);
   TTF_CloseFont(mouse_font);
 
-  /* note @Evict from main */
+  /* note @Evict from main, i dunno make because we wanted to make a font-creation fun? */
   add_font(&game_state.fonts, "sansnormal", "./res/FreeSans.ttf");
   add_font(&game_state.fonts, "sansbold", "./res/FreeSansBold.ttf");
   add_font(&game_state.fonts, "sansitalic", "./res/FreeSansOblique.ttf");
+
   add_font(&game_state.fonts, "serifnormal", "./res/FreeSerif.ttf");
   add_font(&game_state.fonts, "serifbold", "./res/FreeSerifBold.ttf");
   add_font(&game_state.fonts, "serifitalic", "./res/FreeSerifItalic.ttf");
+
   add_font(&game_state.fonts, "mononormal", "./res/FreeMono.ttf");
   add_font(&game_state.fonts, "monobold", "./res/FreeMonoBold.ttf");
   add_font(&game_state.fonts, "monoitalic", "./res/FreeMonoOblique.ttf");
+
   add_font(&game_state.fonts, "scriptnormal", "./res/AlexBrush-Regular.ttf");
   add_font(&game_state.fonts, "scriptitalic", "./res/AlexBrush-Regular.ttf");
   add_font(&game_state.fonts, "scriptbold", "./res/AlexBrush-Regular.ttf");

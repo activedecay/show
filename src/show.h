@@ -227,13 +227,13 @@ typedef struct {
 slide_show *default_show();
 
 void draw_slide_items(SDL_Renderer *, int, int,
-                      const font *, const slide_item *, linkedlist *images);
+                      const font *, const slide_item *, linkedlist *);
 
 SDL_Texture *get_texture_from_image(SDL_Renderer *, char *);
 
 /* fancy defines for robustly making a fuction pointer
  * whose parameter list can change at will */
-#define FUNCTION_FF(fun) font *fun(font *, char *)
+#define FUNCTION_FF(fun) font *fun(const font *, char *)
 typedef FUNCTION_FF((*find_font_ptr));
 FUNCTION_FF(find_font);
 
@@ -252,7 +252,7 @@ FUNCTION_RS(render_slide);
 
 #define FUNCTION_TT(fun) SDL_Texture * fun(SDL_Renderer *renderer, \
         TTF_Font *font, char *string, SDL_Color fg,                \
-        SDL_Rect *r, SDL_BlendMode mode)
+        SDL_Rect *rect, SDL_BlendMode mode)
 typedef FUNCTION_TT((*texturize_text_ptr));
 FUNCTION_TT(texturize_text);
 
