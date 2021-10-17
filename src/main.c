@@ -181,9 +181,9 @@ main(int argc, char *argv[]) {
   add_font(&game_state.fonts, "monobold", "./res/FreeMonoBold.ttf");
   add_font(&game_state.fonts, "monoitalic", "./res/FreeMonoOblique.ttf");
 
-  add_font(&game_state.fonts, "scriptnormal", "./res/AlexBrush-Regular.ttf");
+  add_font(&game_state.fonts, "scriptnormal", "./res/Quintessential-Regular.ttf");
   add_font(&game_state.fonts, "scriptitalic", "./res/AlexBrush-Regular.ttf");
-  add_font(&game_state.fonts, "scriptbold", "./res/AlexBrush-Regular.ttf");
+  add_font(&game_state.fonts, "scriptbold",   "./res/OleoScript-Bold.ttf");
 
   bool in_frame = false;
   bool quit = false;

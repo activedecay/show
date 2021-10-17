@@ -1,4 +1,5 @@
 . define-image pink pink-lambo
+. define-image bluel blue-lambo
 . define-image red red-chiron
 . define-image neon neon-buggati
 . define-image green green-bently
@@ -10,6 +11,14 @@
 . font .5
 There are cars!
 
+
+# slide pink
+. using cars
+. image bluel
+. color .4 .4 1
+. font .4
+blue
+though!
 
 # slide pink
 . using cars
@@ -39,16 +48,17 @@ green!
 . using cars
 . image blue
 . color 0 0 1
-blue!
+blue 2!
 
 # slide grey
-. color 1 1 1 .5
+. color 1 1 1 .8
 . using cars
 . image grey
+. y .5
 grey!
  
 # slide car 
 . color 1 1 1 .5
 . using cars
 . image car
-car!
+a car tho!
