@@ -23,11 +23,9 @@ inotify will poll the files that you're editing and reload the libslider.so/show
 | --------------  | ----------------  | ----------------- |
 | slide text      |               | any text that is not a command start is shown on a slide |
 | . [*]           |               | the dot-space sequence '. ' is start of command |
-| . font          |               | [float_size] [family?] [style?] [alignment?] |
-|                 | size          | 1/100th of a window height, `.2` = font size 20% window height |
-|                 | (family)      | sans serif mono script |
-|                 | (style)       | normal italic bold |
-|                 | (alignment)   | left center right |
+| . bg            |               | [float_r] [float_g] [float_b] [? float_alpha=1] |
+|                 | float r g b   | a percentage of color; .5 = 50% red, etc. |
+|                 | float_alpha   | slide transition fade with values < 1 (default 1) |
 | . define-image  |               | [unique-alias] [path] |
 |                 | alias         | used in the `image` command to recall an image |
 |                 | path          | a file name substring existing in `/res/` dir |
@@ -41,16 +39,21 @@ inotify will poll the files that you're editing and reload the libslider.so/show
 | . using         |               | [alias-recall] |
 |                 | alias         | recall the alias created in `#` [Q: what is recalled?] [Q: what happens to the text?] |
 | . define-style  |               | [unique-alias] |
+|                 | alias         | creates a style to set [Q: doc what style settings are saved] |
 | . save-style    |               | takes no arguments and saves the style state changes |                
 | . style         |               | [alias-recall] |
 |                 | alias         | recall the alias created in `define-style` |
 | . y             |               | [float_h] |
 |                 | float_h       | a percentage of y screen real estate, .5 = 50% |
-| . bg            |               | [float_r] [float_g] [float_b] [? float_alpha] |
-|                 | float r g b   | a percentage of color; .5 = 50% red, etc. |
-|                 | float_alpha   | slide transition fade with values < 1 (default 1) |
-| . color         |               | [float_r] [float_g] [float_b] |
-|                 | float r g b   | text; .5 = 50% red, etc. |
+| . font          |               | [float_size] [family?] [style?] [alignment?] |
+|                 | size          | 1/100th of a window height, `.2` = font size 20% window height |
+|                 | (family)      | sans serif mono script |
+|                 | (style)       | normal italic bold |
+|                 | (alignment)   | left center right |
+| . color         |               | [float_r] [float_g] [float_b] [? float_alpha=1] |
+|                 | float r g b a | text; .5 = 50% red, etc. |
+| . shadow        |               | [float_r] [float_g] [float_b] [? float_alpha=1] |
+|                 | float r g b a | text; .5 = 50% red, etc. |
 | . line-height   |               | [float] |
 |                 | height        | squish text together set values < 1; (default 1) |
 
@@ -82,6 +85,14 @@ the file descriptor that is being watched.
 then take the event and modify the ino.h call to
 inotify_add_watch() to make sure you're watching
 the right events.
+
+# glxinfo
+interesting things; install mesa-utils
+
+    diff <(glxinfo) <(glxinfo -l)
+
+glx - this is the x window system extensions lib for gl
+
 
 ## logging
 there's a bunch of macros in show.h to help with logging

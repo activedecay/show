@@ -55,14 +55,15 @@ void set_align(style_item *style, const char *token) {
 }
 
 static style_item DEFAULT_STYLE = {
-    /* size        float       */  .1,
-    /* style       font_style  */  italic,
-    /* family      font_family */  serif,
-    /* align       align_text  */  center,
-    /* line_height float       */  1.f,
-    /* margins_x   float       */  0.05f,
-    /* fg_color    SDL_Color   */  {0, 0, 0, 255},
-    /* name        char        */  "default",
+    /* size         float       */ .1f,
+    /* style        font_style  */ italic,
+    /* family       font_family */ serif,
+    /* align        align_text  */ center,
+    /* line_height  float       */ 1.f,
+    /* margins_x    float       */ 0.05f,
+    /* fg_color     SDL_Color   */ {0, 0, 0, 255},
+    /* shadow_color SDL_Color   */ {0, 0, 0, 102},
+    /* name         char        */ "default",
 };
 
 void free_styles(style_item **saved_styles) {
@@ -389,7 +390,7 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           }
 
         } else if (strcmp("color", token) == 0) {
-          /* . color [float_r] [float_g] [float_b] */
+          /* . color [float_r] [float_g] [float_b] [float_a] */
 
           token = strtok_r(0, " ", &space_tokenizer);
           float r = !token ? : strtof(token, 0);
@@ -404,6 +405,23 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
               memcpy(Calloc(1, sizeof(style_item)),
                      style ? : &DEFAULT_STYLE, sizeof(style_item));
           style->fg_color = color;
+
+        } else if (strcmp("shadow", token) == 0) {
+          /* . shadow [float_r] [float_g] [float_b] */
+
+          token = strtok_r(0, " ", &space_tokenizer);
+          float r = !token ?: strtof(token, 0);
+          token = strtok_r(0, " ", &space_tokenizer);
+          float g = !token ?: strtof(token, 0);
+          token = strtok_r(0, " ", &space_tokenizer);
+          float b = !token ?: strtof(token, 0);
+          token = strtok_r(0, " ", &space_tokenizer);
+          float a = token ? strtof(token, 0) : 1;
+          color = cf4(r, g, b, a);
+          style = style_declaration ?:
+              memcpy(Calloc(1, sizeof(style_item)),
+                  style ?: &DEFAULT_STYLE, sizeof(style_item));
+          style->shadow_color = color;
 
         } else if (strcmp("line-height", token) == 0) {
           /* . line-height [float] */
@@ -596,8 +614,8 @@ void draw_slide_items(SDL_Renderer *renderer, int width, int height,
         if ((font = TTF_OpenFont(find_font(fonts, font_idx)->filename, font_size))) {
           SDL_Texture *shadow_text =
               texturize_text(renderer, font, item->item.text,
-                             cf4(0, 0, 0, .4f), // todo text shadow color
-                             &rect, SDL_BLENDMODE_BLEND);
+                  style->shadow_color, // todo text shadow color
+                  &rect, SDL_BLENDMODE_BLEND);
           SDL_Texture *slide_text =
               texturize_text(renderer, font, item->item.text,
                              style->fg_color,
@@ -671,20 +689,20 @@ void draw_slide_items(SDL_Renderer *renderer, int width, int height,
 SDL_Texture *
 texturize_text(SDL_Renderer *renderer, TTF_Font *font, char *string,
                SDL_Color fg, SDL_Rect *rect, SDL_BlendMode mode) {
-  SDL_Surface *t;
+  SDL_Surface *surf;
 //  char tmp[4096];
 //  sprintf(tmp, "%s %d, %d", string, r->w, r->h);
 //  if (!(t = TTF_RenderText_Blended(font, tmp, fg))) return 0;
-  if (!(t = TTF_RenderText_Blended(font, string, fg))) return 0;
-  assert(!SDL_SetSurfaceBlendMode(t, mode));
-  SDL_Texture *words = SDL_CreateTextureFromSurface(renderer, t);
-  SDL_FreeSurface(t);
-  SDL_QueryTexture(words, 0, 0, &rect->w, &rect->h);
-  assert(!SDL_SetTextureBlendMode(words, mode));
+  if (!(surf = TTF_RenderText_Blended(font, string, fg))) return 0;
+  assert(!SDL_SetSurfaceBlendMode(surf, mode));
+  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surf);
+  SDL_FreeSurface(surf);
+  SDL_QueryTexture(texture, 0, 0, &rect->w, &rect->h);
+  assert(!SDL_SetTextureBlendMode(texture, mode));
 
-  SDL_SetTextureAlphaMod(words, fg.a);
+  SDL_SetTextureAlphaMod(texture, fg.a);
 
-  return words;
+  return texture;
 }
 
 SDL_Texture *get_texture_from_image(SDL_Renderer *renderer, char *filename) {

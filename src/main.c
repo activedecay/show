@@ -46,8 +46,8 @@ font *add_font(font **, char *, char *);
 int die(char *);
 
 
-void do_window(SDL_Event *, uint32_t *,
-               int *, int *, bool *);
+void on_window(SDL_Event *event, uint32_t *frame_delay,
+               int *w, int *h, bool *in_frame);
 
 void quit(void);
 
@@ -135,10 +135,10 @@ main(int argc, char *argv[]) {
   int w = 960;
   int h = 540;
 
-  if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+  if (SDL_Init(SDL_INIT_VIDEO) < 0)
     return die("can't init SDL");
   if (TTF_Init() < 0)
-    return die("can't init fonts");
+    return die("can't init SDL TTF");
   SDL_CreateWindowAndRenderer(
       w, h, SDL_WINDOW_RESIZABLE, &window, &renderer);
 
@@ -200,7 +200,7 @@ main(int argc, char *argv[]) {
       P(&game_state.show_sem);
       switch ((SDL_EventType) event.type) {
         case SDL_WINDOWEVENT: {
-          do_window(&event, &frame_delay, &w, &h, &in_frame);
+          on_window(&event, &frame_delay, &w, &h, &in_frame);
           break;
         }
         case SDL_KEYDOWN: {
@@ -302,7 +302,7 @@ bool on_keydown(SDL_Event *event, slide_show *show,
   return quit;
 }
 
-void do_window(SDL_Event *event, uint32_t *frame_delay,
+void on_window(SDL_Event *event, uint32_t *frame_delay,
                int *w, int *h, bool *in_frame) {
   switch ((SDL_WindowEventID) (*event).window.event) {
     default:

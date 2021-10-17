@@ -157,6 +157,7 @@ typedef struct {
     float line_height;
     float margins_x;
     SDL_Color fg_color;
+    SDL_Color shadow_color;
     char *name;
     UT_hash_handle hh;
 } style_item;

@@ -1,7 +1,7 @@
 # do it
-text shadow color
 text vertical align
 text x offset
+text margins_x (DEFAULT_STYLE is 0.05f) only used in right/left justify
 normal, italic, and bold versions of script text
 move the initialization of font families out of main? @Evict
 remove threaded manipulation of textures (allowed on the main thread only!)
@@ -73,6 +73,7 @@ poly lines
 
 
 # features
+text shadow color
 define-image lol pic.png
 packaged with free fonts
 initialize a new rect y for each y encountered. draw a box
