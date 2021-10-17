@@ -35,7 +35,7 @@ add_executable(show src/main.c
         src/lib/csapp.c
         )
 target_link_directories(show PRIVATE ./lib)
-target_link_libraries(show SDL2 SDL2_ttf pthread m dl X11)
+target_link_libraries(show SDL2 SDL2_ttf pthread m dl X11 OpenGL)
 
 add_executable(image-scratch scratch/image-scratch.c)
 target_link_libraries(image-scratch SDL2 m)

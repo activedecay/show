@@ -27,6 +27,7 @@
 #include <fcntl.h>
 #include <X11/X.h> // can probably remove -lX11 from cmake, too
 #include <X11/Xlib.h> // can probably remove -lX11 from cmake, too
+#include <GL/gl.h>
 
 #include "show.h"
 
@@ -95,6 +96,38 @@ int
 main(int argc, char *argv[]) {
   if (argc < 2) return die("usage: path/to/show-markdown");
   atexit(quit);
+
+#if (sillyopenglwindow)
+  {
+    SDL_Window *window;
+    SDL_GLContext context;
+
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24); // 24 bits
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); // enable
+
+    window = SDL_CreateWindow("OpenGL Window", 0, 0, 640, 480, SDL_WINDOW_OPENGL);
+    if (!window) die(SDL_GetError());
+
+    context = SDL_GL_CreateContext(window);
+    if (!context) die(SDL_GetError());
+
+    int r, g, b;
+    SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r);
+    SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &g);
+    SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &b);
+
+    printf("Red size: %d, Green size: %d, Blue size: %d\n", r, g, b);
+    glClearColor(1.f,1.f,1.f,1.f);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    SDL_GL_SwapWindow(window);
+
+    SDL_Delay(5000);
+  }
+#endif
 
   /* more epic logging stuffe note: works well with SetOutputFunction below */
   // SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
@@ -192,6 +225,14 @@ main(int argc, char *argv[]) {
 
   while (!quit) {
     while (SDL_PollEvent(&event)) {
+      const Uint8 *state = SDL_GetKeyboardState(NULL);
+      if (state[SDL_SCANCODE_RETURN]) {
+        printf("<RETURN> is pressed.\n");
+      }
+      if (state[SDL_SCANCODE_RIGHT] && state[SDL_SCANCODE_UP]) {
+        printf("Right and Up Keys Pressed.\n");
+      }
+
       if (event.type == SDL_QUIT) {
         quit = true;
         frame_delay = 0;
