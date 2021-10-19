@@ -234,6 +234,8 @@ SDL_Texture *get_texture_from_image(SDL_Renderer *, char *);
 
 /* fancy defines for robustly making a fuction pointer
  * whose parameter list can change at will */
+
+/* find font */
 #define FUNCTION_FF(fun) font *fun(const font *, char *)
 typedef FUNCTION_FF((*find_font_ptr));
 FUNCTION_FF(find_font);

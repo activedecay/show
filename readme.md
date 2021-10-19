@@ -19,6 +19,18 @@ inotify will poll the files that you're editing and reload the libslider.so/show
 - `cmake --build cmake-build-debug --target slider install`
 
 # usage in show.markdown
+markdown titles (using the '#' character) start new slides.
+text in the markdown fil appears on the slides.
+text position flows from the most recent `. y [pos]` position.
+text does not wrap; you're in charge of newlines, but newlines flow vertically.
+text position starts at the top for every new slide.
+font size is 1/100th of a window height, so .5 = 50% of screen size font height. that's big!
+commands start with '. ' string on a new line.
+bulleted lists can be written, e.g., ' .', '*' or '- '
+background, text, and text shadow colors are editable; an alpha < 1 will fade the background in
+images are referenced by substring in the res directory.
+
+
 | Text or command | Command arguments | Explanation       |
 | --------------  | ----------------  | ----------------- |
 | slide text      |               | any text that is not a command start is shown on a slide |
@@ -35,11 +47,11 @@ inotify will poll the files that you're editing and reload the libslider.so/show
 |                 | alias         | recall the alias created in `define-image` [Q: does image templating work?] |
 |                 | todo          | x, y, w, h |
 | . #             |               | [unique-alias] |
-|                 | alias         | creates a template slide (font, color, y, [Q: does it do line-height?]) |
+|                 | alias         | creates a template slide alias for later reference, (text, font, color, y, [Q: does it do line-height? consider images?]) |
 | . using         |               | [alias-recall] |
 |                 | alias         | recall the alias created in `#` [Q: what is recalled?] [Q: what happens to the text?] |
 | . define-style  |               | [unique-alias] |
-|                 | alias         | creates a style to set [Q: doc what style settings are saved] |
+|                 | alias         | creates a style to set [Q: doc what style settings are saved (A: not .y)] |
 | . save-style    |               | takes no arguments and saves the style state changes |                
 | . style         |               | [alias-recall] |
 |                 | alias         | recall the alias created in `define-style` |

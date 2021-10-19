@@ -1,10 +1,31 @@
 # do it
-text vertical align
-text x offset
+
+## killer features
+- live captions from voice
+- voice commands for next slide
+- draw on slides with laser pointer; follow mouse with laser pointer;
+  - raspberrypi camera pointed at the slideshow, client/server sending remote commands to our slideshow program
+
+there's a dumb error message about needing to create a slide before setting a bg color.
+y is not saved in font style; should it be?
+consider rendering templates and images in the proper order because background images overwrite template text
+consider how images "work" on templates, if at all
+actually use the gpu to render; consider why the fps performance is lackluster
+frame rate limit; use case to allow the fps to be tunable
+consider moving on_keydown, on_window, and on_mouse into a shared library function call
+auto-pilot; advances slides through to the end and quits the show (a good qa test driver)
+text variables; store some text in a variable and recall it without having to use a template
+show cursor in show.markdown settings; keystroke toggle
+new cursor text settings per slide
+font family definition in show.markdown; `. declare-font` imports new, user-defined fonts
+  - split out the default family declarations `. with default-fonts`, etc.; i.e., a `with' command seems useful
+drag and drop show.markdown files to swap between which file to show
+text +/- x offset; use case instead of having to use spaces to pad text
+use show.markdown file as pointer config: show mouse, offset-(x,y), word, font, color (see mouse_follow_word)
+use show.markdown file as window size config: fullscreen, x, y, w, h
+text vertical align; use case 2(^hard)-like (sub)superscripts
 text margins_x (DEFAULT_STYLE is 0.05f) only used in right/left justify
-normal, italic, and bold versions of script text
 move the initialization of font families out of main? @Evict
-remove threaded manipulation of textures (allowed on the main thread only!)
 stretchy was deprecated, consider std_ds
 consider -fno-strict-aliasing https://blog.regehr.org/archives/1307
 consider using sscanf instead of strtok_r
@@ -12,47 +33,30 @@ break apart amdgpu valgrind errors by extracting showlib sans sdl
   - and consider doing a cli-only slideshow implementation 
   - goal: to narrow down memory leaks in our code
   - unless, we can just tune valgrind output to ignore non-show.c-code errors
-use show.md file as pointer config: show mouse, offset-(x,y), word, font, color (see mouse_follow_word)
-use show.md file as window size config: fullscreen, x, y, w, h
-
-draw on slides with laser pointer
-use voice commands to launch a missle and blow up the text
-
-
+  - suppression files are hard to get the hang of,
+    and sdl errors all over even when we think we've been good
 image scale, crop, rotate
-  - hot-load images! OMFG ? could just do the same
-    thing as reading the image each time show.md changes
-in particular, see the code assert (!"needs a better font failure mechanism");
+see the code assert (!"needs a better font failure mechanism");
 - way better error handling in general
-
-declare-font variables that import fonts from disk on the fly (eh)
-fix memory @Leaks
-
-all wrapped text centered on y!
+fix memory @Leaks in valgrind
 - vertical-align middle around text items
 background should be global without a slide
-disassemble font-size with font-align
-
-variables
-- math operations
-    - parenthesis
-
-\ escape handling
-
+decouple font command that requires font-size before font(align, family, style)
+math operations; would be nice to let the slide show do the math for you.
+math language rendering for formulas
+\ escape handling; which would allow . at the front, but just ' .' works (meh)
 rotated text
-x pos
-hyperlinks
-drag and drop show.md files
+hyperlinks; image hyperlinks
 change font attributes mid-line
 presenter mode
 - annotate/notes screen separate from presentation screen
 - previous/next slide
 - timers
 - progress
-- toggle between presenter and audience view during 
+- toggle between presenter and audience view during
   a 1-screen practice
-overview mode
-audience viewing conditions use case
+overview mode - renders all slides on one page; renders 4 slides in quadrants;
+audience viewing conditions (what are the use cases for a single show presented to multiple venues?)
 transitions
 drawing on the slides
 slide editor in game
@@ -62,17 +66,16 @@ tablets github.com/ApoorvaJ/EasyTab
 slideshow progress bar
 picture in a picture
 game-like effects, subtle
-spell-cheker
-
 aspect ratio (hard)
 image tiling (uv-scale 1 -1)
 image borders
 rectangles
 poly lines
 
-
-
 # features
+hot-load images; meaning we find new images every time a new one is `. define-image`d
+normal, italic, and bold versions of script text
+remove threaded manipulation of textures (allowed on the main thread only!)
 text shadow color
 define-image lol pic.png
 packaged with free fonts
@@ -80,35 +83,6 @@ initialize a new rect y for each y encountered. draw a box
 allow all style variables to change independently
 many image types (png, jpg, bmp, gif)
 shadowed text!
-
-# usage
-Note: the command syntax uses `. ` as the start of a command.
-
-Reusable slide templates allow for including a slide in another slide.
-This allows a slide to share content inside other slides across the show.
-Example usage: 
-
-- declare with: `. # Company Legal Text` - declarations are hidden
-- use with: `. using Company Legal Text` in another slide
-
-Declare styles and apply them across all the text lines that follow.
-Styles will apply across slide boundaries.
-Example usage:
-- declare a new style with: `. define-style Title Text`
-- then define the style properties
-    - properties of a style:
-    - `. font [float size] [font-attribute]*`
-    - `. margin [float]`
-    - `. color [float-red] [float-green] [float-blue] [float-alpha]`
-. finally save with: `. save-style`
-- use with: `. style Title Text`
-
-Text position flows from the most recent `. y [float-height]`.
-Text position starts at the top for every new slide.
-
-font size is 1/100th of a window height
-
-# notes
 
 # dead code
 
@@ -123,10 +97,9 @@ font size is 1/100th of a window height
         case SDL_TEXTINPUT:break;
 
     SDL_GetRelativeMouseMode();
-    good way to wrote a fps shooter
     SDL_ShowCursor(false);
     SDL_SetRelativeMouseMode(true);
-    
+
     // desktop relative
     SDL_GetGlobalMouseState(&mouse_x, &mouse_y); 
 

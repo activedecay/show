@@ -96,6 +96,7 @@ int
 main(int argc, char *argv[]) {
   if (argc < 2) return die("usage: path/to/show-markdown");
   atexit(quit);
+  SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
 
 #if (sillyopenglwindow)
   {
@@ -223,6 +224,8 @@ main(int argc, char *argv[]) {
   int mouse_x, mouse_y;
   u32 frame_delay = 16;
 
+  SDL_ShowCursor(false);
+
   while (!quit) {
     while (SDL_PollEvent(&event)) {
       const Uint8 *state = SDL_GetKeyboardState(NULL);
@@ -336,6 +339,9 @@ bool on_keydown(SDL_Event *event, slide_show *show,
       break;
     case SDL_SCANCODE_UP:
       show->index--;
+      break;
+    case SDL_SCANCODE_X:
+      (*frame_delay) = 0;
       break;
     default:
       break;
