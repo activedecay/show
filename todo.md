@@ -1,4 +1,5 @@
 # do it
+consider installing nightfall on all intellij/clion IDEs it's real nice!
 
 ## killer features
 - live captions from voice
