@@ -6,9 +6,8 @@
 - draw on slides with laser pointer; follow mouse with laser pointer;
   - raspberrypi camera pointed at the slideshow, client/server sending remote commands to our slideshow program
 
-there's a dumb error message about needing to create a slide before setting a bg color.
-y is not saved in font style; should it be?
 consider rendering templates and images in the proper order because background images overwrite template text
+y is not saved in font style; should it be?
 consider how images "work" on templates, if at all
 actually use the gpu to render; consider why the fps performance is lackluster
 frame rate limit; use case to allow the fps to be tunable

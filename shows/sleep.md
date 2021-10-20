@@ -11,10 +11,10 @@
 . define-style footnote
 . font .051 center
 . save-style
+. bg 0 0 0
 
 # slow wave
 . style default-right
-. bg 0 0 0
 
 slow wave sleep
 nightmare sleep
@@ -46,8 +46,8 @@ eliminating the meanings that don't matter in context
 
 # ketamine
 . style default
-special k mimics rem sleep
-disociative anathetic
+special k mimics rem sleep!
+disociative anasthetic
 similiar to pcp (hazardous)
 . font .095
 NMDA receptor (nmethldaspardate) neurons

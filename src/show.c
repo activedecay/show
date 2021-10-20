@@ -160,7 +160,7 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
   bool reassign_y = false;
   float new_y = .0f;
 
-  SDL_Color bg = cf4(1, 1, 1, 1); // default slide bg
+  SDL_Color bg = cf4(1, 1, 1, 1);
   SDL_Color color;
 
   char *line_tokenizer, *space_tokenizer;
@@ -371,23 +371,15 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
         } else if (strcmp("bg", token) == 0) {
           /* . bg [float_r] [float_g] [float_b] [? alpha] */
 
-          if (slide) {
-            token = strtok_r(0, " ", &space_tokenizer);
-            float r = !token ? : strtof(token, 0);
-            token = strtok_r(0, " ", &space_tokenizer);
-            float g = !token ? : strtof(token, 0);
-            token = strtok_r(0, " ", &space_tokenizer);
-            float b = !token ? : strtof(token, 0);
-            token = strtok_r(0, " ", &space_tokenizer);
-            float a = token ? strtof(token, 0) : 1;
-            bg = cf4(r, g, b, a);
-            slide->bg_color = bg;
-          } else {
-            info(RED
-                     "No slide yet; define a slide before "
-                     "setting the background color '%s'"
-                     RESET, line);
-          }
+          token = strtok_r(0, " ", &space_tokenizer);
+          float r = !token ? : strtof(token, 0);
+          token = strtok_r(0, " ", &space_tokenizer);
+          float g = !token ? : strtof(token, 0);
+          token = strtok_r(0, " ", &space_tokenizer);
+          float b = !token ? : strtof(token, 0);
+          token = strtok_r(0, " ", &space_tokenizer);
+          float a = token ? strtof(token, 0) : 1;
+          bg = cf4(r, g, b, a);
 
         } else if (strcmp("color", token) == 0) {
           /* . color [float_r] [float_g] [float_b] [float_a] */
@@ -562,14 +554,20 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
       renderer, slide_bg.r, slide_bg.g, slide_bg.b, slide_bg.a);
   SDL_RenderFillRect(renderer, 0);
 
-  // recall as many `. using` template slides as you want on a slide
+  /* generally, iterate over all slides;
+   * draw images first, then text */
+
   for (int i = 0; i < count(current_slide->using); ++i) {
     slide_item *using = current_slide->using[i];
-    if (using) draw_slide_items(renderer, w, h, fonts, using, images);
+    if (using) draw_slide_items(renderer, w, h, fonts, using, images, image_t_item);
   }
+  draw_slide_items(renderer, w, h, fonts, current_slide, images, image_t_item);
 
-  // then draw our stuff on the current slide
-  draw_slide_items(renderer, w, h, fonts, current_slide, images);
+  for (int i = 0; i < count(current_slide->using); ++i) {
+    slide_item *using = current_slide->using[i];
+    if (using) draw_slide_items(renderer, w, h, fonts, using, images, text_t_item);
+  }
+  draw_slide_items(renderer, w, h, fonts, current_slide, images, text_t_item);
 }
 
 
@@ -586,11 +584,13 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
 /* iterate over the grocery list and draw each item on the renderer */
 void draw_slide_items(SDL_Renderer *renderer, int width, int height,
                       const font *fonts, const slide_item *current_slide,
-                      linkedlist *images) {
+                      linkedlist *images, grocer_type filter) {
   SDL_Rect rect = {0}; /* origin's locations mapped to screen pixels (integers) */
 
   for (int i = 0; i < count(current_slide->grocery_items); ++i) {
     item_grocer *item = current_slide->grocery_items[i];
+    if (item->type != filter) continue;
+
     switch (item->type) {
       case text_t_item: {
 

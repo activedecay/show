@@ -166,11 +166,14 @@ typedef struct {
     float x, y;
 } point;
 
+
+typedef enum grocer_types {
+  text_t_item,
+  image_t_item,
+} grocer_type;
+
 typedef struct {
-    enum grocer_types {
-        text_t_item,
-        image_t_item,
-    } type;
+    grocer_type type;
     style_item *style;
     point *pos;
     bool image_texture;
@@ -209,12 +212,13 @@ typedef struct {
     style_item **styles;
 } slide_show;
 
-static SDL_Color cf4(float fr, float fg, float fb, float fa) {
+/** our colors are 0f-1.0f, SDL's are 0-255. so we convert by multiplying */
+static SDL_Color cf4(float r, float g, float b, float a) {
   SDL_Color c = {
-      (u8) (255.0f * fr),
-      (u8) (255.0f * fg),
-      (u8) (255.0f * fb),
-      (u8) (255.0f * fa),
+      (u8) (255.0f * r),
+      (u8) (255.0f * g),
+      (u8) (255.0f * b),
+      (u8) (255.0f * a),
   };
   return c;
 }
@@ -228,7 +232,7 @@ typedef struct {
 slide_show *default_show();
 
 void draw_slide_items(SDL_Renderer *, int, int,
-                      const font *, const slide_item *, linkedlist *);
+                      const font *, const slide_item *, linkedlist *, grocer_type);
 
 SDL_Texture *get_texture_from_image(SDL_Renderer *, char *);
 
