@@ -47,7 +47,7 @@ images are referenced by substring in the res directory.
 |                 | alias         | recall the alias created in `define-image` [Q: does image templating work?] |
 |                 | todo          | x, y, w, h |
 | . #             |               | [unique-alias] |
-|                 | alias         | creates a template slide alias for later reference, (text, font, color, y, [Q: does it do line-height? consider images?]) |
+|                 | alias         | creates a template slide alias to package: images, text, font, color, y, line-height |
 | . using         |               | [alias-recall] |
 |                 | alias         | recall the alias created in `#` [Q: what is recalled?] [Q: what happens to the text?] |
 | . define-style  |               | [unique-alias] |

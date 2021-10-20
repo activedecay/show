@@ -11,7 +11,7 @@
 
 . define-style baby
 . font .3 script center
-. color 0 0 1 .02
+. color 0 0 1 .2
 . line-height -.4
 . save-style
 ; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -40,7 +40,7 @@
 ; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-# neapolitan
+. # neapolitan
 . bg 0.043 0.047 0.349 .9
 . style pink
 what nice
@@ -55,6 +55,14 @@ cool thanks
 what nice
 cool thanks
 
+# haha
+. using neapolitan
+. y .29
+. font .71 left
+. color 0.633 0.209 0.52 .6
+. shadow 1 1 1 .1
+killer
+
 # more
 . bg 0 0 0 .1
 . style show
@@ -62,7 +70,7 @@ cool thanks
 Show!!!!
 
 # tits
-. bg 0 0 1 .2
+. bg 0 0 1 .001
 . style baby
 . y .5
 Oh Baby
@@ -75,7 +83,7 @@ Oh Baby
 # 2its and hips
 . style pink
 . color 0 1 0
-. bg .1 0 .1 .8
+. bg .1 0 .1 .08
 . y .4
 BABY omg!!!
  
@@ -318,3 +326,54 @@ OwO
 * these macros to store, retrieve or 
 * delete items from the hash table.
 
+#
+. style default
+. bg .35 .35 .35
+. color 1 1 1 .9
+. shadow .6 0 .56 .8
+. font .073 sans normal
+sans normal
+. font .073 sans bold
+sans bold
+. font .073 sans italic
+sans italic
+. font .073 serif normal
+serif normal
+. font .073 serif bold
+serif bold
+. font .073 serif italic
+serif italic
+. font .073 mono normal
+mono normal
+. font .073 mono bold
+mono bold
+. font .073 mono italic
+mono italic
+. font .073 script normal
+script normal
+. font .073 script italic
+script italic
+. font .073 script bold
+script bold
+
+. y 0
+. font .1 left
+. line-height .72
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+
+
+#
+. bg 0 0 0
+. color 1 1 1
+. y .85
+. font .1 right italic
+- xoxo

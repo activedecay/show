@@ -6,15 +6,15 @@
 - draw on slides with laser pointer; follow mouse with laser pointer;
   - raspberrypi camera pointed at the slideshow, client/server sending remote commands to our slideshow program
 
-consider rendering templates and images in the proper order because background images overwrite template text
-y is not saved in font style; should it be?
-consider how images "work" on templates, if at all
+show cursor in show.markdown settings; keystroke toggle
+
 actually use the gpu to render; consider why the fps performance is lackluster
+y is not saved in font style; should it be? it is saved in templates
+text kerning
 frame rate limit; use case to allow the fps to be tunable
 consider moving on_keydown, on_window, and on_mouse into a shared library function call
 auto-pilot; advances slides through to the end and quits the show (a good qa test driver)
 text variables; store some text in a variable and recall it without having to use a template
-show cursor in show.markdown settings; keystroke toggle
 new cursor text settings per slide
 font family definition in show.markdown; `. declare-font` imports new, user-defined fonts
   - split out the default family declarations `. with default-fonts`, etc.; i.e., a `with' command seems useful

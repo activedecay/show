@@ -13,7 +13,12 @@
 . save-style
 . bg 0 0 0
 
+. define-image lmao car
+. # haha
+. image lmao
+
 # slow wave
+. using haha
 . style default-right
 
 slow wave sleep
@@ -25,6 +30,7 @@ lots of seritonin
 some adrenaline
 
 # rem
+. using haha
 . style default
 rapid eye movement 
 dream sleep
@@ -56,6 +62,8 @@ ions enter and trigger
 long-term potentiation
 
 # lateral eye movements
+. using haha
+. shadow 0 0 0 1
 emdr 
 side-to-side eye movements
 disengages the amygdala
