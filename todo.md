@@ -1,85 +1,84 @@
-## killer features
+# priority fixes
+
+- show cursor in show.markdown file (see mouse_follow_word)
+    - pointer config (mouse image, offset, font, color, text, shadow, shown/hidden?)
+    - keystroke toggles visibility
+    - per-slide?
+- margin; positive and negative x and y offsets; instead of having to use spaces to pad text
+- slideshow progress bar
+- videos
+- rectangles
+    - variables
+- poly lines
+    - variables
+- background color is not saved in a template
+    - modifying a template's background color changes the background color of all slides
+    - recalling a template does not recall the background color saved on the template
+    - todo: check that the background color is saved in the template slide
+    - todo: when recalling a template, set the background color to the template's background color
+    - todo: consider whether the current background color should be saved in a global variable
+    - todo: background should be global without a slide
+
+# killer features
+
+- drag and drop show.markdown files to swap between which file to show
 - live captions from voice
 - voice commands for next slide
 - draw on slides with laser pointer; follow mouse with laser pointer;
-  - raspberrypi camera pointed at the slideshow, client/server sending remote commands to our slideshow program
-
-show cursor in show.markdown settings; keystroke toggle
-
-actually use the gpu to render; consider why the fps performance is lackluster
-y is not saved in font style; should it be? it is saved in templates
-text kerning
-frame rate limit; use case to allow the fps to be tunable
-consider moving on_keydown, on_window, and on_mouse into a shared library function call
-auto-pilot; advances slides through to the end and quits the show (a good qa test driver)
-text variables; store some text in a variable and recall it without having to use a template
-new cursor text settings per slide
-font family definition in show.markdown; `. declare-font` imports new, user-defined fonts
-  - split out the default family declarations `. with default-fonts`, etc.; i.e., a `with' command seems useful
-drag and drop show.markdown files to swap between which file to show
-text +/- x offset; use case instead of having to use spaces to pad text
-use show.markdown file as pointer config: show mouse, offset-(x,y), word, font, color (see mouse_follow_word)
-use show.markdown file as window size config: fullscreen, x, y, w, h
-text vertical align; use case 2(^hard)-like (sub)superscripts
-text margins_x (DEFAULT_STYLE is 0.05f) only used in right/left justify
-move the initialization of font families out of main? @Evict
-stretchy was deprecated, consider std_ds
-consider -fno-strict-aliasing https://blog.regehr.org/archives/1307
-consider using sscanf instead of strtok_r
-break apart amdgpu valgrind errors by extracting showlib sans sdl
-  - and consider doing a cli-only slideshow implementation 
-  - goal: to narrow down memory leaks in our code
-  - unless, we can just tune valgrind output to ignore non-show.c-code errors
-  - suppression files are hard to get the hang of,
-    and sdl errors all over even when we think we've been good
-image scale, crop, rotate
-see the code assert (!"needs a better font failure mechanism");
-- way better error handling in general
-fix memory @Leaks in valgrind
-- vertical-align middle around text items
-background should be global without a slide
-decouple font command that requires font-size before font(align, family, style)
-math operations; would be nice to let the slide show do the math for you.
-math language rendering for formulas
-\ escape handling; which would allow . at the front, but just ' .' works (meh)
-rotated text
-hyperlinks; image hyperlinks
-change font attributes mid-line
-presenter mode
-- annotate/notes screen separate from presentation screen
-- previous/next slide
-- timers
-- progress
-- toggle between presenter and audience view during
-  a 1-screen practice
-overview mode - renders all slides on one page; renders 4 slides in quadrants;
-audience viewing conditions (what are the use cases for a single show presented to multiple venues?)
-transitions
-drawing on the slides
-slide editor in game
-videos
-tables
-tablets github.com/ApoorvaJ/EasyTab
-slideshow progress bar
-picture in a picture
-game-like effects, subtle
-aspect ratio (hard)
-image tiling (uv-scale 1 -1)
-image borders
-rectangles
-poly lines
-
-# features
-hot-load images; meaning we find new images every time a new one is `. define-image`d
-normal, italic, and bold versions of script text
-remove threaded manipulation of textures (allowed on the main thread only!)
-text shadow color
-define-image lol pic.png
-packaged with free fonts
-initialize a new rect y for each y encountered. draw a box
-allow all style variables to change independently
-many image types (png, jpg, bmp, gif)
-shadowed text!
+    - raspberrypi camera pointed at the slideshow, client/server sending remote commands to our slideshow program
+- actually use the gpu to render; consider why the fps performance is lackluster
+- y is not saved in font style; should it be? it is saved in templates
+- text kerning
+- frame rate limit; use case to allow the fps to be tunable
+- consider moving on_keydown, on_window, and on_mouse into a shared library function call
+- auto-pilot; advances slides through to the end and quits the show (a good qa test driver)
+- text variables; store some text in a variable and recall it without having to use a template (why?)
+- new cursor text settings per slide
+- font family definition in show.markdown; `. declare-font` imports new, user-defined fonts
+- split out the default family declarations `. with default-fonts`, etc.; i.e., a `with' command seems useful
+- use show.markdown file as window size config: fullscreen, x, y, w, h
+- text vertical align; use case 2(^hard)-like (sub)superscripts
+- text margins_x (DEFAULT_STYLE is 0.05f) only used in right/left justify
+- move the initialization of font families out of main? @Evict
+- stretchy was deprecated, consider std_ds
+- consider -fno-strict-aliasing https://blog.regehr.org/archives/1307
+- consider using sscanf instead of strtok_r
+- break apart amdgpu valgrind errors by extracting showlib sans sdl
+    - and consider doing a cli-only slideshow implementation
+    - goal: to narrow down memory leaks in our code
+    - unless, we can just tune valgrind output to ignore non-show.c-code errors
+    - suppression files are hard to get the hang of,
+      and sdl errors all over even when we think we've been good
+- image rotate
+- see the code assert (!"needs a better font failure mechanism");
+    - way better error handling in general
+- fix memory @Leaks in valgrind
+    - vertical-align middle around text items
+- decouple font command that requires font-size before font(align, family, style)
+- math operations; would be nice to let the slide show do the math for you.
+- math language rendering for formulas
+- \ escape handling; which would allow . at the front, but just ' .' works (meh)
+- rotated text
+- hyperlinks; image hyperlinks
+- change font attributes mid-line
+- presenter mode:
+    - annotate/notes screen separate from presentation screen
+    - previous/next slide
+    - timers
+    - progress
+    - toggle between presenter and audience view during a 1-screen practice
+- overview mode - renders all slides on one page; renders 4 slides in quadrants;
+- audience viewing conditions (what are the use cases for a single show presented to multiple venues?)
+- transitions
+- drawing on the slides
+- slide editor in game
+- tables
+- tablets github.com/ApoorvaJ/EasyTab
+- picture in a picture
+- game-like effects, subtle
+- aspect ratio (hard)
+- image tiling (uv-scale 1 -1)
+- image borders
 
 # dead code
 

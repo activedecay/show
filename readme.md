@@ -1,20 +1,31 @@
-# show
-slideshow thing and stuff
-requirements:
-1. a show.markdown file, littered with commands and text to show on the slides
-2. ./lib/libslider.so (a dynamic library that is [re]loaded while running)
-3. ./res/ images and fonts
-
-## features
+# features
 - show.markdown source file is rendered in a slideshow window
 - live text editing to render changes when the show.markdown file is saved
+- template slides with images and text (watermark, logo, etc.)
+- 4 fonts (serif, sans-serif, monospace, cursive script)
+    - each with 3 styles (normal, italic, bold)
+- text color with alpha
+- slide background color (with alpha for fade transitions)
+- text shadow and shadow color
+- hot-load images (new images can be inserted while the show is running)
+- image types supported: png, jpg, bmp, gif
+- image scale, crop
+## dev features
 - shared library code refresh allows running programs to have their implementation changed
 
-## building
+# show
+program requirements:
+1. render a show.markdown file (a text file that is reloaded when changed while running)
+2. ./lib/libslider.so (a dynamic library that is reloaded while running)
+3. ./res/ images and fonts (a directory of files that are required to be present to run)
+   - fonts are loaded from the ./res/ directory, and are not hot-loaded (todo)
+   - images are hot-loaded from the ./res/ directory
+
+# building
     cmake --build cmake-build-debug --target all install
 
-## developing
-inotify will poll the files that you're editing and reload the libslider.so/show.md
+# developing
+inotify will poll the files that you're editing and reload the libslider.so and show.markdown files
 - hack on show.md, see debug below if it's broken
 - `cmake --build cmake-build-debug --target slider install`
 
@@ -27,55 +38,60 @@ inotify will poll the files that you're editing and reload the libslider.so/show
                         x: unlimited frame count
 
 # usage in show.markdown
-markdown titles (using the '#' character) start new slides.
-text in the markdown fil appears on the slides.
-text position flows from the most recent `. y [pos]` position.
-text does not wrap; you're in charge of newlines, but newlines flow vertically.
-text position starts at the top for every new slide.
-font size is 1/100th of a window height, so .5 = 50% of screen size font height. that's big!
-commands start with '. ' string on a new line.
-bulleted lists can be written, e.g., ' .', '*' or '- '
-background, text, and text shadow colors are editable; an alpha < 1 will fade the background in
-images are referenced by substring in the res directory.
+- markdown titles (using the '#' character) start new slides (this text is ignored).
+- regular paragraphs in the markdown file appears on the slides.
+- text position flows from the most recent `. y [pos]` vertical position command. (todo consider implementing margins).
+- text does not wrap; you're in charge of newlines, but inserting newlines automatically inserts text vertically.
+- text y position starts at the top for every new slide encountered.
+- font size is 1/100th of a window height, so .5 = 50% of screen size font height (that's big text, btw).
+- commands start with '. ' string on a new line.
+- bulleted lists can be written, e.g., ' .', '*' or '- ' which is typical for Markdown documents.
+- background, text, and text shadow colors are editable; a background alpha < 1 will fade in when transistioning slides.
+- images are referenced by basename without the extension in the res directory; e.g., lambo.png is referenced as 'lambo'.
 
+# commands documentation
+The first column is "Templ", which indicates whether the command is remembered in a template during template recall.
 
-| Text or command | Command arguments | Explanation       |
-| --------------  | ----------------  | ----------------- |
-| slide text      |               | any text that is not a command start is shown on a slide |
-| . [*]           |               | the dot-space sequence '. ' is start of command |
-| . bg            |               | [float_r] [float_g] [float_b] [? float_alpha=1] |
-|                 | float r g b   | a percentage of color; .5 = 50% red, etc. |
-|                 | float_alpha   | slide transition fade with values < 1 (default 1) |
-| . define-image  |               | [unique-alias] [path] |
-|                 | alias         | used in the `image` command to recall an image |
-|                 | path          | a file name substring existing in `/res/` dir |
-|                 |               | , ie "lambo.png" would be `lambo` |
-|                 |               | , subtle note, two images must not have the same substring match (strstr) |
-| . image         |               | [alias-recall] |
-|                 | alias         | recall the alias created in `define-image` [Q: does image templating work?] |
-|                 | todo          | x, y, w, h |
-| . #             |               | [unique-alias] |
-|                 | alias         | creates a template slide alias to package: images, text, font, color, y, line-height |
-| . using         |               | [alias-recall] |
-|                 | alias         | recall the alias created in `#` [Q: what is recalled?] [Q: what happens to the text?] |
-| . define-style  |               | [unique-alias] |
-|                 | alias         | creates a style to set [Q: doc what style settings are saved (A: not .y)] |
-| . save-style    |               | takes no arguments and saves the style state changes |                
-| . style         |               | [alias-recall] |
-|                 | alias         | recall the alias created in `define-style` |
-| . y             |               | [float_h] |
-|                 | float_h       | a percentage of y screen real estate, .5 = 50% |
-| . font          |               | [float_size] [family?] [style?] [alignment?] |
-|                 | size          | 1/100th of a window height, `.2` = font size 20% window height |
-|                 | (family)      | sans serif mono script |
-|                 | (style)       | normal italic bold |
-|                 | (alignment)   | left center right |
-| . color         |               | [float_r] [float_g] [float_b] [? float_alpha=1] |
-|                 | float r g b a | text; .5 = 50% red, etc. |
-| . shadow        |               | [float_r] [float_g] [float_b] [? float_alpha=1] |
-|                 | float r g b a | text; .5 = 50% red, etc. |
-| . line-height   |               | [float] |
-|                 | height        | squish text together set values < 1; (default 1) |
+| Templ | Text or command | Command arguments | Explanation                                                                           |
+|-------|-----------------|-------------------|---------------------------------------------------------------------------------------|
+|       | paragraph text  |                   | any text that is not a command start is shown on a slide.                             |
+|       |                 |                   | until margins are implemented, use spaces to insert space to the left.                |
+|       | . [*]           |                   | the dot-space sequence '. ' is start of command                                       |
+| yes   | . bg            |                   | [float_r] [float_g] [float_b] [? float_alpha=1]                                       |
+|       |                 | float r g b       | a percentage of color; .5 = 50% red, etc.                                             |
+|       |                 | float_alpha       | slide transition fade with values < 1 (default 1)                                     |
+|       |                 |                   | note: using bg on a template will modify every bg from then on (this is a bug)        | 
+|       | . define-image  |                   | [unique-alias] [path]                                                                 |
+|       |                 | alias             | used in the `image` command to recall an image                                        |
+|       |                 | path              | a file name substring existing in `/res/` dir                                         |
+|       |                 |                   | , ie "lambo.png" would be `lambo`                                                     |
+|       |                 |                   | , subtle note, two images must not have the same substring match (strstr)             |
+| yes   | . image         |                   | [alias-recall] [?texture_x] [?y] [?w] [?h] [?screen_x] [?y] [?w] [?h]                 |
+|       |                 | alias             | recall the alias created in `define-image`                                            |
+|       |                 | texture x y w h   | float values for starting/ending texture coordinates (crops textures)                 |
+|       |                 | screen  x y w h   | float values for starting/ending screen coordinates (scales textures)                 |
+|       | . #             |                   | [unique-alias]                                                                        |
+|       |                 | alias             | creates a template slide alias to package: images, text, font, color, y, line-height  |
+|       | . using         |                   | [alias-recall]                                                                        |
+|       |                 | alias             | recall the alias created in `#` [Q: what is recalled?] [Q: what happens to the text?] |
+|       | . define-style  |                   | [unique-alias]                                                                        |
+|       |                 | alias             | creates a style to set [Q: doc what style settings are saved (A: not .y)]             |
+|       | . save-style    |                   | takes no arguments and saves the style state changes                                  |                
+|       | . style         |                   | [alias-recall]                                                                        |
+|       |                 | alias             | recall the alias created in `define-style`                                            |
+| no    | . y             |                   | [float_h]                                                                             |
+|       |                 | float_h           | a percentage of y screen real estate, .5 = 50%                                        |
+| yes   | . font          |                   | [float_size] [family?] [style?] [alignment?]                                          |
+|       |                 | size              | 1/100th of a window height, `.2` = font size 20% window height                        |
+|       |                 | (family)          | sans serif mono script                                                                |
+|       |                 | (style)           | normal italic bold                                                                    |
+|       |                 | (alignment)       | left center right                                                                     |
+| yes   | . color         |                   | [float_r] [float_g] [float_b] [? float_alpha=1]                                       |
+|       |                 | float r g b a     | text; .5 = 50% red, etc.                                                              |
+|       | . shadow        |                   | [float_r] [float_g] [float_b] [? float_alpha=1]                                       |
+|       |                 | float r g b a     | text; .5 = 50% red, etc.                                                              |
+| yes   | . line-height   |                   | [float]                                                                               |
+|       |                 | height            | squish text together set values < 1; (default 1)                                      |
 
 # stretchy buffers
 stretchy_buffer.h: a tidy little C implementation

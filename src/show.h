@@ -93,6 +93,7 @@ typedef struct image_item image_item;
 struct image_item {
   char *text;
   SDL_Texture *image;
+  int width, height;
 };
 
 /* slide show */
@@ -166,6 +167,11 @@ typedef struct {
     float x, y;
 } point;
 
+typedef struct {
+  float x, y;
+  float w, h;
+} rect;
+
 
 typedef enum grocer_types {
   text_t_item,
@@ -177,6 +183,9 @@ typedef struct {
     style_item *style;
     point *pos;
     bool image_texture;
+    int w, h;
+    rect src_rect; // integer based (for cropping texture space)
+    rect dst_rect; // integer based (for cropping screen space)
     union {
         char *text;
         SDL_Texture *image;
@@ -234,7 +243,7 @@ slide_show *default_show();
 void draw_slide_items(SDL_Renderer *, int, int,
                       const font *, const slide_item *, linkedlist *, grocer_type);
 
-SDL_Texture *get_texture_from_image(SDL_Renderer *, char *);
+SDL_Texture *get_texture_from_image(SDL_Renderer *, char *, image_item *);
 
 /* fancy defines for robustly making a fuction pointer
  * whose parameter list can change at will */

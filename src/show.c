@@ -212,6 +212,7 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
                !style ? "unknown style" : style->name);
 
         } else if (strcmp("define-image", token) == 0) {
+          /* . define-image [alias] [filename] */
 
           token = strtok_r(0, " ", &space_tokenizer);
           char *image_alias = token;
@@ -238,6 +239,7 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           //free(res_name);
 
         } else if (strcmp("image", token) == 0) {
+          /* . image [*]... */
 
           token = strtok_r(0, " ", &space_tokenizer);
           info(YELLOW
@@ -249,6 +251,24 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
             item_grocer *item = Calloc(1, sizeof(item_grocer));
             item->type = image_t_item;
             item->item.text = found->image_res_name;
+            item->src_rect = (rect) {0, 0, 1, 1};
+            item->dst_rect = (rect) {0, 0, 1, 1};
+            token = strtok_r(0, " ", &space_tokenizer);
+            item->src_rect.x = !token ? .0f : strtof(token, 0);
+            token = strtok_r(0, " ", &space_tokenizer);
+            item->src_rect.y = !token ? .0f : strtof(token, 0);
+            token = strtok_r(0, " ", &space_tokenizer);
+            item->src_rect.w = !token ? 1.f : strtof(token, 0);
+            token = strtok_r(0, " ", &space_tokenizer);
+            item->src_rect.h = !token ? 1.f : strtof(token, 0);
+            token = strtok_r(0, " ", &space_tokenizer);
+            item->dst_rect.x = !token ? .0f : strtof(token, 0);
+            token = strtok_r(0, " ", &space_tokenizer);
+            item->dst_rect.y = !token ? .0f : strtof(token, 0);
+            token = strtok_r(0, " ", &space_tokenizer);
+            item->dst_rect.w = !token ? 1.f : strtof(token, 0);
+            token = strtok_r(0, " ", &space_tokenizer);
+            item->dst_rect.h = !token ? 1.f : strtof(token, 0);
             push(slide->grocery_items, item);
           } else {
             info(RED
@@ -425,17 +445,22 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           float f = !token ? : strtof(token, 0);
           style->line_height = f;
 
+        } else if (strcmp("margin", token) == 0) {
+          /* . margin [float_top] [?float_right] [?float_left] */
+
+          info(GREEN "unknown command: %s" RESET, token);
+          token = strtok_r(0, " ", &space_tokenizer);
+          while (token) {
+            info(GREEN "unknown attribute: %s" RESET, token);
+            token = strtok_r(0, " ", &space_tokenizer);
+          }
         } else if (token[0] != command_starter) {
           /* unknown */
 
-          info(RED
-                   "unknown command: %s"
-                   RESET, token);
+          info(RED "unknown command: %s" RESET, token);
           token = strtok_r(0, " ", &space_tokenizer);
           while (token) {
-            info(RED
-                     "unknown attribute: %s"
-                     RESET, token);
+            info(RED "unknown attribute: %s" RESET, token);
             token = strtok_r(0, " ", &space_tokenizer);
           }
         }
@@ -586,7 +611,6 @@ void draw_slide_items(SDL_Renderer *renderer, int width, int height,
                       const font *fonts, const slide_item *current_slide,
                       linkedlist *images, grocer_type filter) {
   SDL_Rect rect = {0}; /* origin's locations mapped to screen pixels (integers) */
-
   for (int i = 0; i < count(current_slide->grocery_items); ++i) {
     item_grocer *item = current_slide->grocery_items[i];
     if (item->type != filter) continue;
@@ -658,6 +682,8 @@ void draw_slide_items(SDL_Renderer *renderer, int width, int height,
             if (strcmp(ii->text, item->item.text) == 0) {
               found = true;
               item->item.image = ii->image;
+              item->w = ii->width;
+              item->h = ii->height;
             }
             images = images->next;
           }
@@ -667,8 +693,10 @@ void draw_slide_items(SDL_Renderer *renderer, int width, int height,
             images->data = ii;
             ii->text = Malloc(strlen(item->item.text) + 1);
             strcpy(ii->text, item->item.text);
-            item->item.image = get_texture_from_image(renderer, item->item.text);
+            item->item.image = get_texture_from_image(renderer, item->item.text, ii);
             ii->image = item->item.image;
+            item->w = ii->width;
+            item->h = ii->height;
             images->next = Calloc(1, sizeof(linkedlist));
           } else {
             debug("renderer found an image: %s", ii->text);
@@ -676,8 +704,19 @@ void draw_slide_items(SDL_Renderer *renderer, int width, int height,
 
           item->image_texture = true;
         }
+        SDL_Rect srcrect;
+        srcrect.x = item->w * item->src_rect.x;
+        srcrect.y = item->h * item->src_rect.y;
+        srcrect.w = item->w * item->src_rect.w;
+        srcrect.h = item->h * item->src_rect.h;
 
-        SDL_RenderCopy(renderer, item->item.image, 0, 0);
+        SDL_Rect dstrect;
+        dstrect.x = width * item->dst_rect.x;
+        dstrect.y = height * item->dst_rect.y;
+        dstrect.w = width * item->dst_rect.w;
+        dstrect.h = height * item->dst_rect.h;
+
+        SDL_RenderCopy(renderer, item->item.image, &srcrect, &dstrect);
         break;
       }
     }
@@ -705,7 +744,7 @@ texturize_text(SDL_Renderer *renderer, TTF_Font *font, char *string,
   return texture;
 }
 
-SDL_Texture *get_texture_from_image(SDL_Renderer *renderer, char *filename) {
+SDL_Texture *get_texture_from_image(SDL_Renderer *renderer, char *filename, image_item *ii) {
   SDL_Surface *image_surface = 0;
   int image_width;
   int image_height;
@@ -718,6 +757,8 @@ SDL_Texture *get_texture_from_image(SDL_Renderer *renderer, char *filename) {
     error("image load failure: %s", stbi_failure_reason());
     return 0;
   }
+  ii->width = image_width;
+  ii->height = image_height;
   int bits_ppix = n_chans * 8;
   image_surface = SDL_CreateRGBSurfaceWithFormatFrom(
       image, image_width, image_height, bits_ppix,
