@@ -55,15 +55,15 @@ void set_align(style_item *style, const char *token) {
 }
 
 static style_item DEFAULT_STYLE = {
-    /* size         float       */ .1f,
-    /* style        font_style  */ italic,
-    /* family       font_family */ serif,
-    /* align        align_text  */ center,
-    /* line_height  float       */ 1.f,
-    /* margins_x    float       */ 0.05f,
-    /* fg_color     SDL_Color   */ {0, 0, 0, 255},
-    /* shadow_color SDL_Color   */ {0, 0, 0, 102},
-    /* name         char        */ "default",
+  /* size         float       */ .1f,
+  /* style        font_style  */ italic,
+  /* family       font_family */ serif,
+  /* align        align_text  */ center,
+  /* line_height  float       */ 1.f,
+  /* margins_x    float       */ 0.05f,
+  /* fg_color     SDL_Color   */ {0, 0, 0, 255},
+  /* shadow_color SDL_Color   */ {0, 0, 0, 102},
+  /* name         char        */ "default",
 };
 
 void free_styles(style_item **saved_styles) {
@@ -114,10 +114,10 @@ filter_image_files(const struct dirent *d) {
   size_t len = strlen(name);
 
   return
-      strncmp(&name[len - 4], ".png", 4) == 0 ||
-      strncmp(&name[len - 4], ".bmp", 4) == 0 ||
-      strncmp(&name[len - 4], ".jpg", 4) == 0 ||
-      strncmp(&name[len - 4], ".gif", 4) == 0;
+    strncmp(&name[len - 4], ".png", 4) == 0 ||
+    strncmp(&name[len - 4], ".bmp", 4) == 0 ||
+    strncmp(&name[len - 4], ".jpg", 4) == 0 ||
+    strncmp(&name[len - 4], ".gif", 4) == 0;
 }
 
 /** returns pointer to malloc'd string of the file path, or else 0 */
@@ -181,7 +181,7 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
       char *title = strtok_r(&line[1], "\n", &space_tokenizer);
       slide = Calloc(1, sizeof(slide_item));
       slide->title = title ? strcpy(Malloc(strlen(title) + 1), title)
-          : strcpy(Malloc(5), "none");
+                           : strcpy(Malloc(5), "none");
       slide->bg_color = bg;
       push(the_show->slides, slide);
       info("reassigned slide pointer -> '%s'", slide->title);
@@ -198,9 +198,9 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           /* . font [float] [*]... */
 
           token = strtok_r(0, " ", &space_tokenizer);
-          style = style_declaration ? :
-              memcpy(Calloc(1, sizeof(style_item)),
-                     style ? : &DEFAULT_STYLE, sizeof(style_item));
+          style = style_declaration ?:
+                  memcpy(Calloc(1, sizeof(style_item)),
+                         style ?: &DEFAULT_STYLE, sizeof(style_item));
           style->size = !token ? .1f : strtof(token, 0);
           while (token) {
             set_fam(style, token);
@@ -208,8 +208,7 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
             set_align(style, token);
             token = strtok_r(0, " ", &space_tokenizer);
           }
-          info("assigned font props to style '%s'",
-               !style ? "unknown style" : style->name);
+          info("assigned font props to style '%s'", !style ? "unknown style" : style->name);
 
         } else if (strcmp("define-image", token) == 0) {
           /* . define-image [alias] [filename] */
@@ -222,9 +221,7 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           image_hash *found;
           HASH_FIND_STR(the_show->images, image_alias, found);
           if (found) {
-            info(RED
-                     "there's already an image named '%s'"
-                     RESET, image_alias);
+            info(RED "there's already an image named '%s'" RESET, image_alias);
           } else {
             image_hash *ihash = Calloc(1, sizeof(image_hash));
             ihash->image_res_name = res_name;
@@ -242,9 +239,7 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           /* . image [*]... */
 
           token = strtok_r(0, " ", &space_tokenizer);
-          info(YELLOW
-                   "using image '%s'"
-                   RESET, token);
+          info(YELLOW "using image '%s'" RESET, token);
           image_hash *found;
           HASH_FIND_STR(the_show->images, token, found);
           if (found) {
@@ -271,9 +266,7 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
             item->dst_rect.h = !token ? 1.f : strtof(token, 0);
             push(slide->grocery_items, item);
           } else {
-            info(RED
-                     "can't find image named '%s'"
-                     RESET, token);
+            info(RED "can't find image named '%s'" RESET, token);
           }
 
         } else if (strcmp("#", token) == 0) {
@@ -291,16 +284,12 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
                             template->id, len, template);
 
             slide = template->slide = !template ? 0
-                : Calloc(1, sizeof(slide_item));
-            info(GREEN
-                     "start saving attributes to slide '%s' at %p",
-                 token, template->slide);
+                                                : Calloc(1, sizeof(slide_item));
+            info(GREEN "start saving attributes to slide '%s' at %p", token, template->slide);
             slide->title = strcpy(Malloc(len * sizeof(char) + 1), token);
           } else {
             slide = 0;
-            info(RED
-                     "attempt to redefine slide template '%s'!"
-                     RESET, token);
+            info(RED "attempt to redefine slide template '%s'!" RESET, token);
           }
 
         } else if (strcmp("using", token) == 0) {
@@ -309,16 +298,12 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           template_slide *template;
           HASH_FIND_STR(the_show->template_slides, token, template);
           if (template) {
-            info(BLUE
-                     "found slide template: '%s' at %p"
-                     RESET,
-                 token, template->slide);
+            info(BLUE "found slide template: '%s' at %p"
+                   RESET, token, template->slide);
             push(slide->using, template->slide);
           } else {
-            info(RED
-                     "attempt to use a slide template"
-                     " that doesn't exist '%s'"
-                     RESET, token);
+            info(RED "attempt to use a slide template"
+                     " that doesn't exist '%s'" RESET, token);
           }
 
         } else if (strcmp("define-style", token) == 0) {
@@ -329,14 +314,13 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           HASH_FIND_STR(*saved_styles, token, found);
           if (!found) {
             style_declaration = memcpy(
-                Calloc(1, sizeof(style_item)),
-                style ? : &DEFAULT_STYLE, sizeof(style_item));
+              Calloc(1, sizeof(style_item)),
+              style ?: &DEFAULT_STYLE, sizeof(style_item));
             size_t len = strlen(token);
             char *style_name = strcpy(Malloc(len * sizeof(char) + 1), token);
             style_declaration->name = style_name;
             HASH_ADD_STR(*saved_styles, name, style_declaration);
-            info(GREEN
-                     "start style prop definitions for '%s'", style_name);
+            info(GREEN "start style prop definitions for '%s'", style_name);
           } else {
             style = found;
           }
@@ -349,19 +333,13 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
             HASH_FIND_STR(*saved_styles, style_declaration->name, found);
             if (found) {
               style = style_declaration;
-              info(BLUE
-                       "done! defined style '%s'"
-                       RESET, found->name);
+              info(BLUE "done! defined style '%s'" RESET, found->name);
             } else {
-              info(RED
-                       "oh no! expected to find style '%s'!"
-                       RESET, style->name);
+              info(RED "oh no! expected to find style '%s'!" RESET, style->name);
             }
             style_declaration = 0;
           } else {
-            info(RED
-                     "tried to save a style before defining one"
-                     RESET);
+            info(RED "tried to save a style before defining one" RESET);
           }
 
         } else if (strcmp("style", token) == 0) {
@@ -372,13 +350,9 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           HASH_FIND_STR(*saved_styles, token, found);
           if (found) {
             style = found;
-            info(MAGENTA
-                     "found style to reuse: '%s'"
-                     RESET, found->name);
+            info(MAGENTA "found style to reuse: '%s'" RESET, found->name);
           } else {
-            info(RED
-                     "can't find style named %s"
-                     RESET, token);
+            info(RED "can't find style named %s" RESET, token);
           }
 
         } else if (strcmp("y", token) == 0) {
@@ -392,11 +366,11 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           /* . bg [float_r] [float_g] [float_b] [? alpha] */
 
           token = strtok_r(0, " ", &space_tokenizer);
-          float r = !token ? : strtof(token, 0);
+          float r = !token ?: strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
-          float g = !token ? : strtof(token, 0);
+          float g = !token ?: strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
-          float b = !token ? : strtof(token, 0);
+          float b = !token ?: strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
           float a = token ? strtof(token, 0) : 1;
           bg = cf4(r, g, b, a);
@@ -405,17 +379,17 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           /* . color [float_r] [float_g] [float_b] [float_a] */
 
           token = strtok_r(0, " ", &space_tokenizer);
-          float r = !token ? : strtof(token, 0);
+          float r = !token ?: strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
-          float g = !token ? : strtof(token, 0);
+          float g = !token ?: strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
-          float b = !token ? : strtof(token, 0);
+          float b = !token ?: strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
           float a = token ? strtof(token, 0) : 1;
           color = cf4(r, g, b, a);
-          style = style_declaration ? :
-              memcpy(Calloc(1, sizeof(style_item)),
-                     style ? : &DEFAULT_STYLE, sizeof(style_item));
+          style = style_declaration ?:
+                  memcpy(Calloc(1, sizeof(style_item)),
+                         style ?: &DEFAULT_STYLE, sizeof(style_item));
           style->fg_color = color;
 
         } else if (strcmp("shadow", token) == 0) {
@@ -431,18 +405,18 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           float a = token ? strtof(token, 0) : 1;
           color = cf4(r, g, b, a);
           style = style_declaration ?:
-              memcpy(Calloc(1, sizeof(style_item)),
-                  style ?: &DEFAULT_STYLE, sizeof(style_item));
+                  memcpy(Calloc(1, sizeof(style_item)),
+                         style ?: &DEFAULT_STYLE, sizeof(style_item));
           style->shadow_color = color;
 
         } else if (strcmp("line-height", token) == 0) {
           /* . line-height [float] */
 
           token = strtok_r(0, " ", &space_tokenizer);
-          style = style_declaration ? :
-              memcpy(Calloc(1, sizeof(style_item)),
-                     style ? : &DEFAULT_STYLE, sizeof(style_item));
-          float f = !token ? : strtof(token, 0);
+          style = style_declaration ?:
+                  memcpy(Calloc(1, sizeof(style_item)),
+                         style ?: &DEFAULT_STYLE, sizeof(style_item));
+          float f = !token ?: strtof(token, 0);
           style->line_height = f;
 
         } else if (strcmp("margin", token) == 0) {
@@ -475,8 +449,8 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
         item_grocer *item = Calloc(1, sizeof(item_grocer));
         item->type = text_t_item;
         push(slide->grocery_items, item);
-        item->style = style = style ? : memcpy(Calloc(1, sizeof(style_item)),
-                                               &DEFAULT_STYLE, sizeof(style_item));
+        item->style = style = style ?: memcpy(Calloc(1, sizeof(style_item)),
+                                              &DEFAULT_STYLE, sizeof(style_item));
         push(the_show->styles, style);
         size_t len = strlen(line);
         item->item.text = memcpy(Malloc(len * sizeof(char) + 1),
@@ -499,10 +473,8 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
 
         info("pushed some text onto slide '%s': %s", slide->title, line);
       } else {
-        info(RED
-                 "Error: plain text before `# slide heading`;"
-                 " define a slide before '%s'"
-                 RESET, line);
+        info(RED "Error: plain text before `# slide heading`;"
+                 " define a slide before '%s'" RESET, line);
       }
     }
 
@@ -512,10 +484,9 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
 
   /* the previous index was saved; ensure slide index still ok */
   the_show->index = the_show->index < 0 ? 0
-      : min(the_show->index, count(the_show->slides) - 1);
+                                        : min(the_show->index, count(the_show->slides) - 1);
   return the_show;
 }
-
 
 slide_show *default_show() {
   slide_show *the_show = Calloc(1, sizeof(slide_show));
@@ -576,7 +547,7 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
   slide_item *current_slide = show->slides[show->index];
   SDL_Color slide_bg = current_slide->bg_color;
   SDL_SetRenderDrawColor(
-      renderer, slide_bg.r, slide_bg.g, slide_bg.b, slide_bg.a);
+    renderer, slide_bg.r, slide_bg.g, slide_bg.b, slide_bg.a);
   SDL_RenderFillRect(renderer, 0);
 
   /* generally, iterate over all slides;
@@ -637,13 +608,13 @@ void draw_slide_items(SDL_Renderer *renderer, int width, int height,
         TTF_Font *font;
         if ((font = TTF_OpenFont(find_font(fonts, font_idx)->filename, font_size))) {
           SDL_Texture *shadow_text =
-              texturize_text(renderer, font, item->item.text,
-                  style->shadow_color, // todo text shadow color
-                  &rect, SDL_BLENDMODE_BLEND);
+            texturize_text(renderer, font, item->item.text,
+                           style->shadow_color, // todo text shadow color
+                           &rect, SDL_BLENDMODE_BLEND);
           SDL_Texture *slide_text =
-              texturize_text(renderer, font, item->item.text,
-                             style->fg_color,
-                             &rect, SDL_BLENDMODE_BLEND);
+            texturize_text(renderer, font, item->item.text,
+                           style->fg_color,
+                           &rect, SDL_BLENDMODE_BLEND);
           TTF_CloseFont(font);
           // todo text vertical align
           int vertical_align = 0;
@@ -751,8 +722,8 @@ SDL_Texture *get_texture_from_image(SDL_Renderer *renderer, char *filename, imag
   int n_chans;
   int desire_rgba = 4;
   stbi_uc *image =
-      stbi_load(filename, &image_width,
-                &image_height, &n_chans, desire_rgba);
+    stbi_load(filename, &image_width,
+              &image_height, &n_chans, desire_rgba);
   if (!image) {
     error("image load failure: %s", stbi_failure_reason());
     return 0;
@@ -761,15 +732,15 @@ SDL_Texture *get_texture_from_image(SDL_Renderer *renderer, char *filename, imag
   ii->height = image_height;
   int bits_ppix = n_chans * 8;
   image_surface = SDL_CreateRGBSurfaceWithFormatFrom(
-      image, image_width, image_height, bits_ppix,
-      image_width * 4, SDL_PIXELFORMAT_ABGR8888);
+    image, image_width, image_height, bits_ppix,
+    image_width * 4, SDL_PIXELFORMAT_ABGR8888);
   if (!image_surface) {
     error("could not create surface from image file");
     return 0;
   }
 
   SDL_Texture *image_texture =
-      SDL_CreateTextureFromSurface(renderer, image_surface);
+    SDL_CreateTextureFromSurface(renderer, image_surface);
 //  SDL_UpdateTexture(image_texture, 0, image, image_width * 4);
   if (!image_texture) {
     error("could not create texture from image surface");
@@ -795,12 +766,12 @@ SDL_Cursor *get_cursor() {
   int n_chans;
   int desire_rgba = 4;
   stbi_uc *cursor_image =
-      stbi_load("./res/cursor.png", &image_width,
-                &image_height, &n_chans, desire_rgba);
+    stbi_load("./res/cursor.png", &image_width,
+              &image_height, &n_chans, desire_rgba);
   int bits_ppix = n_chans * 8;
   cursor_surface = SDL_CreateRGBSurfaceWithFormatFrom(
-      cursor_image, image_width, image_height, bits_ppix,
-      image_width * 4, SDL_PIXELFORMAT_ABGR8888);
+    cursor_image, image_width, image_height, bits_ppix,
+    image_width * 4, SDL_PIXELFORMAT_ABGR8888);
   if ((cursor = SDL_CreateColorCursor(cursor_surface, 5, 7)) == 0) {
     error("can't create a cursor");
   }
