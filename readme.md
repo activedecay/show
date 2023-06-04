@@ -18,6 +18,14 @@ inotify will poll the files that you're editing and reload the libslider.so/show
 - hack on show.md, see debug below if it's broken
 - `cmake --build cmake-build-debug --target slider install`
 
+# keyboard shortcuts
+                   q, esc: quit
+                     home: go to first slide
+                      end: go to last slide
+         pageup, left, up: go to previous slide
+    pagedown, right, down: go to next slide
+                        x: unlimited frame count
+
 # usage in show.markdown
 markdown titles (using the '#' character) start new slides.
 text in the markdown fil appears on the slides.

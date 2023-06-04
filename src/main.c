@@ -34,6 +34,7 @@
 void stretchy_oom(void) {
   error("stretchy buffers ran out of memory!");
 }
+
 #define STRETCHY_BUFFER_OUT_OF_MEMORY stretchy_oom;
 
 #include "lib/stretchy.h"
@@ -45,7 +46,6 @@ bool on_keydown(SDL_Event *event, slide_show *show, uint32_t *frame_delay);
 font *add_font(font **, char *, char *);
 
 int die(char *);
-
 
 void on_window(SDL_Event *event, uint32_t *frame_delay,
                int *w, int *h, bool *in_frame);
@@ -59,16 +59,16 @@ void *watch_library(void *);
 void *watch_slideshow_file(void *);
 
 typedef struct {
-    char *library_file; /* string path to the library */
-    char *show_file; /* string path to the show.markdown file */
-    sem_t game_sem; /* the library mutex to protect the game_lib reassignments */
-    sem_t show_sem;
-    game_lib game_library;
-    font *fonts;  /* = 0; important */
-    slide_show *show;
-    style_item *saved_styles;  /* = 0; important */
-    SDL_Renderer *renderer;
-    linkedlist *images;
+  char *library_file; /* string path to the library */
+  char *show_file; /* string path to the show.markdown file */
+  sem_t game_sem; /* the library mutex to protect the game_lib reassignments */
+  sem_t show_sem;
+  game_lib game_library;
+  font *fonts;  /* = 0; important */
+  slide_show *show;
+  style_item *saved_styles;  /* = 0; important */
+  SDL_Renderer *renderer;
+  linkedlist *images;
 } game_state;
 
 void load_game_library(void *);
@@ -90,7 +90,6 @@ int x_error_handler(Display *a, XErrorEvent *b) {
 #define errExitErrno(en, msg) \
     do { errno = en; perror(msg); exit(EXIT_FAILURE); \
   } while (0)
-
 
 int
 main(int argc, char *argv[]) {
@@ -130,7 +129,7 @@ main(int argc, char *argv[]) {
   }
 #endif
 
-  /* more epic logging stuffe note: works well with SetOutputFunction below */
+  /* more epic logging stuff note: works well with SetOutputFunction below */
   // SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
   /* epic logging thing to help solve issues! */
   //SDL_LogSetOutputFunction(sdl_hack_logger, 0);
@@ -140,23 +139,23 @@ main(int argc, char *argv[]) {
 
   linkedlist images = {0};
   game_state game_state = {
-      // note, you need -L./lib when compiling to make this work
-      "lib/libslider.so",
-      argc < 2 ? 0 : argv[1],
-      {0},
-      {0},
-      {
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,},
+    // note, you need -L./lib when compiling to make this work
+    "lib/libslider.so",
+    argc < 2 ? 0 : argv[1],
+    {0},
+    {0},
+    {
       0,
       0,
       0,
       0,
-      &images,
+      0,
+      0,},
+    0,
+    0,
+    0,
+    0,
+    &images,
   };
   Sem_init(&game_state.game_sem, 0, 1);
   Sem_init(&game_state.show_sem, 0, 1);
@@ -174,7 +173,7 @@ main(int argc, char *argv[]) {
   if (TTF_Init() < 0)
     return die("can't init SDL TTF");
   SDL_CreateWindowAndRenderer(
-      w, h, SDL_WINDOW_RESIZABLE, &window, &renderer);
+    w, h, SDL_WINDOW_RESIZABLE, &window, &renderer);
 
   game_state.renderer = renderer;
 
@@ -187,7 +186,7 @@ main(int argc, char *argv[]) {
 
   pthread_t threadId;
   Pthread_create(&threadId, 0, watch_slideshow_file, &game_state);
-  #define pthread_name_len 16
+#define pthread_name_len 16
   char thread_name[pthread_name_len] = "show watch";
   Pthread_setname_np(threadId, thread_name);
   Pthread_create(&threadId, 0, watch_library, &game_state);
@@ -198,8 +197,8 @@ main(int argc, char *argv[]) {
     return die("can't load the mouse mouse_font");
   SDL_Rect mouse_follow_rect = {10, 10};
   mouse_follow_word = game_state.game_library.texturize_text_func(
-      renderer, mouse_font, ":*", (SDL_Color) {255, 255, 255, 255},
-      &mouse_follow_rect, SDL_BLENDMODE_BLEND);
+    renderer, mouse_font, ":*", (SDL_Color) {255, 255, 255, 255},
+    &mouse_follow_rect, SDL_BLENDMODE_BLEND);
   TTF_CloseFont(mouse_font);
 
   /* note @Evict from main, i dunno make because we wanted to make a font-creation fun? */
@@ -217,7 +216,7 @@ main(int argc, char *argv[]) {
 
   add_font(&game_state.fonts, "scriptnormal", "./res/Quintessential-Regular.ttf");
   add_font(&game_state.fonts, "scriptitalic", "./res/AlexBrush-Regular.ttf");
-  add_font(&game_state.fonts, "scriptbold",   "./res/OleoScript-Bold.ttf");
+  add_font(&game_state.fonts, "scriptbold", "./res/OleoScript-Bold.ttf");
 
   bool in_frame = false;
   bool quit = false;
@@ -258,15 +257,17 @@ main(int argc, char *argv[]) {
         default:
           break;
       }
-      game_state.show->index = game_state.show->index < 0 ? 0
-          : min(game_state.show->index, count(game_state.show->slides) - 1);
+      game_state.show->index =
+        game_state.show->index < 0 ? 0
+                                   : min(game_state.show->index,
+                                         count(game_state.show->slides) - 1);
       V(&game_state.show_sem);
     }
 
     P(&game_state.show_sem);
     if (game_state.show->slides)
       game_state.game_library.render_slide_func(
-          renderer, w, h, game_state.show, game_state.fonts, game_state.images);
+        renderer, w, h, game_state.show, game_state.fonts, game_state.images);
     V(&game_state.show_sem);
 
     SDL_GetMouseState(&mouse_x, &mouse_y);
@@ -346,6 +347,14 @@ bool on_keydown(SDL_Event *event, slide_show *show,
     default:
       break;
   }
+  /* keyboard shortcuts:
+   *                q, esc: quit
+   *                  home: go to first slide
+   *                   end: go to last slide
+   *      pageup, left, up: go to previous slide
+   * pagedown, right, down: go to next slide
+   *                     x: unlimited frame rate
+   */
   return quit;
 }
 
@@ -446,14 +455,14 @@ void read_slideshow_file(void *ll) {
     int idx = state->show ? state->show->index : -1;
 
     if (state->game_library
-            .free_show_func(state->show, &state->saved_styles) != 0)
+          .free_show_func(state->show, &state->saved_styles) != 0)
       error("something terrible happened "
             "while freeing the show!");
 
     if ((state->show = state->game_library
-        .init_slides_func(idx,
-                          &state->saved_styles,
-                          content)) == 0) {
+      .init_slides_func(idx,
+                        &state->saved_styles,
+                        content)) == 0) {
       die("this show file sucks!");
       exit(EXIT_FAILURE);
     }

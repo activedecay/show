@@ -46,5 +46,5 @@ add_executable(str-to-double scratch/str-to-double.c
         src/lib/csapp.c)
 target_link_libraries(str-to-double pthread)
 
-add_executable(window window.c)
+add_executable(window scratch/window.c)
 target_link_libraries(window SDL2 SDL2_ttf)
