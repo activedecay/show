@@ -40,8 +40,10 @@ inotify will poll the files that you're editing and reload the libslider.so and 
 # usage in show.markdown
 - markdown titles (using the '#' character) start new slides (this text is ignored).
 - regular paragraphs in the markdown file appears on the slides.
-- text position flows from the most recent `. y [pos]` vertical position command. (todo consider implementing margins).
-- text does not wrap; you're in charge of newlines, but inserting newlines automatically inserts text vertically.
+- text position flows from the most recent `. y [pos]` vertical position command.
+- you can use margin to index text position, e.g., `. margin .1` is 10% of the window width.
+- text does not wrap at margins; you insert newlines; there is no soft wrapping.
+- conveniently, newlines automatically insert text on the next line.
 - text y position starts at the top for every new slide encountered.
 - font size is 1/100th of a window height, so .5 = 50% of screen size font height (that's big text, btw).
 - commands start with '. ' string on a new line.
@@ -61,7 +63,6 @@ The first column is "Templ", which indicates whether the command is remembered i
 | yes   | . bg            |                    | [float_r] [float_g] [float_b] [? float_alpha=1]                                       |
 |       |                 | float r g b        | a percentage of color; .5 = 50% red, etc.                                             |
 |       |                 | float_alpha        | slide transition fade with values < 1 (default 1)                                     |
-|       |                 |                    | note: using bg on a template will modify every bg from then on (this is a bug)        | 
 |       | . define-image  |                    | [unique-alias] [path]                                                                 |
 |       |                 | alias              | used in the `image` command to recall an image                                        |
 |       |                 | path               | a file name substring existing in `/res/` dir                                         |
