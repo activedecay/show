@@ -10,8 +10,9 @@
 . # cars
 . bg 0 0 0
 . color 1 1 1
+. shadow 0 0 1
 . y .4
-. font .5 left
+. font .1 left
 There are cars on every slide!
 . image bluel 0 0 1 1 0 .01 .125 .125
 . image pink 0 0 1 1 .125 .01 .125 .125
@@ -23,13 +24,9 @@ There are cars on every slide!
 . image car 0 0 1 1 .875 .01 .125 .125
 
 # slide
+. shadow 0 0 0 .9
 . using cars
 
-. # temp
-. bg 1 1 1
-. color 0 0 0
-. y .9
-strange!
 
 # slide bluel
 . using cars
@@ -38,13 +35,6 @@ strange!
 . font .4 left
 blue
 
-
-# slide strange
-. using temp
-. font .1
-strange behavior: templates define bg
-which is saved across slides. the previous
-slide was not supposed to have a white bg!
 
 # slide pink
 . using cars
@@ -67,20 +57,21 @@ neon!
 # slide green
 . using cars
 . image green 0 0 1 1 .005 .135 .99 .865
-. color 0 1 0
+. color 0 1 0 .9
+. shadow 0 0 1 1
 green!
 
 # slide bluec
 . using cars
 . image blue 0 0 1 1 .005 .135 .99 .865
-. color 0 0 1
+. color 0 0 1 .92
+. shadow 0 0 0 .9
 blue 2!
 
 # slide grey
 . color 1 1 1 .8
 . using cars
 . image grey 0 0 1 1 .005 .135 .99 .865
-. y .5
 grey!
  
 # slide car 
