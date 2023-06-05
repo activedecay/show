@@ -372,6 +372,7 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           token = strtok_r(0, " ", &space_tokenizer);
           float a = token ? strtof(token, 0) : 1;
           slide->bg_color = cf4(r, g, b, a);
+          bg = slide->bg_color;
 
         } else if (strcmp("color", token) == 0) {
           /* . color [float_r] [float_g] [float_b] [float_a] */
