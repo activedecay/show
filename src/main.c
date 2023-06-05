@@ -95,7 +95,6 @@ int
 main(int argc, char *argv[]) {
   if (argc < 2) return die("usage: path/to/show-markdown");
   atexit(quit);
-  SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
 
 #if (sillyopenglwindow)
   {
@@ -211,8 +210,6 @@ main(int argc, char *argv[]) {
   bool in_frame = false;
   bool quit = false;
   u32 frame_delay = 16;
-
-  SDL_ShowCursor(false);
 
   while (!quit) {
     while (SDL_PollEvent(&event)) {
@@ -390,7 +387,7 @@ void load_game_library(void *global_state) {
   game_lib *lib = &state->game_library;
   if (lib->it) dlclose(lib->it);
 
-  if (!(lib->it = dlopen("libslider.so", RTLD_LAZY))) {
+  if (!(lib->it = dlopen(state->library_file, RTLD_LAZY))) {
     error("dlopen failed %s\n", dlerror());
     exit(EXIT_FAILURE);
   }
