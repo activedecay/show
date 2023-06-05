@@ -59,16 +59,16 @@ void *watch_library(void *);
 void *watch_slideshow_file(void *);
 
 typedef struct {
-  char *library_file; /* string path to the library */
-  char *show_file; /* string path to the show.markdown file */
-  sem_t game_sem; /* the library mutex to protect the game_lib reassignments */
-  sem_t show_sem;
-  game_lib game_library;
-  font *fonts;  /* = 0; important */
-  slide_show *show;
-  style_item *saved_styles;  /* = 0; important */
-  SDL_Renderer *renderer;
-  linkedlist *images;
+    char *library_file; /* string path to the library */
+    char *show_file; /* string path to the show.markdown file */
+    sem_t game_sem; /* the library mutex to protect the game_lib reassignments */
+    sem_t show_sem;
+    game_lib game_library;
+    font *fonts;  /* = 0; important */
+    slide_show *show;
+    style_item *saved_styles;  /* = 0; important */
+    SDL_Renderer *renderer;
+    linkedlist *images;
 } game_state;
 
 void load_game_library(void *);
@@ -94,7 +94,9 @@ int x_error_handler(Display *a, XErrorEvent *b) {
 int
 main(int argc, char *argv[]) {
   if (argc < 2) return die("usage: path/to/show-markdown");
+
   atexit(quit);
+  SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
 
 #if (sillyopenglwindow)
   {
@@ -211,6 +213,7 @@ main(int argc, char *argv[]) {
   bool quit = false;
   u32 frame_delay = 16;
 
+  SDL_ShowCursor(false);
   while (!quit) {
     while (SDL_PollEvent(&event)) {
       const Uint8 *state = SDL_GetKeyboardState(NULL);

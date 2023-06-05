@@ -575,13 +575,13 @@ void render_slide(SDL_Renderer *renderer, int w, int h, slide_show *show,
   SDL_GetMouseState(&mouse_x, &mouse_y);
   TTF_Font *mouse_font = 0;
   SDL_Texture *mouse_follow_word = 0;
-  if (!(mouse_font = TTF_OpenFont("./res/FreeSans.ttf", 72))) {
+  if (!(mouse_font = TTF_OpenFont("./res/FreeSans.ttf", 60))) {
     error("TTF_OpenFont: %s", TTF_GetError());
     exit(1);
   }
   SDL_Rect mouse_follow_rect = {0};
   mouse_follow_word = texturize_text(
-    renderer, mouse_font, ":*", (SDL_Color) {255, 255, 255, 255},
+    renderer, mouse_font, "<:~", (SDL_Color) {255, 255, 255, 255},
     &mouse_follow_rect, SDL_BLENDMODE_BLEND);
   TTF_CloseFont(mouse_font);
   mouse_follow_rect.x = mouse_x;
