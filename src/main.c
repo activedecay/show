@@ -162,8 +162,6 @@ main(int argc, char *argv[]) {
 
   SDL_Window *window = 0;
   SDL_Renderer *renderer = 0;
-  TTF_Font *mouse_font = 0;
-  SDL_Texture *mouse_follow_word = 0;
   SDL_Event event;
   int w = 960;
   int h = 540;
@@ -193,14 +191,6 @@ main(int argc, char *argv[]) {
   strncpy(thread_name, "lib watch", pthread_name_len);
   Pthread_setname_np(threadId, thread_name);
 
-  if (!(mouse_font = TTF_OpenFont("./res/FreeSans.ttf", 72)))
-    return die("can't load the mouse mouse_font");
-  SDL_Rect mouse_follow_rect = {10, 10};
-  mouse_follow_word = game_state.game_library.texturize_text_func(
-    renderer, mouse_font, ":*", (SDL_Color) {255, 255, 255, 255},
-    &mouse_follow_rect, SDL_BLENDMODE_BLEND);
-  TTF_CloseFont(mouse_font);
-
   /* note @Evict from main, i dunno make because we wanted to make a font-creation fun? */
   add_font(&game_state.fonts, "sansnormal", "./res/FreeSans.ttf");
   add_font(&game_state.fonts, "sansbold", "./res/FreeSansBold.ttf");
@@ -220,7 +210,6 @@ main(int argc, char *argv[]) {
 
   bool in_frame = false;
   bool quit = false;
-  int mouse_x, mouse_y;
   u32 frame_delay = 16;
 
   SDL_ShowCursor(false);
@@ -267,22 +256,13 @@ main(int argc, char *argv[]) {
     P(&game_state.show_sem);
     if (game_state.show->slides)
       game_state.game_library.render_slide_func(
-        renderer, w, h, game_state.show, game_state.fonts, game_state.images);
+        renderer, w, h, game_state.show, game_state.fonts, game_state.images, in_frame);
     V(&game_state.show_sem);
 
-    SDL_GetMouseState(&mouse_x, &mouse_y);
-    mouse_follow_rect.x = mouse_x + 20;
-    mouse_follow_rect.y = mouse_y + 20;
-
-    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
-    if (in_frame)
-      SDL_RenderCopy(renderer, mouse_follow_word,
-                     0, &mouse_follow_rect);
     SDL_RenderPresent(renderer);
     SDL_Delay(frame_delay);
   }
 
-  SDL_DestroyTexture(mouse_follow_word);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
 

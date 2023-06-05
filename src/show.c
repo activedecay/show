@@ -282,9 +282,7 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
             template->id = strcpy(Malloc(len * sizeof(char) + 1), token);
             HASH_ADD_KEYPTR(hh, the_show->template_slides,
                             template->id, len, template);
-
-            slide = template->slide = !template ? 0
-                                                : Calloc(1, sizeof(slide_item));
+            slide = template->slide = Calloc(1, sizeof(slide_item));
             info(GREEN "start saving attributes to slide '%s' at %p", token, template->slide);
             slide->title = strcpy(Malloc(len * sizeof(char) + 1), token);
           } else {
@@ -373,7 +371,7 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           float b = !token ?: strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
           float a = token ? strtof(token, 0) : 1;
-          bg = cf4(r, g, b, a);
+          slide->bg_color = cf4(r, g, b, a);
 
         } else if (strcmp("color", token) == 0) {
           /* . color [float_r] [float_g] [float_b] [float_a] */
@@ -541,8 +539,8 @@ slide_show *default_show() {
   return the_show;
 }
 
-void render_slide(SDL_Renderer *renderer, int w, int h,
-                  slide_show *show, font *fonts, linkedlist *images) {
+void render_slide(SDL_Renderer *renderer, int w, int h, slide_show *show,
+                  font *fonts, linkedlist *images, bool mouse_in_frame) {
   SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
   slide_item *current_slide = show->slides[show->index];
   SDL_Color slide_bg = current_slide->bg_color;
@@ -555,7 +553,14 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
 
   for (int i = 0; i < count(current_slide->using); ++i) {
     slide_item *using = current_slide->using[i];
-    if (using) draw_slide_items(renderer, w, h, fonts, using, images, image_t_item);
+    if (using) {
+      // fill bg color
+      SDL_Color bg = using->bg_color;
+      SDL_SetRenderDrawColor(renderer, bg.r, bg.g, bg.b, bg.a);
+      SDL_RenderFillRect(renderer, 0);
+      // draw images
+      draw_slide_items(renderer, w, h, fonts, using, images, image_t_item);
+    }
   }
   draw_slide_items(renderer, w, h, fonts, current_slide, images, image_t_item);
 
@@ -564,6 +569,26 @@ void render_slide(SDL_Renderer *renderer, int w, int h,
     if (using) draw_slide_items(renderer, w, h, fonts, using, images, text_t_item);
   }
   draw_slide_items(renderer, w, h, fonts, current_slide, images, text_t_item);
+
+  int mouse_x, mouse_y;
+  SDL_GetMouseState(&mouse_x, &mouse_y);
+  TTF_Font *mouse_font = 0;
+  SDL_Texture *mouse_follow_word = 0;
+  if (!(mouse_font = TTF_OpenFont("./res/FreeSans.ttf", 72))) {
+    error("TTF_OpenFont: %s", TTF_GetError());
+    exit(1);
+  }
+  SDL_Rect mouse_follow_rect = {0};
+  mouse_follow_word = texturize_text(
+    renderer, mouse_font, ":*", (SDL_Color) {255, 255, 255, 255},
+    &mouse_follow_rect, SDL_BLENDMODE_BLEND);
+  TTF_CloseFont(mouse_font);
+  mouse_follow_rect.x = mouse_x;
+  mouse_follow_rect.y = mouse_y;
+  SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+  if (mouse_in_frame)
+    SDL_RenderCopy(renderer, mouse_follow_word, 0, &mouse_follow_rect);
+  SDL_DestroyTexture(mouse_follow_word);
 }
 
 

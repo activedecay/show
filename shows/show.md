@@ -1,20 +1,19 @@
-. define-style default
-. save-style
+; trying to define templates to use bg colors
 
-
-. define-style title
+. # w
+. bg 1 1 1
 . font .1 left
-. margin .1
-. save-style
+. color 0 0 0
+white template text
 
-#
-. style title
-hehe
-. style default
-lol sick wow
+. # b
+. bg 0 0 0
+. font .1 left
+. color 1 1 1
+black template text
 
-#
-. style title
-hoho!
-. style default
-haha
+# white
+. using w
+
+# black
+. using b

@@ -1,5 +1,7 @@
 # priority fixes
 
+- styles work on slides, but not on templates
+- color used bleeds through templates to slides
 - show cursor in show.markdown file (see mouse_follow_word)
     - pointer config (mouse image, offset, font, color, text, shadow, shown/hidden?)
     - keystroke toggles visibility
@@ -11,13 +13,6 @@
     - variables
 - poly lines
     - variables
-- background color is not saved in a template
-    - modifying a template's background color changes the background color of all slides
-    - recalling a template does not recall the background color saved on the template
-    - todo: check that the background color is saved in the template slide
-    - todo: when recalling a template, set the background color to the template's background color
-    - todo: consider whether the current background color should be saved in a global variable
-    - todo: background should be global without a slide
 
 # killer features
 
@@ -79,6 +74,14 @@
 - aspect ratio (hard)
 - image tiling (uv-scale 1 -1)
 - image borders
+
+# done
+- background color is not saved in a template
+    - modifying a template's background color changes the background color of all slides
+    - recalling a template does not recall the background color saved on the template
+    - todo: check that the background color is saved in the template slide
+    - todo: when recalling a template, set the background color to the template's background color
+    - nope: consider whether the current background color should be saved in a global variable
 
 # dead code
 

@@ -262,7 +262,7 @@ typedef FUNCTION_FS((*free_show_ptr));
 FUNCTION_FS(free_show);
 
 #define FUNCTION_RS(fun) void fun(SDL_Renderer *, int, int,        \
-        slide_show *, font *, linkedlist *)
+        slide_show *, font *, linkedlist *, bool)
 typedef FUNCTION_RS((*render_slide_ptr));
 FUNCTION_RS(render_slide);
 
