@@ -54,7 +54,8 @@ The first column is "Templ", which indicates whether the command is remembered i
 
 | Templ | Text or command | Command arguments | Explanation                                                                           |
 |-------|-----------------|-------------------|---------------------------------------------------------------------------------------|
-|       | paragraph text  |                   | any text that is not a command start is shown on a slide.                             |
+|       | ; [*]           |                   | comment                                                                               |
+|       | [*]             |                   | any text that is not a command start is shown on a slide. markdown paragraph text.    |
 |       |                 |                   | until margins are implemented, use spaces to insert space to the left.                |
 |       | . [*]           |                   | the dot-space sequence '. ' is start of command                                       |
 | yes   | . bg            |                   | [float_r] [float_g] [float_b] [? float_alpha=1]                                       |

@@ -10,8 +10,8 @@
 . # cars
 . bg 0 0 0
 . color 1 1 1
-. y .9
-. margin .1 .2 .3
+. y .4
+. font .5 left
 There are cars on every slide!
 . image bluel 0 0 1 1 0 .01 .125 .125
 . image pink 0 0 1 1 .125 .01 .125 .125

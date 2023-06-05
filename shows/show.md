@@ -1,23 +1,20 @@
 . define-style default
-. color 1 1 1 1
 . save-style
 
-. bg 0 0 0 .01
 
-. # haha
-. color .5 .5 .5
-. y .1
-. font .07 left
-. line-height -.1
-hello
-. color .7 .7 .7 .8
-. font .05
-            n u r s e
+. define-style title
+. font .1 left
+. margin .1
+. save-style
 
-# lmao
-. using haha
+#
+. style title
+hehe
 . style default
-interesting
+lol sick wow
 
-# weird
-weird
+#
+. style title
+hoho!
+. style default
+haha

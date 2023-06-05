@@ -420,14 +420,14 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           style->line_height = f;
 
         } else if (strcmp("margin", token) == 0) {
-          /* . margin [float_top] [?float_right] [?float_left] */
+          /* . margin [float_vertical] [?float_horizontal] */
 
-          info(GREEN "unknown command: %s" RESET, token);
-          token = strtok_r(0, " ", &space_tokenizer);
-          while (token) {
-            info(GREEN "unknown attribute: %s" RESET, token);
-            token = strtok_r(0, " ", &space_tokenizer);
-          }
+          info(GREEN "set margin: %s" RESET, space_tokenizer);
+          token = strtok_r(0, " ", &space_tokenizer); // todo vertical and horizontal
+          style = style_declaration ?:
+                  memcpy(Calloc(1, sizeof(style_item)),
+                         style ?: &DEFAULT_STYLE, sizeof(style_item));
+          style->margins_x = !token ? 0 : strtof(token, 0);
         } else if (token[0] != command_starter) {
           /* unknown */
 
@@ -609,7 +609,7 @@ void draw_slide_items(SDL_Renderer *renderer, int width, int height,
         if ((font = TTF_OpenFont(find_font(fonts, font_idx)->filename, font_size))) {
           SDL_Texture *shadow_text =
             texturize_text(renderer, font, item->item.text,
-                           style->shadow_color, // todo text shadow color
+                           style->shadow_color,
                            &rect, SDL_BLENDMODE_BLEND);
           SDL_Texture *slide_text =
             texturize_text(renderer, font, item->item.text,
@@ -617,7 +617,6 @@ void draw_slide_items(SDL_Renderer *renderer, int width, int height,
                            &rect, SDL_BLENDMODE_BLEND);
           TTF_CloseFont(font);
           // todo text vertical align
-          int vertical_align = 0;
           switch (style->align) {
             default:
             case left:
@@ -636,7 +635,7 @@ void draw_slide_items(SDL_Renderer *renderer, int width, int height,
           SDL_RenderCopy(renderer, slide_text, 0, &rect);
           SDL_DestroyTexture(shadow_text);
           SDL_DestroyTexture(slide_text);
-          rect.y = rect.y + vertical_align + (int) ((float) rect.h * style->line_height);
+          rect.y = rect.y + (int) ((float) rect.h * style->line_height);
         } else {
           assert(!"needs a better font failure mechanism");
         }
@@ -675,13 +674,13 @@ void draw_slide_items(SDL_Renderer *renderer, int width, int height,
 
           item->image_texture = true;
         }
-        SDL_Rect srcrect;
+        SDL_Rect srcrect; // crop
         srcrect.x = item->w * item->src_rect.x;
         srcrect.y = item->h * item->src_rect.y;
         srcrect.w = item->w * item->src_rect.w;
         srcrect.h = item->h * item->src_rect.h;
 
-        SDL_Rect dstrect;
+        SDL_Rect dstrect; // scale
         dstrect.x = width * item->dst_rect.x;
         dstrect.y = height * item->dst_rect.y;
         dstrect.w = width * item->dst_rect.w;
