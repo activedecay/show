@@ -1,3 +1,9 @@
 cmake-build-debug/
 cmake-build-release/
 .idea/
+nob
+nob.old
+build/
+cmake-build/
+output
+.cache/

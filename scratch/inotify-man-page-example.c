@@ -20,7 +20,7 @@ handle_events(int fd, int *wd, int argc, char *argv[]) {
      struct inotify_event. */
 
   char buf[4096]
-      __attribute__ ((aligned(__alignof__(struct inotify_event))));
+    __attribute__((aligned(__alignof__(struct inotify_event))));
   const struct inotify_event *event;
   int i;
   ssize_t len;
@@ -48,9 +48,9 @@ handle_events(int fd, int *wd, int argc, char *argv[]) {
     /* Loop over all events in the buffer */
 
     for (ptr = buf; ptr < buf + len;
-        ptr += sizeof(struct inotify_event) + event->len) {
+      ptr += sizeof(struct inotify_event) + event->len) {
 
-      event = (const struct inotify_event *) ptr;
+      event = (const struct inotify_event *)ptr;
 
       /* Print event type */
 
@@ -85,8 +85,7 @@ handle_events(int fd, int *wd, int argc, char *argv[]) {
   }
 }
 
-int
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
   char buf;
   int fd, i, poll_num;
   int *wd;
@@ -122,7 +121,7 @@ main(int argc, char *argv[]) {
 
   for (i = 1; i < argc; i++) {
     wd[i] = inotify_add_watch(fd, argv[i],
-        IN_OPEN | IN_CLOSE);
+      IN_OPEN | IN_CLOSE);
     if (wd[i] == -1) {
       fprintf(stderr, "Cannot watch '%s'\n", argv[i]);
       perror("inotify_add_watch");
@@ -136,12 +135,12 @@ main(int argc, char *argv[]) {
 
   /* Console input */
 
-  fds[0].fd = STDIN_FILENO;
+  fds[0].fd     = STDIN_FILENO;
   fds[0].events = POLLIN;
 
   /* Inotify input */
 
-  fds[1].fd = fd;
+  fds[1].fd     = fd;
   fds[1].events = POLLIN;
 
   /* Wait for events and/or terminal input */

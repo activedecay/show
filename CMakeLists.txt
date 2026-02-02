@@ -18,12 +18,13 @@ add_compile_definitions( _GNU_SOURCE=1 ) # you can now pthread_setname_np
 # will search for the libslider.so in ./lib/ and will watch for
 # changes to the library, reload the function definitions from
 # the changes. pretty sweet.
-add_library(slider SHARED src/show.c src/show.h
+add_library(slider SHARED
+        src/show.c
+        src/show.h
         src/lib/stretchy.h
         src/lib/uthash.h
         src/lib/csapp.c
         )
-target_link_libraries(slider)
 set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 install(TARGETS slider DESTINATION lib)
 
@@ -34,11 +35,11 @@ add_executable(show src/main.c
         src/lib/ino.h
         src/lib/csapp.c
         )
-target_link_directories(show PRIVATE ./lib)
+target_link_directories(show PRIVATE ./lib) # is this the magic that sets rpath?
 target_link_libraries(show SDL2 SDL2_ttf pthread m dl X11 OpenGL)
 
-add_executable(image-scratch scratch/image-scratch.c)
-target_link_libraries(image-scratch SDL2 m)
+add_executable(image-mediainfo scratch/image-mediainfo.c)
+target_link_libraries(image-mediainfo SDL2 m)
 
 add_executable(inotify scratch/inotify-man-page-example.c)
 

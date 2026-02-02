@@ -1,12 +1,8 @@
-//
 // Created by justin on 1/12/19.
-//
 
 #include "show.h"
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunknown-pragmas"
-#pragma ide diagnostic ignored "OCDFAInspection"
+#include "lib/uthash.h"
+#include <SDL2/SDL_pixels.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -44,6 +40,7 @@ void set_style(style_item *style, const char *token) {
 char *get_style(style_item *style) {
   for (int i = 0; i < num_styles; ++i)
     if (styles[i].s == style->style) return styles[i].name;
+  return NULL;
 }
 
 void set_align(style_item *style, const char *token) {
@@ -64,6 +61,7 @@ static style_item DEFAULT_STYLE = {
   /* fg_color     SDL_Color   */ {0, 0, 0, 255},
   /* shadow_color SDL_Color   */ {0, 0, 0, 102},
   /* name         char        */ "default",
+  (UT_hash_handle){0}
 };
 
 void free_styles(style_item **saved_styles) {
@@ -106,11 +104,12 @@ int free_show(slide_show *show, style_item **saved_styles) {
   stretch_free(show->positions);
   stretch_free(show->slides);
   free(show);
+  return 0;
 }
 
 int
 filter_image_files(const struct dirent *d) {
-  char *name = d->d_name;
+  const char *name = d->d_name;
   size_t len = strlen(name);
 
   return
@@ -364,25 +363,25 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           /* . bg [float_r] [float_g] [float_b] [? alpha] */
 
           token = strtok_r(0, " ", &space_tokenizer);
-          float r = !token ?: strtof(token, 0);
+          float r = !token ? 0 : strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
-          float g = !token ?: strtof(token, 0);
+          float g = !token ? 0 : strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
-          float b = !token ?: strtof(token, 0);
+          float b = !token ? 0 : strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
           float a = token ? strtof(token, 0) : 1;
-          slide->bg_color = cf4(r, g, b, a);
-          bg = slide->bg_color;
+          bg = cf4(r, g, b, a);
+          if (slide) slide->bg_color = bg; // we could have gotten here before a slide exists
 
         } else if (strcmp("color", token) == 0) {
           /* . color [float_r] [float_g] [float_b] [float_a] */
 
           token = strtok_r(0, " ", &space_tokenizer);
-          float r = !token ?: strtof(token, 0);
+          float r = !token ? 0 : strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
-          float g = !token ?: strtof(token, 0);
+          float g = !token ? 0 : strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
-          float b = !token ?: strtof(token, 0);
+          float b = !token ? 0 : strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
           float a = token ? strtof(token, 0) : 1;
           color = cf4(r, g, b, a);
@@ -395,11 +394,11 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           /* . shadow [float_r] [float_g] [float_b] */
 
           token = strtok_r(0, " ", &space_tokenizer);
-          float r = !token ?: strtof(token, 0);
+          float r = !token ? 0 : strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
-          float g = !token ?: strtof(token, 0);
+          float g = !token ? 0 : strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
-          float b = !token ?: strtof(token, 0);
+          float b = !token ? 0 : strtof(token, 0);
           token = strtok_r(0, " ", &space_tokenizer);
           float a = token ? strtof(token, 0) : 1;
           color = cf4(r, g, b, a);
@@ -415,7 +414,7 @@ slide_show *init_slides(int idx, style_item **saved_styles, char *content) {
           style = style_declaration ?:
                   memcpy(Calloc(1, sizeof(style_item)),
                          style ?: &DEFAULT_STYLE, sizeof(style_item));
-          float f = !token ?: strtof(token, 0);
+          float f = !token ? 0 : strtof(token, 0);
           style->line_height = f;
 
         } else if (strcmp("margin", token) == 0) {
@@ -812,4 +811,3 @@ font *find_font(const font *fonts, char *name) {
   return s;
 }
 
-#pragma clang diagnostic pop

@@ -1,3 +1,1 @@
-#!/usr/bin/env bash
-
-cmake --build cmake-build-debug --target slider install
+./nob libslider.so

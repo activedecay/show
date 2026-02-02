@@ -11,7 +11,7 @@ void unix_error(char *msg) /* Unix-style error */
   fprintf(stderr, "%s: %s\n", msg, strerror(errno));
   exit(0);
 }
-void unix_error_context(char *msg, char *context) /* Unix-style error */
+void unix_error_context(char *msg, const char *context) /* Unix-style error */
 {
   fprintf(stderr, "%s (%s): %s\n", msg, context, strerror(errno));
   exit(0);
@@ -91,7 +91,7 @@ void Pause() {
 }
 
 unsigned int Sleep(unsigned int secs) {
-  unsigned int rc;
+  int rc;
 
   if ((rc = sleep(secs)) < 0)
     unix_error("Sleep error");
@@ -742,7 +742,7 @@ static ssize_t rio_read(rio_t *rp, char *usrbuf, size_t n) {
 
   /* Copy min(n, rp->rio_cnt) bytes from internal buf to user buf */
   cnt = n;
-  if (rp->rio_cnt < n)
+  if ((size_t)rp->rio_cnt < n)
     cnt = rp->rio_cnt;
   memcpy(usrbuf, rp->rio_bufptr, cnt);
   rp->rio_bufptr += cnt;
@@ -791,7 +791,7 @@ ssize_t rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen) {
   int n, rc;
   char c, *bufp = usrbuf;
 
-  for (n = 1; n < maxlen; n++) {
+  for (n = 1; (size_t)n < maxlen; n++) {
     if ((rc = rio_read(rp, &c, 1)) == 1) {
       *bufp++ = c;
       if (c == '\n') {
@@ -823,7 +823,7 @@ ssize_t Rio_readn(int fd, void *ptr, size_t nbytes) {
 }
 
 void Rio_writen(int fd, void *usrbuf, size_t n) {
-  if (rio_writen(fd, usrbuf, n) != n)
+  if (rio_writen(fd, usrbuf, n) != (ssize_t)n)
     unix_error("Rio_writen error");
 }
 

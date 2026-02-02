@@ -3,15 +3,6 @@
 // code review Sat Oct 16 09:33:24 MDT 2021
 //
 
-#pragma clang diagnostic push
-/* consider discarding const qualifiers */
-#pragma clang diagnostic ignored \
-  "-Wincompatible-pointer-types-discards-qualifiers"
-#pragma ide diagnostic ignored "cert-msc30-c" // rand is weak
-#pragma ide diagnostic ignored "cert-msc32-c" // rand is weak
-#pragma clang diagnostic ignored "-Wunknown-pragmas"
-#pragma ide diagnostic ignored "OCDFAInspection"
-
 #include <dirent.h>
 #include <dlfcn.h>
 #include <SDL2/SDL.h>
@@ -43,7 +34,7 @@ void stretchy_oom(void) {
 
 bool on_keydown(SDL_Event *event, slide_show *show, uint32_t *frame_delay);
 
-font *add_font(font **, char *, char *);
+void add_font(font **, char *, char *);
 
 int die(char *);
 
@@ -139,25 +130,10 @@ main(int argc, char *argv[]) {
   // XSetErrorHandler(x_error_handler);
 
   linkedlist images = {0};
-  game_state game_state = {
-    // note, you need -L./lib when compiling to make this work
-    "lib/libslider.so",
-    argc < 2 ? 0 : argv[1],
-    {0},
-    {0},
-    {
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,},
-    0,
-    0,
-    0,
-    0,
-    &images,
-  };
+  game_state game_state = {0};
+  game_state.library_file = "lib/libslider.so";
+  game_state.show_file = argc < 2 ? 0 : argv[1];
+  game_state.images = &images;
   Sem_init(&game_state.game_sem, 0, 1);
   Sem_init(&game_state.show_sem, 0, 1);
 
@@ -274,10 +250,10 @@ void quit(void) {
   TTF_Quit();
 }
 
-font *add_font(font **fonts, char *name, char *filepath) {
+void add_font(font **fonts, char *name, char *filepath) {
   font *found;
   HASH_FIND_STR(*fonts, name, found);
-  if (found) return found;
+  if (found) return;
   found = Malloc(sizeof(font));
   found->id = name;
   found->filename = filepath;
@@ -376,12 +352,14 @@ int die(char *s) {
 void *watch_slideshow_file(void *global_state) {
   game_state *state = (game_state *) global_state;
   inotify(state->show_file, read_slideshow_file, global_state);
+  return 0; // pthread create requires a returned pointer
 }
 
 /* child thread routine */
 void *watch_library(void *global_state) {
   game_state *state = (game_state *) global_state;
   inotify(state->library_file, load_game_library, global_state);
+  return 0; // pthread create requires a returned pointer
 }
 
 void load_game_library(void *global_state) {
@@ -423,7 +401,7 @@ void read_slideshow_file(void *ll) {
     bool done = false;
     size_t rc;
     while (!done) {
-      next = grow_by(content, read_len);
+      next = grow_by(content, (int)read_len);
       total += (rc = fread(next, sizeof(char), read_len, f));
       if (rc == 0) done = true;
     }
@@ -453,4 +431,3 @@ void read_slideshow_file(void *ll) {
   }
 }
 
-#pragma clang diagnostic pop

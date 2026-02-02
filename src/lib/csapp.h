@@ -62,7 +62,7 @@ extern char **environ;  /* Defined by libc */
 
 /* Our own error-handling functions */
 void             unix_error(char *msg);
-void             unix_error_context(char *msg, char *context);
+void             unix_error_context(char *msg, const char *context);
 
 void             posix_error(int code, char *msg);
 

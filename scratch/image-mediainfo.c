@@ -24,7 +24,7 @@ int main() {
       // "pink-lambo.jpg",
   };
   char str[1000];
-  for (int i = 0; i < sizeof(images) / sizeof(images[0]); ++i) {
+  for (size_t i = 0; i < sizeof(images) / sizeof(images[0]); ++i) {
     sprintf(str, "../res/%s", images[i]);
     stbi_uc *image = stbi_load(str, &x, &y, &n_chans, desired);
     stbi_image_free(image);

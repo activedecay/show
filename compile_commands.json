@@ -1,0 +1,38 @@
+[
+{
+"directory": "/home/jstnfst/hack/show",
+"command": "cc -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -D_GNU_SOURCE src/main.c src/lib/csapp.c -o build/show",
+"file": "/home/jstnfst/hack/show/src/main.c",
+"output": "/home/jstnfst/hack/show/build/show"
+},
+{
+"directory": "/home/jstnfst/hack/show",
+"command": "cc -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -D_GNU_SOURCE src/show.c src/lib/csapp.c -o build/libslider.so",
+"file": "/home/jstnfst/hack/show/src/show.c",
+"output": "/home/jstnfst/hack/show/build/libslider.so"
+},
+{
+"directory": "/home/jstnfst/hack/show",
+"command": "cc -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable scratch/image-mediainfo.c -o build/image-mediainfo",
+"file": "/home/jstnfst/hack/show/scratch/image-mediainfo.c",
+"output": "/home/jstnfst/hack/show/build/image-mediainfo"
+},
+{
+"directory": "/home/jstnfst/hack/show",
+"command": "cc -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable scratch/inotify-man-page-example.c -o build/inotify",
+"file": "/home/jstnfst/hack/show/scratch/inotify-man-page-example.c",
+"output": "/home/jstnfst/hack/show/build/inotify"
+},
+{
+"directory": "/home/jstnfst/hack/show",
+"command": "cc -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -D_GNU_SOURCE scratch/str-to-double.c src/lib/csapp.c -o build/str-to-double",
+"file": "/home/jstnfst/hack/show/scratch/str-to-double.c",
+"output": "/home/jstnfst/hack/show/build/str-to-double"
+},
+{
+"directory": "/home/jstnfst/hack/show",
+"command": "cc -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable scratch/window.c -o build/window",
+"file": "/home/jstnfst/hack/show/scratch/window.c",
+"output": "/home/jstnfst/hack/show/build/window"
+}
+]

@@ -2,14 +2,6 @@
 // Created by justin on 1/12/19.
 //
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored \
-        "-Wunknown-pragmas"
-#pragma ide diagnostic ignored  \
-        "OCUnusedMacroInspection"
-#pragma ide diagnostic ignored \
-        "OCUnusedGlobalDeclarationInspection"
-
 #ifndef slideshow_h
 #define slideshow_h
 
@@ -282,4 +274,3 @@ typedef struct {
 } game_lib;
 
 #endif //slideshow_h
-#pragma clang diagnostic pop
