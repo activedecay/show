@@ -1,7 +1,7 @@
 // Created by justin on 1/12/19.
 
 #include "show.h"
-#include "lib/uthash.h"
+#include "uthash.h"
 #include <SDL2/SDL_pixels.h>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -11,7 +11,7 @@
 #define STBI_ONLY_BMP
 #define STBI_ONLY_GIF
 
-#include "../src/lib/stb_image.h"
+#include "stb_image.h"
 
 char *RES_DIR = "./res/";
 

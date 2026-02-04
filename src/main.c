@@ -28,11 +28,11 @@ void stretchy_oom(void) {
 
 #define STRETCHY_BUFFER_OUT_OF_MEMORY stretchy_oom;
 
-#include "lib/stretchy.h"
-#include "lib/ino.h"
+#include "stretchy.h"
+#include "ino.h"
 #define CSAPP_IMPLEMENTATION
 #define CSAPP_IMPLEMENTATION
-#include "lib/csapp.h"
+#include "csapp.h"
 
 bool on_keydown(SDL_Event *event, slide_show *show, uint32_t *frame_delay);
 

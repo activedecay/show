@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <limits.h>
 #define CSAPP_IMPLEMENTATION
-#include "../src/lib/csapp.h"
+#include "csapp.h"
 
 int main(int argc, char *argv[]) {
   char *check;

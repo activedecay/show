@@ -55,6 +55,7 @@ void build_target(Cmd *cmd, Target target, String_Builder *commands_json) {
   if (target.cflags) nob_cmd_append(cmd, target.cflags);
   if (target.defines) append_each(cmd, "-D", target.defines);
   if (target.includes) nob_cmd_append(cmd, target.includes);
+  cmd_append(cmd, "-Iinclude");
 
   char inputs_realpath[4096];
   char *inputs = temp_sprintf("%s", target.inputs);

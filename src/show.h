@@ -16,9 +16,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "lib/uthash.h"
-#include "lib/stretchy.h"
-#include "lib/csapp.h"
+#include "uthash.h"
+#include "stretchy.h"
+#include "csapp.h"
 
 #define u64 uint64_t
 #define u32 uint32_t

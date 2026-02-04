@@ -5,7 +5,7 @@
 #define STBI_ONLY_GIF
 
 #include <SDL2/SDL.h>
-#include "../src/lib/stb_image.h"
+#include "stb_image.h"
 
 int main() {
   int x;
