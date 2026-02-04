@@ -5,5 +5,4 @@ nob
 nob.old
 build/
 cmake-build/
-output
 .cache/

@@ -69,7 +69,7 @@ killer
 . y .5
 Show!!!!
 
-# tits
+# twins
 . bg 0 0 1 .001
 . style baby
 . y .5
@@ -193,7 +193,7 @@ baby
 . style show
 Show!!!!
 
-# tits
+# twins
 . bg 0 0 1 .2
 . style baby
 . y .6
@@ -295,7 +295,7 @@ baby
 
 
 
-# tits
+# twins
 . style baby
 . color 0 0 1
 . y .4

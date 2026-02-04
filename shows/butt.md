@@ -80,7 +80,7 @@ yer
 . color .1 .3 .7
 . font .5 center italic
 . y .3
-boobies
+bob
 . color 0 0 0
 . y .3
 . font .5 right

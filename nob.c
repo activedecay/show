@@ -15,13 +15,13 @@
 
 typedef struct {
   char *executable;
+  int line;
   char *inputs;
   char *cflags;
   char *defines;
   char *includes;
   char *libraries;
   char *lflags;
-  int line;
 } Target;
 
 typedef struct {
@@ -94,12 +94,12 @@ void build_target(Cmd *cmd, Target target, String_Builder *commands_json) {
   printf("%s:%d: info: exe %s of files %s\n", __FILE__, target.line, target.executable, target.inputs);
 
   sb_appendf(commands_json, "{\n"
-                            "\"directory\": \"%s\",\n"
-                            "\"command\": \"%s\",\n"
-                            "\"file\": \"%s\",\n"
-                            "\"output\": \"%s\"\n"
-                            "}",
-    cwd, compile_command.items, inputs_realpath, outputs_realpath);
+      "\"directory\": \"%s\",\n"
+      "\"command\": \"%s\",\n"
+      "\"file\": \"%s\",\n"
+      "\"output\": \"%s\"\n"
+      "}",
+      cwd, compile_command.items, inputs_realpath, outputs_realpath);
 
   if (!cmd_run(cmd, .async = &procs)) exit(1);
 }
@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
   Targets targets              = { 0 };
   String_Builder commands_json = { 0 };
 
-  da_append(&targets, ((Target) { .executable = "show", .inputs = "src/main.c src/lib/csapp.c", .defines = "_GNU_SOURCE", .libraries = "SDL2 SDL2_ttf pthread m dl X11 OpenGL", .line = __LINE__ }));
+  da_append(&targets, ((Target) { .executable = "show", .inputs = "src/main.c src/lib/csapp.c", .defines = "_GNU_SOURCE", .lflags = "-Wl,-rpath,'$ORIGIN/lib'", .libraries = "SDL2 SDL2_ttf pthread m dl X11 OpenGL", .line = __LINE__ }));
   da_append(&targets, ((Target) { .executable = "libslider.so", .inputs = "src/show.c src/lib/csapp.c", .defines = "_GNU_SOURCE", .lflags = "-fPIC -shared", .line = __LINE__ }));
   da_append(&targets, ((Target) { .executable = "image-mediainfo", .inputs = "scratch/image-mediainfo.c", .libraries = "SDL2 m", .line = __LINE__ }));
   da_append(&targets, ((Target) { .executable = "inotify", .inputs = "scratch/inotify-man-page-example.c", .line = __LINE__ }));
@@ -142,9 +142,9 @@ int main(int argc, char **argv) {
     sb_append_cstr(&commands_json, "\n]\n");
     nob_write_entire_file("compile_commands.json", commands_json.items, commands_json.count);
 
-    mkdir_if_not_exists(BUILD_FOLDER"/lib");
-    if (file_exists(BUILD_FOLDER"/libslider.so"))
-      nob_rename(BUILD_FOLDER"/libslider.so", BUILD_FOLDER"/lib/libslider.so");
+    mkdir_if_not_exists(BUILD_FOLDER "/lib");
+    if (file_exists(BUILD_FOLDER "/libslider.so"))
+      nob_rename(BUILD_FOLDER "/libslider.so", BUILD_FOLDER "/lib/libslider.so");
 
     // .cpp - these files were cpp files
     // TODO: da_append(&names, "lsmicrophones"); needs to link with -lasound

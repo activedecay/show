@@ -131,7 +131,7 @@ main(int argc, char *argv[]) {
 
   linkedlist images = {0};
   game_state game_state = {0};
-  game_state.library_file = "lib/libslider.so";
+  game_state.library_file = "libslider.so";
   game_state.show_file = argc < 2 ? 0 : argv[1];
   game_state.images = &images;
   Sem_init(&game_state.game_sem, 0, 1);
@@ -367,6 +367,19 @@ void load_game_library(void *global_state) {
   P(&state->game_sem);
   game_lib *lib = &state->game_library;
   if (lib->it) dlclose(lib->it);
+
+  char lib_path[PATH_MAX];
+  char exe_path[PATH_MAX];
+  ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+  exe_path[len] = '\0';
+
+  // Get directory containing executable
+  char *last_slash = strrchr(exe_path, '/');
+  *last_slash = '\0';
+
+  snprintf(lib_path, sizeof(lib_path), "%s/lib/libslider.so", exe_path);
+  //snprintf(lib_path, sizeof(lib_path), "%shi", exe_path);
+  state->library_file= lib_path;
 
   if (!(lib->it = dlopen(state->library_file, RTLD_LAZY))) {
     error("dlopen failed %s\n", dlerror());
