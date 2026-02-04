@@ -30,6 +30,8 @@ void stretchy_oom(void) {
 
 #include "lib/stretchy.h"
 #include "lib/ino.h"
+#define CSAPP_IMPLEMENTATION
+#define CSAPP_IMPLEMENTATION
 #include "lib/csapp.h"
 
 bool on_keydown(SDL_Event *event, slide_show *show, uint32_t *frame_delay);
@@ -371,14 +373,20 @@ void load_game_library(void *global_state) {
   char lib_path[PATH_MAX];
   char exe_path[PATH_MAX];
   ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+  if (len == -1) {
+    unix_error("readlink");
+  }
   exe_path[len] = '\0';
 
   // Get directory containing executable
   char *last_slash = strrchr(exe_path, '/');
+  if (!last_slash) {
+    app_error("bad executable path");
+  }
   *last_slash = '\0';
 
-  snprintf(lib_path, sizeof(lib_path), "%s/lib/libslider.so", exe_path);
-  //snprintf(lib_path, sizeof(lib_path), "%shi", exe_path);
+  if (snprintf(lib_path, sizeof(lib_path), "%s/lib/libslider.so", exe_path) < 0)
+    app_error("failed to write lib string location");
   state->library_file= lib_path;
 
   if (!(lib->it = dlopen(state->library_file, RTLD_LAZY))) {

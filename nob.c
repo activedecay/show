@@ -121,11 +121,11 @@ int main(int argc, char **argv) {
   Targets targets              = { 0 };
   String_Builder commands_json = { 0 };
 
-  da_append(&targets, ((Target) { .executable = "show", .inputs = "src/main.c src/lib/csapp.c", .defines = "_GNU_SOURCE", .lflags = "-Wl,-rpath,'$ORIGIN/lib'", .libraries = "SDL2 SDL2_ttf pthread m dl X11 OpenGL", .line = __LINE__ }));
-  da_append(&targets, ((Target) { .executable = "libslider.so", .inputs = "src/show.c src/lib/csapp.c", .defines = "_GNU_SOURCE", .lflags = "-fPIC -shared", .line = __LINE__ }));
+  da_append(&targets, ((Target) { .executable = "show", .inputs = "src/main.c", .defines = "_GNU_SOURCE", .libraries = "SDL2 SDL2_ttf pthread m dl X11 OpenGL", .line = __LINE__ }));
+  da_append(&targets, ((Target) { .executable = "libslider.so", .inputs = "src/show.c", .defines = "_GNU_SOURCE", .lflags = "-fPIC -shared", .line = __LINE__ }));
   da_append(&targets, ((Target) { .executable = "image-mediainfo", .inputs = "scratch/image-mediainfo.c", .libraries = "SDL2 m", .line = __LINE__ }));
   da_append(&targets, ((Target) { .executable = "inotify", .inputs = "scratch/inotify-man-page-example.c", .line = __LINE__ }));
-  da_append(&targets, ((Target) { .executable = "str-to-double", .inputs = "scratch/str-to-double.c src/lib/csapp.c", .defines = "_GNU_SOURCE", .line = __LINE__ }));
+  da_append(&targets, ((Target) { .executable = "str-to-double", .inputs = "scratch/str-to-double.c", .defines = "_GNU_SOURCE", .line = __LINE__ }));
   da_append(&targets, ((Target) { .executable = "window", .inputs = "scratch/window.c", .libraries = "SDL2 SDL2_ttf", .line = __LINE__ }));
 
   if (argc <= 0) {
