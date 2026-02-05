@@ -3,22 +3,21 @@
 // code review Sat Oct 16 09:33:24 MDT 2021
 //
 
-#include <dirent.h>
-#include <dlfcn.h>
+#include <GL/gl.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <X11/X.h>    // can probably remove -lX11 from cmake, too
+#include <X11/Xlib.h> // can probably remove -lX11 from cmake, too
+#include <dirent.h>
+#include <dlfcn.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <time.h>
-#include <signal.h>
 #include <wait.h>
-#include <fcntl.h>
-#include <X11/X.h> // can probably remove -lX11 from cmake, too
-#include <X11/Xlib.h> // can probably remove -lX11 from cmake, too
-#include <GL/gl.h>
 
 #include "show.h"
 
@@ -28,43 +27,35 @@ void stretchy_oom(void) {
 
 #define STRETCHY_BUFFER_OUT_OF_MEMORY stretchy_oom;
 
-#include "stretchy.h"
 #include "ino.h"
-#define CSAPP_IMPLEMENTATION
+#include "stretchy.h"
 #define CSAPP_IMPLEMENTATION
 #include "csapp.h"
+#define NOB_IMPLEMENTATION
+#include "../nob.h"
 
 bool on_keydown(SDL_Event *event, slide_show *show, uint32_t *frame_delay);
-
 void add_font(font **, char *, char *);
-
 int die(char *);
-
-void on_window(SDL_Event *event, uint32_t *frame_delay,
-               int *w, int *h, bool *in_frame);
-
+void on_window(SDL_Event *event, uint32_t *frame_delay, int *w, int *h, bool *in_frame);
 void quit(void);
-
 void read_slideshow_file(void *);
-
 void *watch_library(void *);
-
 void *watch_slideshow_file(void *);
+void load_game_library(void *);
 
 typedef struct {
-    char *library_file; /* string path to the library */
-    char *show_file; /* string path to the show.markdown file */
-    sem_t game_sem; /* the library mutex to protect the game_lib reassignments */
-    sem_t show_sem;
-    game_lib game_library;
-    font *fonts;  /* = 0; important */
-    slide_show *show;
-    style_item *saved_styles;  /* = 0; important */
-    SDL_Renderer *renderer;
-    linkedlist *images;
+  char *library_file; /* string path to the library */
+  char *show_file;    /* string path to the show.markdown file */
+  sem_t game_sem;     /* the library mutex to protect the game_lib reassignments */
+  sem_t show_sem;
+  game_lib game_library;
+  font *fonts; /* = 0; important */
+  slide_show *show;
+  style_item *saved_styles; /* = 0; important */
+  SDL_Renderer *renderer;
+  linkedlist *images;
 } game_state;
-
-void load_game_library(void *);
 
 void sdl_hack_logger(void *userdata, int category, SDL_LogPriority priority, const char *message) {
   // a nice place to set breakpoints
@@ -73,19 +64,14 @@ void sdl_hack_logger(void *userdata, int category, SDL_LogPriority priority, con
   fprintf(stderr, "lmao"); // set breakpoints here to make your live easier.
 }
 
-/*
-int x_error_handler(Display *a, XErrorEvent *b) {
-  error("wtf though"); // this doesn't even work. can't break here.
-  return 0;
-}
-*/
-
 #define errExitErrno(en, msg) \
-    do { errno = en; perror(msg); exit(EXIT_FAILURE); \
+  do {                        \
+    errno = en;               \
+    perror(msg);              \
+    exit(EXIT_FAILURE);       \
   } while (0)
 
-int
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
   if (argc < 2) return die("usage: path/to/show-markdown");
 
   atexit(quit);
@@ -100,7 +86,7 @@ main(int argc, char *argv[]) {
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
 
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24); // 24 bits
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);  // 24 bits
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); // enable
 
     window = SDL_CreateWindow("OpenGL Window", 0, 0, 640, 480, SDL_WINDOW_OPENGL);
@@ -115,7 +101,7 @@ main(int argc, char *argv[]) {
     SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &b);
 
     printf("Red size: %d, Green size: %d, Blue size: %d\n", r, g, b);
-    glClearColor(1.f,1.f,1.f,1.f);
+    glClearColor(1.f, 1.f, 1.f, 1.f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     SDL_GL_SwapWindow(window);
 
@@ -126,20 +112,20 @@ main(int argc, char *argv[]) {
   /* more epic logging stuff note: works well with SetOutputFunction below */
   // SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
   /* epic logging thing to help solve issues! */
-  //SDL_LogSetOutputFunction(sdl_hack_logger, 0);
-  // todo figure out how this is supposed to work
-  // because i can't break in the x_error_handler
-  // XSetErrorHandler(x_error_handler);
+  // SDL_LogSetOutputFunction(sdl_hack_logger, 0);
+  //  todo figure out how this is supposed to work
+  //  because i can't break in the x_error_handler
+  //  XSetErrorHandler(x_error_handler);
 
-  linkedlist images = {0};
-  game_state game_state = {0};
+  linkedlist images       = { 0 };
+  game_state game_state   = { 0 };
   game_state.library_file = "libslider.so";
-  game_state.show_file = argc < 2 ? 0 : argv[1];
-  game_state.images = &images;
+  game_state.show_file    = argc < 2 ? 0 : argv[1];
+  game_state.images       = &images;
   Sem_init(&game_state.game_sem, 0, 1);
   Sem_init(&game_state.show_sem, 0, 1);
 
-  SDL_Window *window = 0;
+  SDL_Window *window     = 0;
   SDL_Renderer *renderer = 0;
   SDL_Event event;
   int w = 960;
@@ -149,8 +135,7 @@ main(int argc, char *argv[]) {
     return die("can't init SDL");
   if (TTF_Init() < 0)
     return die("can't init SDL TTF");
-  SDL_CreateWindowAndRenderer(
-    w, h, SDL_WINDOW_RESIZABLE, &window, &renderer);
+  SDL_CreateWindowAndRenderer(w, h, SDL_WINDOW_RESIZABLE, &window, &renderer);
 
   game_state.renderer = renderer;
 
@@ -187,54 +172,38 @@ main(int argc, char *argv[]) {
   add_font(&game_state.fonts, "scriptitalic", "./res/AlexBrush-Regular.ttf");
   add_font(&game_state.fonts, "scriptbold", "./res/OleoScript-Bold.ttf");
 
-  bool in_frame = false;
-  bool quit = false;
+  bool in_frame   = false;
+  bool quit       = false;
   u32 frame_delay = 16;
 
   SDL_ShowCursor(false);
   while (!quit) {
     while (SDL_PollEvent(&event)) {
       const Uint8 *state = SDL_GetKeyboardState(NULL);
-      if (state[SDL_SCANCODE_RETURN]) {
+      if (state[SDL_SCANCODE_RETURN])
         printf("<RETURN> is pressed.\n");
-      }
-      if (state[SDL_SCANCODE_RIGHT] && state[SDL_SCANCODE_UP]) {
+      if (state[SDL_SCANCODE_RIGHT] && state[SDL_SCANCODE_UP])
         printf("Right and Up Keys Pressed.\n");
-      }
 
       if (event.type == SDL_QUIT) {
-        quit = true;
+        quit        = true;
         frame_delay = 0;
         break;
       }
       P(&game_state.show_sem);
-      switch ((SDL_EventType) event.type) {
-        case SDL_WINDOWEVENT: {
-          on_window(&event, &frame_delay, &w, &h, &in_frame);
-          break;
-        }
-        case SDL_KEYDOWN: {
-          quit = on_keydown(&event, game_state.show, &frame_delay);
-          break;
-        }
-        case SDL_MOUSEWHEEL: {
-          game_state.show->index += -event.wheel.y;
-          break;
-        }
-        default:
-          break;
+      switch ((SDL_EventType)event.type) {
+        case SDL_WINDOWEVENT: on_window(&event, &frame_delay, &w, &h, &in_frame); break;
+        case SDL_KEYDOWN:     quit = on_keydown(&event, game_state.show, &frame_delay); break;
+        case SDL_MOUSEWHEEL:  game_state.show->index += -event.wheel.y; break;
+        default:              break;
       }
-      game_state.show->index =
-        game_state.show->index < 0 ? 0
-                                   : min(game_state.show->index,
-                                         count(game_state.show->slides) - 1);
+      game_state.show->index = game_state.show->index < 0 ? 0 : min(game_state.show->index, count(game_state.show->slides) - 1);
       V(&game_state.show_sem);
     }
 
     P(&game_state.show_sem);
     if (game_state.show->slides)
-      game_state.game_library.render_slide_func(
-        renderer, w, h, game_state.show, game_state.fonts, game_state.images, in_frame);
+      game_state.game_library.render_slide_func(renderer, w, h, game_state.show, game_state.fonts, game_state.images, in_frame);
     V(&game_state.show_sem);
 
     SDL_RenderPresent(renderer);
@@ -243,7 +212,6 @@ main(int argc, char *argv[]) {
 
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
-
   return EXIT_SUCCESS;
 }
 
@@ -256,54 +224,35 @@ void add_font(font **fonts, char *name, char *filepath) {
   font *found;
   HASH_FIND_STR(*fonts, name, found);
   if (found) return;
-  found = Malloc(sizeof(font));
-  found->id = name;
+  found           = Malloc(sizeof(font));
+  found->id       = name;
   found->filename = filepath;
   HASH_ADD_STR(*fonts, id, found);
 }
 
 bool on_keydown(SDL_Event *event, slide_show *show,
-                uint32_t *frame_delay) {
+  uint32_t *frame_delay) {
   bool quit = false;
 
-  switch ((SDL_Scancode) (*event).key.keysym.scancode) {
+  switch ((SDL_Scancode)(*event).key.keysym.scancode) {
     case SDL_SCANCODE_Q:
-      quit = true;
+      quit           = true;
       (*frame_delay) = 1;
       break;
     case SDL_SCANCODE_ESCAPE:
-      quit = true;
+      quit           = true;
       (*frame_delay) = 1;
       break;
-    case SDL_SCANCODE_HOME:
-      show->index = 0;
-      break;
-    case SDL_SCANCODE_PAGEUP:
-      show->index--;
-      break;
-    case SDL_SCANCODE_END:
-      show->index = count(show->slides) - 1;
-      break;
-    case SDL_SCANCODE_PAGEDOWN:
-      show->index++;
-      break;
-    case SDL_SCANCODE_RIGHT:
-      show->index++;
-      break;
-    case SDL_SCANCODE_LEFT:
-      show->index--;
-      break;
-    case SDL_SCANCODE_DOWN:
-      show->index++;
-      break;
-    case SDL_SCANCODE_UP:
-      show->index--;
-      break;
-    case SDL_SCANCODE_X:
-      (*frame_delay) = 0;
-      break;
-    default:
-      break;
+    case SDL_SCANCODE_HOME:     show->index = 0; break;
+    case SDL_SCANCODE_PAGEUP:   show->index--; break;
+    case SDL_SCANCODE_END:      show->index = count(show->slides) - 1; break;
+    case SDL_SCANCODE_PAGEDOWN: show->index++; break;
+    case SDL_SCANCODE_RIGHT:    show->index++; break;
+    case SDL_SCANCODE_LEFT:     show->index--; break;
+    case SDL_SCANCODE_DOWN:     show->index++; break;
+    case SDL_SCANCODE_UP:       show->index--; break;
+    case SDL_SCANCODE_X:        (*frame_delay) = 0; break;
+    default:                    break;
   }
   /* keyboard shortcuts:
    *                q, esc: quit
@@ -316,15 +265,9 @@ bool on_keydown(SDL_Event *event, slide_show *show,
   return quit;
 }
 
-void on_window(SDL_Event *event, uint32_t *frame_delay,
-               int *w, int *h, bool *in_frame) {
-  switch ((SDL_WindowEventID) (*event).window.event) {
-    default:
-      break;
-    case SDL_WINDOWEVENT_CLOSE: {
-      (*frame_delay) = 0;
-      break;
-    }
+void on_window(SDL_Event *event, uint32_t *frame_delay, int *w, int *h, bool *in_frame) {
+  switch ((SDL_WindowEventID)(*event).window.event) {
+    case SDL_WINDOWEVENT_CLOSE:        (*frame_delay) = 0; break;
     case SDL_WINDOWEVENT_SIZE_CHANGED: { // aka resize resizable
       *w = event->window.data1;
       *h = event->window.data2;
@@ -332,16 +275,17 @@ void on_window(SDL_Event *event, uint32_t *frame_delay,
     }
     case SDL_WINDOWEVENT_ENTER:
     case SDL_WINDOWEVENT_FOCUS_GAINED: {
-      *in_frame = true;
+      *in_frame      = true;
       (*frame_delay) = 16;
       break;
     }
     case SDL_WINDOWEVENT_LEAVE:
     case SDL_WINDOWEVENT_FOCUS_LOST: {
-      *in_frame = false;
+      *in_frame      = false;
       (*frame_delay) = 150;
       break;
     }
+    default: break;
   }
 }
 
@@ -352,20 +296,20 @@ int die(char *s) {
 
 /* child thread routine */
 void *watch_slideshow_file(void *global_state) {
-  game_state *state = (game_state *) global_state;
+  game_state *state = (game_state *)global_state;
   inotify(state->show_file, read_slideshow_file, global_state);
   return 0; // pthread create requires a returned pointer
 }
 
 /* child thread routine */
 void *watch_library(void *global_state) {
-  game_state *state = (game_state *) global_state;
+  game_state *state = (game_state *)global_state;
   inotify(state->library_file, load_game_library, global_state);
   return 0; // pthread create requires a returned pointer
 }
 
 void load_game_library(void *global_state) {
-  game_state *state = (game_state *) global_state;
+  game_state *state = (game_state *)global_state;
   P(&state->game_sem);
   game_lib *lib = &state->game_library;
   if (lib->it) dlclose(lib->it);
@@ -376,18 +320,15 @@ void load_game_library(void *global_state) {
   if (len == -1) {
     unix_error("readlink");
   }
-  exe_path[len] = '\0';
-
+  exe_path[len]    = '\0';
   // Get directory containing executable
   char *last_slash = strrchr(exe_path, '/');
-  if (!last_slash) {
+  if (!last_slash)
     app_error("bad executable path");
-  }
   *last_slash = '\0';
-
   if (snprintf(lib_path, sizeof(lib_path), "%s/lib/libslider.so", exe_path) < 0)
     app_error("failed to write lib string location");
-  state->library_file= lib_path;
+  state->library_file = lib_path;
 
   if (!(lib->it = dlopen(state->library_file, RTLD_LAZY))) {
     error("dlopen failed %s\n", dlerror());
@@ -395,60 +336,40 @@ void load_game_library(void *global_state) {
   }
   dlerror(); // clear existing errors
 
-  lib->init_slides_func = dlsym(lib->it, "init_slides");
-  lib->render_slide_func = dlsym(lib->it, "render_slide");
+  lib->init_slides_func    = dlsym(lib->it, "init_slides");
+  lib->render_slide_func   = dlsym(lib->it, "render_slide");
   lib->texturize_text_func = dlsym(lib->it, "texturize_text");
-  lib->free_show_func = dlsym(lib->it, "free_show");
+  lib->free_show_func      = dlsym(lib->it, "free_show");
   info("loaded new library! %p", lib->it);
   V(&state->game_sem);
 
   char *error;
   if ((error = dlerror()) != 0) {
-    fprintf(stderr, "todo lasagna %s\n", error);
+    fprintf(stderr, "error loading dll %s\n", error);
     exit(EXIT_FAILURE);
   }
 }
 
 void read_slideshow_file(void *ll) {
-  game_state *state = (game_state *) ll;
-
+  game_state *state      = (game_state *)ll;
   static size_t read_len = 1024 * 4;
 
   if (state->show_file) {
-    FILE *f = Fopen(state->show_file, "r");
-    char *content = 0;
-    size_t total = 0;
-    char *next;
-    bool done = false;
-    size_t rc;
-    while (!done) {
-      next = grow_by(content, (int)read_len);
-      total += (rc = fread(next, sizeof(char), read_len, f));
-      if (rc == 0) done = true;
-    }
-    content[total] = 0;
-    fclose(f);
+    String_Builder content = { 0 };
+    if (!read_entire_file(state->show_file, &content))
+      error("cannot read show file");
 
     P(&state->show_sem);
-
     int idx = state->show ? state->show->index : -1;
-
-    if (state->game_library
-          .free_show_func(state->show, &state->saved_styles) != 0)
-      error("something terrible happened "
-            "while freeing the show!");
-
-    if ((state->show = state->game_library
-      .init_slides_func(idx,
-                        &state->saved_styles,
-                        content)) == 0) {
-      die("this show file sucks!");
+    if (state->game_library.free_show_func(state->show, &state->saved_styles) != 0)
+      error("something terrible happened while freeing the show!");
+    if ((state->show = state->game_library.init_slides_func(idx, &state->saved_styles, content.items)) == 0) {
+      die("the show file was not initialized");
       exit(EXIT_FAILURE);
     }
-    stretch_free(content);
+    sb_free(content);
     V(&state->show_sem);
   } else {
     error("how did we get here?");
   }
 }
-

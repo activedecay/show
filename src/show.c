@@ -12,6 +12,8 @@
 #define STBI_ONLY_GIF
 
 #include "stb_image.h"
+#define CSAPP_IMPLEMENTATION
+#include "csapp.h"
 
 char *RES_DIR = "./res/";
 
